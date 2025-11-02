@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ 'الرؤية والرسالة' if lang == 'ar' else 'Vision & Mission' }}{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h2 class="fw-bold mb-4 text-center">{{ 'الرؤية والرسالة' if lang == 'ar' else 'Vision & Mission' }}</h2>
+                    <div class="bg-light p-4 rounded" style="white-space: pre-wrap;">{{ content }}</div>
+                    <div class="mt-4 text-center">
+                        <a href="{{ url_for('strategy.index') }}" class="btn btn-primary">
+                            {{ 'العودة' if lang == 'ar' else 'Back' }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

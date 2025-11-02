@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ 'تحليل SWOT' if lang == 'ar' else 'SWOT Analysis' }}{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h2 class="fw-bold mb-4 text-center">{{ 'تحليل SWOT الذكي' if lang == 'ar' else 'AI-Powered SWOT Analysis' }}</h2>
+                    <form method="POST">{% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">{{ 'اسم الشركة' if lang == 'ar' else 'Company Name' }}</label>
+                            <input type="text" name="company_name" class="form-control" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">{{ 'القطاع' if lang == 'ar' else 'Industry' }}</label>
+                            <input type="text" name="industry" class="form-control" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">{{ 'وصف الشركة' if lang == 'ar' else 'Company Description' }}</label>
+                            <textarea name="description" class="form-control" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">
+                            <i class="fas fa-magic"></i> {{ 'إنشاء تحليل SWOT' if lang == 'ar' else 'Generate SWOT Analysis' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

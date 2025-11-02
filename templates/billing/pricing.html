@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+    <h2 class="fw-bold text-center mb-5">{{ 'خطط الاشتراك' if lang == 'ar' else 'Subscription Plans' }}</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card"><div class="card-body text-center p-4"><h4 class="fw-bold">{{ 'شهري' if lang == 'ar' else 'Monthly' }}</h4><h2 class="fw-bold my-3">$99<small>/{{ 'شهر' if lang == 'ar' else 'month' }}</small></h2><form method="POST">{% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}<form method="POST" action="{{ url_for('billing.subscribe') }}"><input type="hidden" name="plan" value="monthly"><button type="submit" class="btn btn-primary w-100">{{ 'اشترك الآن' if lang == 'ar' else 'Subscribe Now' }}</button></form></div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card"><div class="card-body text-center p-4"><h4 class="fw-bold">{{ 'سنوي' if lang == 'ar' else 'Yearly' }}</h4><h2 class="fw-bold my-3">$999<small>/{{ 'سنة' if lang == 'ar' else 'year' }}</small></h2><form method="POST">{% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}<form method="POST" action="{{ url_for('billing.subscribe') }}"><input type="hidden" name="plan" value="yearly"><button type="submit" class="btn btn-primary w-100">{{ 'اشترك الآن' if lang == 'ar' else 'Subscribe Now' }}</button></form></div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card"><div class="card-body text-center p-4"><h4 class="fw-bold">{{ 'الدفع حسب الاستخدام' if lang == 'ar' else 'Pay Per Use' }}</h4><h2 class="fw-bold my-3">{{ 'مرن' if lang == 'ar' else 'Flexible' }}</h2><form method="POST">{% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}<form method="POST" action="{{ url_for('billing.subscribe') }}"><input type="hidden" name="plan" value="pay_per_use"><button type="submit" class="btn btn-outline-primary w-100">{{ 'ابدأ' if lang == 'ar' else 'Start' }}</button></form></div></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

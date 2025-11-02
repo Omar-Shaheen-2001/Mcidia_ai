@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'التسجيل' if lang == 'ar' else 'Register' }} - Mcidia{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="fw-bold">{{ 'إنشاء حساب جديد' if lang == 'ar' else 'Create New Account' }}</h2>
+                        <p class="text-secondary">{{ 'ابدأ رحلتك نحو التميز' if lang == 'ar' else 'Start your journey to excellence' }}</p>
+                    </div>
+                    
+                    <form method="POST">{% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}<form method="POST" action="{{ url_for('auth.register') }}">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ 'اسم المستخدم' if lang == 'ar' else 'Username' }}</label>
+                                <input type="text" name="username" class="form-control" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</label>
+                                <input type="email" name="email" class="form-control" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">{{ 'اسم المؤسسة (اختياري)' if lang == 'ar' else 'Company Name (Optional)' }}</label>
+                            <input type="text" name="company_name" class="form-control">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">{{ 'كلمة المرور' if lang == 'ar' else 'Password' }}</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">{{ 'نوع الحساب' if lang == 'ar' else 'Account Type' }}</label>
+                            <select name="role" class="form-select">
+                                <option value="client">{{ 'عميل' if lang == 'ar' else 'Client' }}</option>
+                                <option value="company_user">{{ 'مستخدم مؤسسة' if lang == 'ar' else 'Company User' }}</option>
+                                <option value="consultant">{{ 'مستشار' if lang == 'ar' else 'Consultant' }}</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <i class="fas fa-user-plus"></i> {{ 'تسجيل' if lang == 'ar' else 'Register' }}
+                        </button>
+                    </form>
+                    
+                    <div class="text-center">
+                        <p class="text-secondary">
+                            {{ 'لديك حساب بالفعل؟' if lang == 'ar' else 'Already have an account?' }}
+                            <a href="{{ url_for('auth.login') }}">{{ 'تسجيل الدخول' if lang == 'ar' else 'Login' }}</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

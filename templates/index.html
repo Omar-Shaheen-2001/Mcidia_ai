@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Mcidia - {{ 'منصة استشارية ذكية' if lang == 'ar' else 'Smart AI Consulting Platform' }}{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section" style="background: linear-gradient(rgba(10, 39, 86, 0.85), rgba(10, 39, 86, 0.85)), url('https://images.unsplash.com/photo-1552664730-d307ca884978?w=1920') center/cover; min-height: 100vh; display: flex; align-items: center; color: white;">
+    <div class="container text-center">
+        <h1 class="display-3 fw-bold mb-4">
+            {% if lang == 'ar' %}
+                منصة Mcidia الذكية
+            {% else %}
+                Mcidia Smart Platform
+            {% endif %}
+        </h1>
+        <p class="lead mb-4" style="font-size: 1.5rem;">Smart AI. Agile. Excellence.</p>
+        <p class="mb-5" style="font-size: 1.2rem;">
+            {% if lang == 'ar' %}
+                منصة استشارية ذكية متكاملة للتميز المؤسسي، الجودة، الابتكار، الحوكمة، وإدارة المعرفة
+            {% else %}
+                Comprehensive AI-powered consulting platform for organizational excellence, quality, innovation, governance, and knowledge management
+            {% endif %}
+        </p>
+        <div>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-secondary btn-lg me-3" style="backdrop-filter: blur(10px); background: rgba(44, 140, 86, 0.9);">
+                {% if lang == 'ar' %}
+                    <i class="fas fa-rocket"></i> ابدأ الآن
+                {% else %}
+                    <i class="fas fa-rocket"></i> Get Started
+                {% endif %}
+            </a>
+            <a href="#services" class="btn btn-outline-light btn-lg" style="backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.1);">
+                {% if lang == 'ar' %}
+                    <i class="fas fa-compass"></i> اكتشف الخدمات
+                {% else %}
+                    <i class="fas fa-compass"></i> Explore Services
+                {% endif %}
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section id="services" class="py-5" style="background: white;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold mb-3">{{ 'خدماتنا الذكية' if lang == 'ar' else 'Our AI-Powered Services' }}</h2>
+            <p class="text-secondary">{{ '12+ وحدة استشارية ذكية لتطوير مؤسستك' if lang == 'ar' else '12+ intelligent consulting modules for your organization' }}</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Strategy Module -->
+            <div class="col-md-4">
+                <div class="module-card">
+                    <div class="module-icon"><i class="fas fa-compass"></i></div>
+                    <h5 class="fw-bold mb-3">{{ 'التخطيط الاستراتيجي' if lang == 'ar' else 'Strategic Planning' }}</h5>
+                    <p class="text-secondary">{{ 'تحليل SWOT، الرؤية والرسالة، الأهداف الذكية، بطاقات الأداء' if lang == 'ar' else 'SWOT Analysis, Vision & Mission, SMART Goals, Balanced Scorecard' }}</p>
+                </div>
+            </div>
+            
+            <!-- HR Module -->
+            <div class="col-md-4">
+                <div class="module-card">
+                    <div class="module-icon"><i class="fas fa-users"></i></div>
+                    <h5 class="fw-bold mb-3">{{ 'الموارد البشرية' if lang == 'ar' else 'Human Resources' }}</h5>
+                    <p class="text-secondary">{{ 'التوصيف الوظيفي، الهيكل التنظيمي، تقييم الأداء' if lang == 'ar' else 'Job Descriptions, Org Structure, Performance Evaluation' }}</p>
+                </div>
+            </div>
+            
+            <!-- Finance Module -->
+            <div class="col-md-4">
+                <div class="module-card">
+                    <div class="module-icon"><i class="fas fa-chart-line"></i></div>
+                    <h5 class="fw-bold mb-3">{{ 'المالية والتكاليف' if lang == 'ar' else 'Finance & Costing' }}</h5>
+                    <p class="text-secondary">{{ 'دراسات الجدوى، التحليل المالي، استراتيجيات التسعير' if lang == 'ar' else 'Feasibility Studies, Financial Analysis, Pricing Strategies' }}</p>
+                </div>
+            </div>
+            
+            <!-- Marketing Module -->
+            <div class="col-md-4">
+                <div class="module-card">
+                    <div class="module-icon"><i class="fas fa-bullhorn"></i></div>
+                    <h5 class="fw-bold mb-3">{{ 'التسويق' if lang == 'ar' else 'Marketing' }}</h5>
+                    <p class="text-secondary">{{ 'الخطط التسويقية، تحليل المنافسين، استراتيجيات القنوات' if lang == 'ar' else 'Marketing Plans, Competitor Analysis, Channel Strategies' }}</p>
+                </div>
+            </div>
+            
+            <!-- Knowledge Management Module -->
+            <div class="col-md-4">
+                <div class="module-card">
+                    <div class="module-icon"><i class="fas fa-book"></i></div>
+                    <h5 class="fw-bold mb-3">{{ 'إدارة المعرفة' if lang == 'ar' else 'Knowledge Management' }}</h5>
+                    <p class="text-secondary">{{ 'رفع الوثائق، بحث دلالي، استفسارات ذكية' if lang == 'ar' else 'Document Upload, Semantic Search, Smart Q&A' }}</p>
+                </div>
+            </div>
+            
+            <!-- Governance Module -->
+            <div class="col-md-4">
+                <div class="module-card">
+                    <div class="module-icon"><i class="fas fa-gavel"></i></div>
+                    <h5 class="fw-bold mb-3">{{ 'الجودة والحوكمة' if lang == 'ar' else 'Quality & Governance' }}</h5>
+                    <p class="text-secondary">{{ 'السياسات، الإجراءات، مصفوفة الصلاحيات' if lang == 'ar' else 'Policies, Procedures, Authority Matrices' }}</p>
+                </div>
+            </div>
+            
+            <!-- Innovation Module -->
+            <div class="col-md-4">
+                <div class="module-card">
+                    <div class="module-icon"><i class="fas fa-lightbulb"></i></div>
+                    <h5 class="fw-bold mb-3">{{ 'الابتكار' if lang == 'ar' else 'Innovation' }}</h5>
+                    <p class="text-secondary">{{ 'قماش نموذج العمل، أفكار ابتكارية، خريطة الابتكار' if lang == 'ar' else 'Business Model Canvas, Innovation Ideas, Innovation Roadmap' }}</p>
+                </div>
+            </div>
+            
+            <!-- Consultation Chat -->
+            <div class="col-md-4">
+                <div class="module-card">
+                    <div class="module-icon"><i class="fas fa-comments"></i></div>
+                    <h5 class="fw-bold mb-3">{{ 'الاستشارات السريعة' if lang == 'ar' else 'AI Consultation' }}</h5>
+                    <p class="text-secondary">{{ 'دردشة فورية مع المستشار الذكي في جميع المجالات' if lang == 'ar' else 'Instant chat with AI consultant across all domains' }}</p>
+                </div>
+            </div>
+            
+            <!-- Admin Panel -->
+            <div class="col-md-4">
+                <div class="module-card">
+                    <div class="module-icon"><i class="fas fa-cog"></i></div>
+                    <h5 class="fw-bold mb-3">{{ 'إدارة النظام' if lang == 'ar' else 'System Administration' }}</h5>
+                    <p class="text-secondary">{{ 'إدارة المستخدمين، التقارير، متابعة الأداء' if lang == 'ar' else 'User Management, Reports, Performance Tracking' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+<section class="py-5" style="background: var(--background-color);">
+    <div class="container">
+        <div class="row text-center g-4">
+            <div class="col-md-3">
+                <div class="p-4">
+                    <h2 class="display-4 fw-bold" style="color: var(--secondary-color);">500+</h2>
+                    <p class="text-secondary">{{ 'عميل راضٍ' if lang == 'ar' else 'Satisfied Clients' }}</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-4">
+                    <h2 class="display-4 fw-bold" style="color: var(--secondary-color);">10K+</h2>
+                    <p class="text-secondary">{{ 'استشارة ذكية' if lang == 'ar' else 'AI Consultations' }}</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-4">
+                    <h2 class="display-4 fw-bold" style="color: var(--secondary-color);">98%</h2>
+                    <p class="text-secondary">{{ 'معدل النجاح' if lang == 'ar' else 'Success Rate' }}</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-4">
+                    <h2 class="display-4 fw-bold" style="color: var(--secondary-color);">5+</h2>
+                    <p class="text-secondary">{{ 'سنوات خبرة' if lang == 'ar' else 'Years Experience' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5" style="background: var(--primary-color); color: white;">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-4">{{ 'ابدأ رحلتك نحو التميز المؤسسي' if lang == 'ar' else 'Start Your Journey Towards Organizational Excellence' }}</h2>
+        <p class="lead mb-4">{{ 'انضم إلى مئات المؤسسات التي حققت التميز مع Mcidia' if lang == 'ar' else 'Join hundreds of organizations achieving excellence with Mcidia' }}</p>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-secondary btn-lg">
+            {% if lang == 'ar' %}
+                <i class="fas fa-user-plus"></i> سجل الآن مجاناً
+            {% else %}
+                <i class="fas fa-user-plus"></i> Register Now for Free
+            {% endif %}
+        </a>
+    </div>
+</section>
+{% endblock %}

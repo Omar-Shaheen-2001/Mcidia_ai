@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'لوحة التحكم' if lang == 'ar' else 'Dashboard' }} - Mcidia{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="fw-bold">{{ 'مرحباً' if lang == 'ar' else 'Welcome' }}, {{ user.username }}!</h2>
+                <p class="text-secondary">{{ 'إليك ملخص نشاطك' if lang == 'ar' else 'Here is your activity summary' }}</p>
+            </div>
+        </div>
+        
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-secondary mb-1">{{ 'المشاريع النشطة' if lang == 'ar' else 'Active Projects' }}</p>
+                                <h3 class="fw-bold mb-0">{{ active_projects }}</h3>
+                            </div>
+                            <div class="text-primary" style="font-size: 2.5rem;">
+                                <i class="fas fa-folder-open"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-secondary mb-1">{{ 'إجمالي المشاريع' if lang == 'ar' else 'Total Projects' }}</p>
+                                <h3 class="fw-bold mb-0">{{ total_projects }}</h3>
+                            </div>
+                            <div class="text-success" style="font-size: 2.5rem;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-secondary mb-1">{{ 'استخدام AI' if lang == 'ar' else 'AI Credits Used' }}</p>
+                                <h3 class="fw-bold mb-0">{{ ai_credits }}</h3>
+                            </div>
+                            <div class="text-info" style="font-size: 2.5rem;">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-secondary mb-1">{{ 'الاشتراك' if lang == 'ar' else 'Subscription' }}</p>
+                                <h3 class="fw-bold mb-0">{{ user.subscription_plan or 'Free' }}</h3>
+                            </div>
+                            <div class="text-warning" style="font-size: 2.5rem;">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modules Grid -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="fw-bold mb-3">{{ 'الوحدات الاستشارية' if lang == 'ar' else 'Consulting Modules' }}</h4>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-3">
+                <a href="{{ url_for('strategy.index') }}" class="text-decoration-none">
+                    <div class="module-card">
+                        <div class="module-icon"><i class="fas fa-compass"></i></div>
+                        <h6 class="fw-bold">{{ 'التخطيط الاستراتيجي' if lang == 'ar' else 'Strategy' }}</h6>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-md-3">
+                <a href="{{ url_for('hr.index') }}" class="text-decoration-none">
+                    <div class="module-card">
+                        <div class="module-icon"><i class="fas fa-users"></i></div>
+                        <h6 class="fw-bold">{{ 'الموارد البشرية' if lang == 'ar' else 'HR' }}</h6>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-md-3">
+                <a href="{{ url_for('finance.index') }}" class="text-decoration-none">
+                    <div class="module-card">
+                        <div class="module-icon"><i class="fas fa-chart-line"></i></div>
+                        <h6 class="fw-bold">{{ 'المالية' if lang == 'ar' else 'Finance' }}</h6>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-md-3">
+                <a href="{{ url_for('marketing.index') }}" class="text-decoration-none">
+                    <div class="module-card">
+                        <div class="module-icon"><i class="fas fa-bullhorn"></i></div>
+                        <h6 class="fw-bold">{{ 'التسويق' if lang == 'ar' else 'Marketing' }}</h6>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-md-3">
+                <a href="{{ url_for('knowledge.index') }}" class="text-decoration-none">
+                    <div class="module-card">
+                        <div class="module-icon"><i class="fas fa-book"></i></div>
+                        <h6 class="fw-bold">{{ 'إدارة المعرفة' if lang == 'ar' else 'Knowledge' }}</h6>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-md-3">
+                <a href="{{ url_for('governance.index') }}" class="text-decoration-none">
+                    <div class="module-card">
+                        <div class="module-icon"><i class="fas fa-gavel"></i></div>
+                        <h6 class="fw-bold">{{ 'الحوكمة' if lang == 'ar' else 'Governance' }}</h6>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-md-3">
+                <a href="{{ url_for('innovation.index') }}" class="text-decoration-none">
+                    <div class="module-card">
+                        <div class="module-icon"><i class="fas fa-lightbulb"></i></div>
+                        <h6 class="fw-bold">{{ 'الابتكار' if lang == 'ar' else 'Innovation' }}</h6>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-md-3">
+                <a href="{{ url_for('consultation.index') }}" class="text-decoration-none">
+                    <div class="module-card">
+                        <div class="module-icon"><i class="fas fa-comments"></i></div>
+                        <h6 class="fw-bold">{{ 'الاستشارات' if lang == 'ar' else 'Consultation' }}</h6>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-md-3">
+                <a href="{{ url_for('billing.index') }}" class="text-decoration-none">
+                    <div class="module-card">
+                        <div class="module-icon"><i class="fas fa-credit-card"></i></div>
+                        <h6 class="fw-bold">{{ 'الفواتير' if lang == 'ar' else 'Billing' }}</h6>
+                    </div>
+                </a>
+            </div>
+            
+            {% if user.role == 'admin' %}
+            <div class="col-md-3">
+                <a href="{{ url_for('admin.index') }}" class="text-decoration-none">
+                    <div class="module-card">
+                        <div class="module-icon"><i class="fas fa-cog"></i></div>
+                        <h6 class="fw-bold">{{ 'الإدارة' if lang == 'ar' else 'Admin' }}</h6>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Recent Activity -->
+        {% if recent_projects %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <h4 class="fw-bold mb-3">{{ 'المشاريع الأخيرة' if lang == 'ar' else 'Recent Projects' }}</h4>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>{{ 'العنوان' if lang == 'ar' else 'Title' }}</th>
+                                        <th>{{ 'الوحدة' if lang == 'ar' else 'Module' }}</th>
+                                        <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                                        <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for project in recent_projects %}
+                                    <tr>
+                                        <td>{{ project.title }}</td>
+                                        <td><span class="badge bg-primary">{{ project.module }}</span></td>
+                                        <td><span class="badge bg-success">{{ project.status }}</span></td>
+                                        <td>{{ project.created_at.strftime('%Y-%m-%d') if project.created_at else 'N/A' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

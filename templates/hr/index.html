@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ 'الموارد البشرية' if lang == 'ar' else 'Human Resources' }}{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <h2 class="fw-bold mb-4">{{ 'إدارة الموارد البشرية' if lang == 'ar' else 'Human Resources Management' }}</h2>
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center p-4">
+                    <i class="fas fa-file-alt fa-3x text-primary mb-3"></i>
+                    <h5 class="fw-bold">{{ 'التوصيف الوظيفي' if lang == 'ar' else 'Job Description' }}</h5>
+                    <a href="{{ url_for('hr.job_description') }}" class="btn btn-primary">{{ 'ابدأ' if lang == 'ar' else 'Start' }}</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center p-4">
+                    <i class="fas fa-sitemap fa-3x text-primary mb-3"></i>
+                    <h5 class="fw-bold">{{ 'الهيكل التنظيمي' if lang == 'ar' else 'Org Structure' }}</h5>
+                    <a href="{{ url_for('hr.org_structure') }}" class="btn btn-primary">{{ 'ابدأ' if lang == 'ar' else 'Start' }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
