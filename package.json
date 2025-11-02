@@ -1,0 +1,11 @@
+{
+  "name": "mcidia-platform",
+  "version": "1.0.0",
+  "description": "Mcidia - AI-powered consulting platform",
+  "scripts": {
+    "dev": "python app.py",
+    "start": "python app.py"
+  },
+  "author": "",
+  "license": "MIT"
+}
