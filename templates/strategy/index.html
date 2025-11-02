@@ -1,58 +1,47 @@
 {% extends "base.html" %}
-{% block title %}{{ 'التخطيط الاستراتيجي' if lang == 'ar' else 'Strategic Planning' }}{% endblock %}
+
+{% block title %}{{ 'التخطيط الاستراتيجي' if lang == 'ar' else 'Strategic Planning' }} - Mcidia{% endblock %}
+
 {% block content %}
 <div class="container py-5">
-    <h2 class="fw-bold mb-4">{{ 'التخطيط الاستراتيجي' if lang == 'ar' else 'Strategic Planning' }}</h2>
-    <div class="row g-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="fw-bold mb-4">
+                <i class="fas fa-compass text-primary"></i>
+                {{ 'التخطيط الاستراتيجي' if lang == 'ar' else 'Strategic Planning' }}
+            </h2>
+            <p class="text-secondary">
+                {{ 'وحدة التخطيط الاستراتيجي لمساعدتك في بناء استراتيجية قوية لمؤسستك' if lang == 'ar' else 'Strategic planning module to help you build a strong strategy for your organization' }}
+            </p>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
         <div class="col-md-6">
             <div class="card">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-chart-network fa-3x text-primary mb-3"></i>
-                    <h5 class="fw-bold">{{ 'تحليل SWOT' if lang == 'ar' else 'SWOT Analysis' }}</h5>
-                    <p class="text-secondary">{{ 'تحليل نقاط القوة والضعف والفرص والتهديدات' if lang == 'ar' else 'Analyze strengths, weaknesses, opportunities, and threats' }}</p>
-                    <a href="{{ url_for('strategy.swot_analysis') }}" class="btn btn-primary">{{ 'ابدأ' if lang == 'ar' else 'Start' }}</a>
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-chart-line"></i>
+                        {{ 'تحليل SWOT' if lang == 'ar' else 'SWOT Analysis' }}
+                    </h5>
+                    <p class="card-text">{{ 'تحليل نقاط القوة والضعف والفرص والتهديدات' if lang == 'ar' else 'Analyze strengths, weaknesses, opportunities, and threats' }}</p>
+                    <button class="btn btn-primary" disabled>{{ 'قريباً' if lang == 'ar' else 'Coming Soon' }}</button>
                 </div>
             </div>
         </div>
+        
         <div class="col-md-6">
             <div class="card">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-eye fa-3x text-primary mb-3"></i>
-                    <h5 class="fw-bold">{{ 'الرؤية والرسالة' if lang == 'ar' else 'Vision & Mission' }}</h5>
-                    <p class="text-secondary">{{ 'إنشاء رؤية ورسالة ملهمة لمؤسستك' if lang == 'ar' else 'Create inspiring vision and mission statements' }}</p>
-                    <a href="{{ url_for('strategy.vision_mission') }}" class="btn btn-primary">{{ 'ابدأ' if lang == 'ar' else 'Start' }}</a>
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-bullseye"></i>
+                        {{ 'الأهداف الاستراتيجية' if lang == 'ar' else 'Strategic Goals' }}
+                    </h5>
+                    <p class="card-text">{{ 'تحديد ومتابعة الأهداف الاستراتيجية' if lang == 'ar' else 'Define and track strategic goals' }}</p>
+                    <button class="btn btn-primary" disabled>{{ 'قريباً' if lang == 'ar' else 'Coming Soon' }}</button>
                 </div>
             </div>
         </div>
     </div>
-    {% if projects %}
-    <div class="mt-5">
-        <h4 class="fw-bold mb-3">{{ 'مشاريعك' if lang == 'ar' else 'Your Projects' }}</h4>
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>{{ 'العنوان' if lang == 'ar' else 'Title' }}</th>
-                                <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
-                                <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for project in projects %}
-                            <tr>
-                                <td>{{ project.title }}</td>
-                                <td><span class="badge bg-success">{{ project.status }}</span></td>
-                                <td>{{ project.created_at.strftime('%Y-%m-%d') if project.created_at else 'N/A' }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
 {% endblock %}
