@@ -190,6 +190,28 @@
                             <li><a class="dropdown-item" href="{{ url_for('main.set_language', lang='en') }}">English</a></li>
                         </ul>
                     </li>
+                    
+                    {% if current_user %}
+                    <!-- User is logged in -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> {{ current_user.username if current_user.username else 'User' }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('dashboard.index') }}">
+                                <i class="fas fa-tachometer-alt"></i> {{ 'لوحة التحكم' if lang == 'ar' else 'Dashboard' }}
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('billing.index') }}">
+                                <i class="fas fa-credit-card"></i> {{ 'الفواتير' if lang == 'ar' else 'Billing' }}
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> {{ 'تسجيل الخروج' if lang == 'ar' else 'Logout' }}
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <!-- User is not logged in -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('auth.login') }}">
                             {{ 'تسجيل الدخول' if lang == 'ar' else 'Login' }}
@@ -200,6 +222,7 @@
                             {{ 'ابدأ الآن' if lang == 'ar' else 'Get Started' }}
                         </a>
                     </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

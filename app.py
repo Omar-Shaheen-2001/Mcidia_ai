@@ -79,12 +79,27 @@ def create_app():
     def expired_token_callback(jwt_header, jwt_payload):
         return redirect(url_for('auth.login'))
     
-    # Make CSRF token available to all templates
+    # Make CSRF token and current user available to all templates
     @app.context_processor
-    def inject_csrf_token():
+    def inject_context():
         from flask_wtf.csrf import generate_csrf
-        # Generate CSRF token for forms (works for both authenticated and unauthenticated requests)
-        return dict(csrf_token=generate_csrf())
+        from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+        from models import User
+        
+        # Generate CSRF token for forms
+        csrf_token = generate_csrf()
+        
+        # Try to get current user if logged in
+        current_user = None
+        try:
+            verify_jwt_in_request(optional=True)
+            user_id = get_jwt_identity()
+            if user_id:
+                current_user = db.session.get(User, int(user_id))
+        except:
+            pass
+        
+        return dict(csrf_token=csrf_token, current_user=current_user)
     
     # Register blueprints
     from blueprints.auth import auth_bp
