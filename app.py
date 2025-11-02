@@ -3,12 +3,14 @@ from flask import Flask, redirect, url_for, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from flask_wtf.csrf import CSRFProtect
 from dotenv import load_dotenv
 
 load_dotenv()
 
 db = SQLAlchemy()
 jwt = JWTManager()
+csrf = CSRFProtect()
 
 def create_app():
     app = Flask(__name__)
@@ -20,14 +22,13 @@ def create_app():
     app.config['JWT_SECRET_KEY'] = os.getenv('SESSION_SECRET', 'jwt-secret-key')
     app.config['JWT_TOKEN_LOCATION'] = ['headers', 'cookies']
     app.config['JWT_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
-    app.config['JWT_COOKIE_CSRF_PROTECT'] = True  # Enable CSRF protection
-    app.config['JWT_CSRF_IN_COOKIES'] = True
+    app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable JWT CSRF, use Flask-WTF instead
     app.config['JWT_ACCESS_COOKIE_PATH'] = '/'
-    app.config['JWT_CSRF_CHECK_FORM'] = True
     
     # Initialize extensions
     db.init_app(app)
     jwt.init_app(app)
+    csrf.init_app(app)
     CORS(app)
     
     # JWT error handlers for HTML pages
@@ -46,10 +47,9 @@ def create_app():
     # Make CSRF token available to all templates
     @app.context_processor
     def inject_csrf_token():
-        from flask import request
-        # Get CSRF token from cookies if it exists
-        csrf_token = request.cookies.get('csrf_access_token', '')
-        return dict(csrf_token=csrf_token)
+        from flask_wtf.csrf import generate_csrf
+        # Generate CSRF token for forms (works for both authenticated and unauthenticated requests)
+        return dict(csrf_token=generate_csrf())
     
     # Register blueprints
     from blueprints.auth import auth_bp
@@ -80,44 +80,47 @@ def create_app():
     app.register_blueprint(billing_bp, url_prefix='/billing')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     
-    # Create tables and seed default roles/plans
+    # Create tables
     with app.app_context():
         db.create_all()
-        seed_default_data()
+    
+    # Seed default data
+    seed_default_data(app)
     
     return app
 
-def seed_default_data():
+def seed_default_data(app):
     """Seed database with default roles and subscription plans"""
     from models import Role, SubscriptionPlan
     
-    # Create default roles if they don't exist
-    default_roles = [
-        {'name': 'admin', 'description': 'System Administrator'},
-        {'name': 'consultant', 'description': 'Professional Consultant'},
-        {'name': 'company_user', 'description': 'Company User'},
-        {'name': 'client', 'description': 'Individual Client'}
-    ]
-    
-    for role_data in default_roles:
-        if not Role.query.filter_by(name=role_data['name']).first():
-            role = Role(**role_data)
-            db.session.add(role)
-    
-    # Create default subscription plans if they don't exist
-    default_plans = [
-        {'name': 'free', 'price': 0, 'billing_period': 'monthly', 'ai_credits_limit': 1000},
-        {'name': 'monthly', 'price': 99, 'billing_period': 'monthly', 'ai_credits_limit': 100000},
-        {'name': 'yearly', 'price': 999, 'billing_period': 'yearly', 'ai_credits_limit': 1500000},
-        {'name': 'pay_per_use', 'price': 0, 'billing_period': 'one_time', 'ai_credits_limit': None}
-    ]
-    
-    for plan_data in default_plans:
-        if not SubscriptionPlan.query.filter_by(name=plan_data['name']).first():
-            plan = SubscriptionPlan(**plan_data)
-            db.session.add(plan)
-    
-    db.session.commit()
+    with app.app_context():
+        # Create default roles if they don't exist
+        default_roles = [
+            {'name': 'admin', 'description': 'System Administrator'},
+            {'name': 'consultant', 'description': 'Professional Consultant'},
+            {'name': 'company_user', 'description': 'Company User'},
+            {'name': 'client', 'description': 'Individual Client'}
+        ]
+        
+        for role_data in default_roles:
+            if not Role.query.filter_by(name=role_data['name']).first():
+                role = Role(**role_data)
+                db.session.add(role)
+        
+        # Create default subscription plans if they don't exist
+        default_plans = [
+            {'name': 'free', 'price': 0, 'billing_period': 'monthly', 'ai_credits_limit': 1000},
+            {'name': 'monthly', 'price': 99, 'billing_period': 'monthly', 'ai_credits_limit': 100000},
+            {'name': 'yearly', 'price': 999, 'billing_period': 'yearly', 'ai_credits_limit': 1500000},
+            {'name': 'pay_per_use', 'price': 0, 'billing_period': 'one_time', 'ai_credits_limit': None}
+        ]
+        
+        for plan_data in default_plans:
+            if not SubscriptionPlan.query.filter_by(name=plan_data['name']).first():
+                plan = SubscriptionPlan(**plan_data)
+                db.session.add(plan)
+        
+        db.session.commit()
 
 if __name__ == '__main__':
     app = create_app()

@@ -13,7 +13,8 @@
                         <p class="text-secondary">{{ 'ابدأ رحلتك نحو التميز' if lang == 'ar' else 'Start your journey to excellence' }}</p>
                     </div>
                     
-                    <form method="POST">{% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}<form method="POST" action="{{ url_for('auth.register') }}">
+                    <form method="POST" action="{{ url_for('auth.register') }}">
+                        {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-semibold">{{ 'اسم المستخدم' if lang == 'ar' else 'Username' }}</label>
