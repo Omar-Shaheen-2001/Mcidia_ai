@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, flash, session, redirect, url_for
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import User, Project, Transaction, AILog, Document, Role
-from app import db
 from utils.decorators import login_required, role_required
 from sqlalchemy import func
 
@@ -11,7 +10,7 @@ admin_bp = Blueprint('admin', __name__)
 @login_required
 @role_required('admin')
 def index():
-    # Get statistics
+    db = current_app.extensions['sqlalchemy']
     total_users = db.session.query(User).count()
     total_projects = db.session.query(Project).count()
     total_revenue = db.session.query(func.sum(Transaction.amount)).filter_by(status='succeeded').scalar() or 0
@@ -38,6 +37,7 @@ def index():
 @login_required
 @role_required('admin')
 def users():
+    db = current_app.extensions['sqlalchemy']
     all_users = db.session.query(User).all()
     lang = session.get('language', 'ar')
     return render_template('admin/users.html', users=all_users, lang=lang)
@@ -46,6 +46,7 @@ def users():
 @login_required
 @role_required('admin')
 def user_detail(user_id):
+    db = current_app.extensions['sqlalchemy']
     user = db.session.query(User).get_or_404(user_id)
     user_projects = db.session.query(Project).filter_by(user_id=user_id).all()
     user_transactions = db.session.query(Transaction).filter_by(user_id=user_id).all()
@@ -64,6 +65,7 @@ def user_detail(user_id):
 @login_required
 @role_required('admin')
 def update_user_role(user_id):
+    db = current_app.extensions['sqlalchemy']
     user = db.session.query(User).get_or_404(user_id)
     new_role_name = request.form.get('role')
     
@@ -81,6 +83,7 @@ def update_user_role(user_id):
 @login_required
 @role_required('admin')
 def transactions():
+    db = current_app.extensions['sqlalchemy']
     all_transactions = db.session.query(Transaction).order_by(Transaction.created_at.desc()).all()
     lang = session.get('language', 'ar')
     return render_template('admin/transactions.html', transactions=all_transactions, lang=lang)
@@ -89,6 +92,7 @@ def transactions():
 @login_required
 @role_required('admin')
 def ai_logs():
+    db = current_app.extensions['sqlalchemy']
     logs = db.session.query(AILog).order_by(AILog.created_at.desc()).limit(100).all()
     lang = session.get('language', 'ar')
     return render_template('admin/ai_logs.html', logs=logs, lang=lang)

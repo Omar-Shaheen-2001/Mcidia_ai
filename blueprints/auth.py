@@ -1,13 +1,14 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response, session, current_app
 from flask_jwt_extended import create_access_token, set_access_cookies, unset_jwt_cookies, get_csrf_token
 from models import User, Role, SubscriptionPlan
-from app import db
 
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        # Get db from current app extensions
+        db = current_app.extensions['sqlalchemy']
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
@@ -53,6 +54,7 @@ def register():
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        db = current_app.extensions['sqlalchemy']
         username = request.form.get('username')
         password = request.form.get('password')
         

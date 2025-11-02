@@ -2,13 +2,13 @@ from flask import Blueprint, render_template, session
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
 from models import User, Project, AILog, Transaction
-from app import db
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
 @dashboard_bp.route('/')
 @login_required
 def index():
+    db = current_app.extensions['sqlalchemy']
     user_id = get_jwt_identity()
     user = db.session.query(User).get(user_id)
     

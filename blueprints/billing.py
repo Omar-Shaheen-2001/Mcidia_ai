@@ -2,7 +2,6 @@ from flask import Blueprint, render_template, request, flash, session, redirect,
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
 from models import User, Transaction
-from app import db
 import stripe
 import os
 
@@ -13,6 +12,7 @@ billing_bp = Blueprint('billing', __name__)
 @billing_bp.route('/')
 @login_required
 def index():
+    db = current_app.extensions['sqlalchemy']
     user_id = get_jwt_identity()
     user = db.session.query(User).get(user_id)
     transactions = db.session.query(Transaction).filter_by(user_id=user_id).order_by(Transaction.created_at.desc()).all()
@@ -21,12 +21,14 @@ def index():
 
 @billing_bp.route('/pricing')
 def pricing():
+    db = current_app.extensions['sqlalchemy']
     lang = session.get('language', 'ar')
     return render_template('billing/pricing.html', lang=lang)
 
 @billing_bp.route('/subscribe', methods=['POST'])
 @login_required
 def subscribe():
+    db = current_app.extensions['sqlalchemy']
     user_id = get_jwt_identity()
     user = db.session.query(User).get(user_id)
     plan = request.form.get('plan')  # monthly, yearly, pay_per_use
@@ -72,7 +74,6 @@ def subscribe():
                 success_url=request.host_url + 'billing/success?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=request.host_url + 'billing/pricing',
             )
-            
             return redirect(checkout_session.url, code=303)
         else:
             # Pay per use - just update plan
@@ -81,7 +82,6 @@ def subscribe():
             db.session.commit()
             flash('تم تفعيل خطة الدفع حسب الاستخدام / Pay-per-use plan activated', 'success')
             return redirect(url_for('dashboard.index'))
-    
     except Exception as e:
         flash(f'خطأ في الدفع / Payment error: {str(e)}', 'danger')
         return redirect(url_for('billing.pricing'))
@@ -89,6 +89,7 @@ def subscribe():
 @billing_bp.route('/success')
 @login_required
 def success():
+    db = current_app.extensions['sqlalchemy']
     user_id = get_jwt_identity()
     user = db.session.query(User).get(user_id)
     session_id = request.args.get('session_id')
