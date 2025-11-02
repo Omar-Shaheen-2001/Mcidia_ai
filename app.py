@@ -54,10 +54,11 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = os.getenv('SESSION_SECRET', 'jwt-secret-key')
-    app.config['JWT_TOKEN_LOCATION'] = ['headers', 'cookies']
+    app.config['JWT_TOKEN_LOCATION'] = ['cookies']
     app.config['JWT_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
     app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable JWT CSRF, use Flask-WTF instead
     app.config['JWT_ACCESS_COOKIE_PATH'] = '/'
+    app.config['JWT_COOKIE_SAMESITE'] = 'Lax'  # Important for cookie handling
     
     # Initialize extensions
     db.init_app(app)

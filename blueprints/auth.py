@@ -61,7 +61,7 @@ def login():
         user = db.session.query(User).filter_by(email=email).first()
         
         if user and user.check_password(password):
-            access_token = create_access_token(identity=user.id)
+            access_token = create_access_token(identity=str(user.id))
             response = make_response(redirect(url_for('dashboard.index')))
             set_access_cookies(response, access_token)
             flash(f'مرحباً {user.username}! / Welcome {user.username}!', 'success')

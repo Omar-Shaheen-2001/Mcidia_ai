@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, session
+from flask import Blueprint, render_template, session, current_app
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
 from models import User, Project, AILog, Transaction
@@ -9,7 +9,7 @@ dashboard_bp = Blueprint('dashboard', __name__)
 @login_required
 def index():
     db = current_app.extensions['sqlalchemy']
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = db.session.query(User).get(user_id)
     
     # Get statistics

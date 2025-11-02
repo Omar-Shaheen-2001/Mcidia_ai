@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, session, redirect, url_for
+from flask import current_app, Blueprint, render_template, request, flash, session, redirect, url_for
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import User, Project, Transaction, AILog, Document, Role
 from utils.decorators import login_required, role_required

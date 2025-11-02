@@ -19,7 +19,7 @@ def index():
 @login_required
 def chat():
     db = current_app.extensions['sqlalchemy']
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     message = request.form.get('message')
     
     try:

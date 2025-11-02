@@ -8,9 +8,11 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         try:
-            verify_jwt_in_request()
+            verify_jwt_in_request(optional=False)
             return f(*args, **kwargs)
         except Exception as e:
+            # Debug: print the error
+            print(f"JWT Verification Error: {type(e).__name__}: {str(e)}")
             lang = session.get('language', 'ar')
             flash('يرجى تسجيل الدخول للوصول إلى هذه الصفحة / Please login to access this page' if lang == 'ar' else 'Please login to access this page', 'warning')
             return redirect(url_for('auth.login'))
@@ -22,9 +24,11 @@ def role_required(*roles):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             try:
-                verify_jwt_in_request()
-                user_id = get_jwt_identity()
-                user = User.query.get(user_id)
+                verify_jwt_in_request(optional=False)
+                user_id = int(get_jwt_identity())
+                from flask import current_app
+                db = current_app.extensions['sqlalchemy']
+                user = db.session.query(User).get(user_id)
                 
                 if user and user.has_role(*roles):
                     return f(*args, **kwargs)

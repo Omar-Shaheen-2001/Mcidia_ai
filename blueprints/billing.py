@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, session, redirect, url_for, jsonify
+from flask import current_app, Blueprint, render_template, request, flash, session, redirect, url_for, jsonify
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
 from models import User, Transaction
@@ -13,7 +13,7 @@ billing_bp = Blueprint('billing', __name__)
 @login_required
 def index():
     db = current_app.extensions['sqlalchemy']
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = db.session.query(User).get(user_id)
     transactions = db.session.query(Transaction).filter_by(user_id=user_id).order_by(Transaction.created_at.desc()).all()
     lang = session.get('language', 'ar')
@@ -29,7 +29,7 @@ def pricing():
 @login_required
 def subscribe():
     db = current_app.extensions['sqlalchemy']
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = db.session.query(User).get(user_id)
     plan = request.form.get('plan')  # monthly, yearly, pay_per_use
     
@@ -90,7 +90,7 @@ def subscribe():
 @login_required
 def success():
     db = current_app.extensions['sqlalchemy']
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = db.session.query(User).get(user_id)
     session_id = request.args.get('session_id')
     
