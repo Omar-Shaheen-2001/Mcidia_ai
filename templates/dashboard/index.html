@@ -3,217 +3,392 @@
 {% block title %}{{ 'لوحة التحكم' if lang == 'ar' else 'Dashboard' }} - Mcidia{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<!-- Dashboard Header -->
+<section class="bg-gradient-primary text-white py-5">
     <div class="container">
-        <div class="row mb-4">
-            <div class="col-12">
-                <h2 class="fw-bold">{{ 'مرحباً' if lang == 'ar' else 'Welcome' }}, {{ user.username }}!</h2>
-                <p class="text-secondary">{{ 'إليك ملخص نشاطك' if lang == 'ar' else 'Here is your activity summary' }}</p>
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="fw-bold mb-2 text-white">
+                    <i class="fas fa-hand-wave me-2"></i>
+                    {{ 'مرحباً' if lang == 'ar' else 'Welcome back' }}, {{ user.username }}!
+                </h1>
+                <p class="mb-0 text-white-50">
+                    {{ 'إليك ملخص نشاطك وأدواتك الاستشارية الذكية' if lang == 'ar' else 'Here is your activity summary and smart consulting tools' }}
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a href="{{ url_for('consultation.index') }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-comments me-2"></i>
+                    {{ 'استشارة فورية' if lang == 'ar' else 'Quick Consultation' }}
+                </a>
             </div>
         </div>
-        
-        <!-- Statistics Cards -->
-        <div class="row g-4 mb-4">
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="text-secondary mb-1">{{ 'المشاريع النشطة' if lang == 'ar' else 'Active Projects' }}</p>
-                                <h3 class="fw-bold mb-0">{{ active_projects }}</h3>
-                            </div>
-                            <div class="text-primary" style="font-size: 2.5rem;">
-                                <i class="fas fa-folder-open"></i>
-                            </div>
+    </div>
+</section>
+
+<!-- Main Dashboard Content -->
+<div class="container my-5">
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <!-- Active Projects Card -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card card--stat hover-lift h-100">
+                <div class="card__body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="icon-box icon-box--primary" style="background-color: rgba(255,255,255,0.2);">
+                            <i class="fas fa-folder-open text-white"></i>
                         </div>
+                        <span class="badge badge--success">
+                            <i class="fas fa-arrow-up me-1"></i>
+                            +12%
+                        </span>
                     </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="text-secondary mb-1">{{ 'إجمالي المشاريع' if lang == 'ar' else 'Total Projects' }}</p>
-                                <h3 class="fw-bold mb-0">{{ total_projects }}</h3>
-                            </div>
-                            <div class="text-success" style="font-size: 2.5rem;">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="text-secondary mb-1">{{ 'استخدام AI' if lang == 'ar' else 'AI Credits Used' }}</p>
-                                <h3 class="fw-bold mb-0">{{ ai_credits }}</h3>
-                            </div>
-                            <div class="text-info" style="font-size: 2.5rem;">
-                                <i class="fas fa-brain"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="text-secondary mb-1">{{ 'الاشتراك' if lang == 'ar' else 'Subscription' }}</p>
-                                <h3 class="fw-bold mb-0">{{ user.subscription_plan or 'Free' }}</h3>
-                            </div>
-                            <div class="text-warning" style="font-size: 2.5rem;">
-                                <i class="fas fa-crown"></i>
-                            </div>
-                        </div>
-                    </div>
+                    <h3 class="card__title text-white">{{ active_projects }}</h3>
+                    <p class="card__description">
+                        {{ 'المشاريع النشطة' if lang == 'ar' else 'Active Projects' }}
+                    </p>
                 </div>
             </div>
         </div>
         
-        <!-- Modules Grid -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <h4 class="fw-bold mb-3">{{ 'الوحدات الاستشارية' if lang == 'ar' else 'Consulting Modules' }}</h4>
-            </div>
-        </div>
-        
-        <div class="row g-4">
-            <div class="col-md-3">
-                <a href="{{ url_for('strategy.index') }}" class="text-decoration-none">
-                    <div class="module-card">
-                        <div class="module-icon"><i class="fas fa-compass"></i></div>
-                        <h6 class="fw-bold">{{ 'التخطيط الاستراتيجي' if lang == 'ar' else 'Strategy' }}</h6>
-                    </div>
-                </a>
-            </div>
-            
-            <div class="col-md-3">
-                <a href="{{ url_for('hr.index') }}" class="text-decoration-none">
-                    <div class="module-card">
-                        <div class="module-icon"><i class="fas fa-users"></i></div>
-                        <h6 class="fw-bold">{{ 'الموارد البشرية' if lang == 'ar' else 'HR' }}</h6>
-                    </div>
-                </a>
-            </div>
-            
-            <div class="col-md-3">
-                <a href="{{ url_for('finance.index') }}" class="text-decoration-none">
-                    <div class="module-card">
-                        <div class="module-icon"><i class="fas fa-chart-line"></i></div>
-                        <h6 class="fw-bold">{{ 'المالية' if lang == 'ar' else 'Finance' }}</h6>
-                    </div>
-                </a>
-            </div>
-            
-            <div class="col-md-3">
-                <a href="{{ url_for('marketing.index') }}" class="text-decoration-none">
-                    <div class="module-card">
-                        <div class="module-icon"><i class="fas fa-bullhorn"></i></div>
-                        <h6 class="fw-bold">{{ 'التسويق' if lang == 'ar' else 'Marketing' }}</h6>
-                    </div>
-                </a>
-            </div>
-            
-            <div class="col-md-3">
-                <a href="{{ url_for('knowledge.index') }}" class="text-decoration-none">
-                    <div class="module-card">
-                        <div class="module-icon"><i class="fas fa-book"></i></div>
-                        <h6 class="fw-bold">{{ 'إدارة المعرفة' if lang == 'ar' else 'Knowledge' }}</h6>
-                    </div>
-                </a>
-            </div>
-            
-            <div class="col-md-3">
-                <a href="{{ url_for('governance.index') }}" class="text-decoration-none">
-                    <div class="module-card">
-                        <div class="module-icon"><i class="fas fa-gavel"></i></div>
-                        <h6 class="fw-bold">{{ 'الحوكمة' if lang == 'ar' else 'Governance' }}</h6>
-                    </div>
-                </a>
-            </div>
-            
-            <div class="col-md-3">
-                <a href="{{ url_for('innovation.index') }}" class="text-decoration-none">
-                    <div class="module-card">
-                        <div class="module-icon"><i class="fas fa-lightbulb"></i></div>
-                        <h6 class="fw-bold">{{ 'الابتكار' if lang == 'ar' else 'Innovation' }}</h6>
-                    </div>
-                </a>
-            </div>
-            
-            <div class="col-md-3">
-                <a href="{{ url_for('consultation.index') }}" class="text-decoration-none">
-                    <div class="module-card">
-                        <div class="module-icon"><i class="fas fa-comments"></i></div>
-                        <h6 class="fw-bold">{{ 'الاستشارات' if lang == 'ar' else 'Consultation' }}</h6>
-                    </div>
-                </a>
-            </div>
-            
-            <div class="col-md-3">
-                <a href="{{ url_for('billing.index') }}" class="text-decoration-none">
-                    <div class="module-card">
-                        <div class="module-icon"><i class="fas fa-credit-card"></i></div>
-                        <h6 class="fw-bold">{{ 'الفواتير' if lang == 'ar' else 'Billing' }}</h6>
-                    </div>
-                </a>
-            </div>
-            
-            {% if user.role == 'admin' %}
-            <div class="col-md-3">
-                <a href="{{ url_for('admin.index') }}" class="text-decoration-none">
-                    <div class="module-card">
-                        <div class="module-icon"><i class="fas fa-cog"></i></div>
-                        <h6 class="fw-bold">{{ 'الإدارة' if lang == 'ar' else 'Admin' }}</h6>
-                    </div>
-                </a>
-            </div>
-            {% endif %}
-        </div>
-        
-        <!-- Recent Activity -->
-        {% if recent_projects %}
-        <div class="row mt-5">
-            <div class="col-12">
-                <h4 class="fw-bold mb-3">{{ 'المشاريع الأخيرة' if lang == 'ar' else 'Recent Projects' }}</h4>
-                <div class="card">
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>{{ 'العنوان' if lang == 'ar' else 'Title' }}</th>
-                                        <th>{{ 'الوحدة' if lang == 'ar' else 'Module' }}</th>
-                                        <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
-                                        <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for project in recent_projects %}
-                                    <tr>
-                                        <td>{{ project.title }}</td>
-                                        <td><span class="badge bg-primary">{{ project.module }}</span></td>
-                                        <td><span class="badge bg-success">{{ project.status }}</span></td>
-                                        <td>{{ project.created_at.strftime('%Y-%m-%d') if project.created_at else 'N/A' }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+        <!-- Total Projects Card -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card hover-lift h-100" style="background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-light) 100%);">
+                <div class="card__body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="icon-box icon-box--secondary" style="background-color: rgba(255,255,255,0.2);">
+                            <i class="fas fa-check-circle text-white"></i>
                         </div>
+                        <span class="badge" style="background-color: rgba(255,255,255,0.2); color: white;">
+                            {{ 'الكل' if lang == 'ar' else 'All' }}
+                        </span>
                     </div>
+                    <h3 class="card__title text-white">{{ total_projects }}</h3>
+                    <p class="card__description text-white">
+                        {{ 'إجمالي المشاريع' if lang == 'ar' else 'Total Projects' }}
+                    </p>
                 </div>
             </div>
+        </div>
+        
+        <!-- AI Credits Card -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card hover-lift h-100" style="background: linear-gradient(135deg, var(--color-active) 0%, #1F5291 100%);">
+                <div class="card__body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="icon-box" style="background-color: rgba(255,255,255,0.2);">
+                            <i class="fas fa-brain text-white"></i>
+                        </div>
+                        <span class="badge" style="background-color: rgba(255,255,255,0.2); color: white;">
+                            AI
+                        </span>
+                    </div>
+                    <h3 class="card__title text-white">{{ ai_credits }}</h3>
+                    <p class="card__description text-white">
+                        {{ 'استخدام الذكاء الاصطناعي' if lang == 'ar' else 'AI Credits Used' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Subscription Card -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card hover-lift h-100" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
+                <div class="card__body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="icon-box" style="background-color: rgba(255,255,255,0.2);">
+                            <i class="fas fa-crown text-white"></i>
+                        </div>
+                        <a href="{{ url_for('billing.pricing') }}" class="text-white text-decoration-none">
+                            <i class="fas fa-arrow-{{ 'left' if lang == 'ar' else 'right' }}"></i>
+                        </a>
+                    </div>
+                    <h3 class="card__title text-white">{{ user.subscription_plan or 'Free' }}</h3>
+                    <p class="card__description text-white">
+                        {{ 'الباقة الحالية' if lang == 'ar' else 'Current Plan' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Consulting Modules Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="fw-bold mb-1">
+                        {{ 'الوحدات الاستشارية الذكية' if lang == 'ar' else 'Smart Consulting Modules' }}
+                    </h4>
+                    <p class="text-muted mb-0">
+                        {{ 'اختر الوحدة المناسبة لاحتياجاتك' if lang == 'ar' else 'Choose the right module for your needs' }}
+                    </p>
+                </div>
+                <div>
+                    <span class="badge badge--primary">
+                        {{ '12+ وحدة' if lang == 'ar' else '12+ Modules' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4 mb-5">
+        <!-- Strategy Module -->
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ url_for('strategy.index') }}" class="text-decoration-none">
+                <div class="card card--feature hover-lift h-100">
+                    <div class="card__body text-center">
+                        <div class="icon-box icon-box--primary mb-3">
+                            <i class="fas fa-compass fa-2x"></i>
+                        </div>
+                        <h6 class="card__title small">{{ 'التخطيط الاستراتيجي' if lang == 'ar' else 'Strategic Planning' }}</h6>
+                        <p class="card__description mb-0 small">
+                            {{ 'SWOT، الرؤية والرسالة' if lang == 'ar' else 'SWOT, Vision & Mission' }}
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <!-- HR Module -->
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ url_for('hr.index') }}" class="text-decoration-none">
+                <div class="card card--feature hover-lift h-100">
+                    <div class="card__body text-center">
+                        <div class="icon-box icon-box--secondary mb-3">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                        <h6 class="card__title small">{{ 'الموارد البشرية' if lang == 'ar' else 'Human Resources' }}</h6>
+                        <p class="card__description mb-0 small">
+                            {{ 'التوصيف، الهيكل التنظيمي' if lang == 'ar' else 'Job Descriptions, Org Structure' }}
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <!-- Finance Module -->
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ url_for('finance.index') }}" class="text-decoration-none">
+                <div class="card card--feature hover-lift h-100">
+                    <div class="card__body text-center">
+                        <div class="icon-box icon-box--primary mb-3">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                        <h6 class="card__title small">{{ 'المالية والتكاليف' if lang == 'ar' else 'Finance & Costing' }}</h6>
+                        <p class="card__description mb-0 small">
+                            {{ 'دراسات الجدوى، التحليل المالي' if lang == 'ar' else 'Feasibility, Financial Analysis' }}
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <!-- Marketing Module -->
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ url_for('marketing.index') }}" class="text-decoration-none">
+                <div class="card card--feature hover-lift h-100">
+                    <div class="card__body text-center">
+                        <div class="icon-box icon-box--secondary mb-3">
+                            <i class="fas fa-bullhorn fa-2x"></i>
+                        </div>
+                        <h6 class="card__title small">{{ 'التسويق' if lang == 'ar' else 'Marketing' }}</h6>
+                        <p class="card__description mb-0 small">
+                            {{ 'خطط تسويقية، تحليل المنافسين' if lang == 'ar' else 'Marketing Plans, Competitor Analysis' }}
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <!-- Knowledge Management -->
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ url_for('knowledge.index') }}" class="text-decoration-none">
+                <div class="card card--feature hover-lift h-100">
+                    <div class="card__body text-center">
+                        <div class="icon-box icon-box--primary mb-3">
+                            <i class="fas fa-book fa-2x"></i>
+                        </div>
+                        <h6 class="card__title small">{{ 'إدارة المعرفة' if lang == 'ar' else 'Knowledge Management' }}</h6>
+                        <p class="card__description mb-0 small">
+                            {{ 'بحث دلالي، استفسارات ذكية' if lang == 'ar' else 'Semantic Search, Smart Q&A' }}
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <!-- Governance Module -->
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ url_for('governance.index') }}" class="text-decoration-none">
+                <div class="card card--feature hover-lift h-100">
+                    <div class="card__body text-center">
+                        <div class="icon-box icon-box--secondary mb-3">
+                            <i class="fas fa-gavel fa-2x"></i>
+                        </div>
+                        <h6 class="card__title small">{{ 'الجودة والحوكمة' if lang == 'ar' else 'Quality & Governance' }}</h6>
+                        <p class="card__description mb-0 small">
+                            {{ 'السياسات، الإجراءات' if lang == 'ar' else 'Policies, Procedures' }}
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <!-- Innovation Module -->
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ url_for('innovation.index') }}" class="text-decoration-none">
+                <div class="card card--feature hover-lift h-100">
+                    <div class="card__body text-center">
+                        <div class="icon-box icon-box--primary mb-3">
+                            <i class="fas fa-lightbulb fa-2x"></i>
+                        </div>
+                        <h6 class="card__title small">{{ 'الابتكار' if lang == 'ar' else 'Innovation' }}</h6>
+                        <p class="card__description mb-0 small">
+                            {{ 'نموذج العمل، أفكار ابتكارية' if lang == 'ar' else 'Business Model, Innovation Ideas' }}
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <!-- AI Consultation -->
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ url_for('consultation.index') }}" class="text-decoration-none">
+                <div class="card card--feature hover-lift h-100">
+                    <div class="card__body text-center">
+                        <div class="icon-box icon-box--secondary mb-3">
+                            <i class="fas fa-comments fa-2x"></i>
+                        </div>
+                        <h6 class="card__title small">{{ 'الاستشارات الذكية' if lang == 'ar' else 'AI Consultation' }}</h6>
+                        <p class="card__description mb-0 small">
+                            {{ 'دردشة فورية مع المستشار' if lang == 'ar' else 'Instant chat with AI consultant' }}
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <!-- Billing Module -->
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ url_for('billing.index') }}" class="text-decoration-none">
+                <div class="card card--feature hover-lift h-100">
+                    <div class="card__body text-center">
+                        <div class="icon-box icon-box--primary mb-3">
+                            <i class="fas fa-credit-card fa-2x"></i>
+                        </div>
+                        <h6 class="card__title small">{{ 'الفواتير والاشتراكات' if lang == 'ar' else 'Billing & Subscriptions' }}</h6>
+                        <p class="card__description mb-0 small">
+                            {{ 'إدارة الاشتراكات والدفع' if lang == 'ar' else 'Manage subscriptions and payment' }}
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <!-- Admin Panel (if admin) -->
+        {% if user.role == 'admin' %}
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ url_for('admin.index') }}" class="text-decoration-none">
+                <div class="card card--feature hover-lift h-100" style="border: 2px solid var(--color-warning);">
+                    <div class="card__body text-center">
+                        <div class="icon-box mb-3" style="background-color: rgba(245, 158, 11, 0.1); color: var(--color-warning);">
+                            <i class="fas fa-cog fa-2x"></i>
+                        </div>
+                        <h6 class="card__title small">{{ 'إدارة النظام' if lang == 'ar' else 'System Admin' }}</h6>
+                        <p class="card__description mb-0 small">
+                            {{ 'إدارة المستخدمين والنظام' if lang == 'ar' else 'Manage users and system' }}
+                        </p>
+                    </div>
+                </div>
+            </a>
         </div>
         {% endif %}
     </div>
+    
+    <!-- Recent Activity Section -->
+    {% if recent_projects %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card__header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card__title mb-0">
+                            <i class="fas fa-history me-2"></i>
+                            {{ 'المشاريع الأخيرة' if lang == 'ar' else 'Recent Projects' }}
+                        </h5>
+                        <a href="#" class="btn btn-sm btn-outline-primary">
+                            {{ 'عرض الكل' if lang == 'ar' else 'View All' }}
+                        </a>
+                    </div>
+                </div>
+                <div class="card__body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{{ 'العنوان' if lang == 'ar' else 'Title' }}</th>
+                                    <th>{{ 'الوحدة' if lang == 'ar' else 'Module' }}</th>
+                                    <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                                    <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for project in recent_projects %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ project.title }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge--primary">{{ project.module }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge--success">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            {{ project.status }}
+                                        </span>
+                                    </td>
+                                    <td class="text-muted small">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        {{ project.created_at.strftime('%Y-%m-%d') if project.created_at else 'N/A' }}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="#" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card text-center py-5">
+                <div class="card__body">
+                    <div class="icon-box icon-box--primary mb-4 mx-auto" style="width: 5rem; height: 5rem;">
+                        <i class="fas fa-rocket fa-3x"></i>
+                    </div>
+                    <h5 class="card__title">{{ 'ابدأ مشروعك الأول' if lang == 'ar' else 'Start Your First Project' }}</h5>
+                    <p class="card__description mb-4">
+                        {{ 'اختر أحد الوحدات الاستشارية أعلاه لبدء رحلتك نحو التميز' if lang == 'ar' else 'Choose one of the consulting modules above to start your excellence journey' }}
+                    </p>
+                    <a href="{{ url_for('consultation.index') }}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        {{ 'إنشاء مشروع جديد' if lang == 'ar' else 'Create New Project' }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

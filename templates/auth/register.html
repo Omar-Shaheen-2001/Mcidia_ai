@@ -3,63 +3,183 @@
 {% block title %}{{ 'التسجيل' if lang == 'ar' else 'Register' }} - Mcidia{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-body p-5">
-                    <div class="text-center mb-4">
-                        <h2 class="fw-bold">{{ 'إنشاء حساب جديد' if lang == 'ar' else 'Create New Account' }}</h2>
-                        <p class="text-secondary">{{ 'ابدأ رحلتك نحو التميز' if lang == 'ar' else 'Start your journey to excellence' }}</p>
-                    </div>
-                    
-                    <form method="POST" action="{{ url_for('auth.register') }}">
-                        {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">{{ 'اسم المستخدم' if lang == 'ar' else 'Username' }}</label>
-                                <input type="text" name="username" class="form-control" required>
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-75">
+            <div class="col-lg-6 col-md-8">
+                <!-- Register Card -->
+                <div class="card shadow-lg border-0 animate-fadeIn">
+                    <div class="card__body p-5">
+                        <!-- Logo and Title -->
+                        <div class="text-center mb-5">
+                            <div class="icon-box icon-box--primary mb-4 mx-auto" style="width: 4rem; height: 4rem;">
+                                <i class="fas fa-user-plus fa-2x"></i>
+                            </div>
+                            <h2 class="card__title mb-2">{{ 'إنشاء حساب جديد' if lang == 'ar' else 'Create Your Account' }}</h2>
+                            <p class="card__description">
+                                {{ 'ابدأ رحلتك نحو التميز المؤسسي' if lang == 'ar' else 'Start your journey to organizational excellence' }}
+                            </p>
+                        </div>
+                        
+                        <!-- Register Form -->
+                        <form method="POST" action="{{ url_for('auth.register') }}">
+                            {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}
+                            
+                            <div class="row g-3">
+                                <!-- Username -->
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        <i class="fas fa-user me-1"></i>
+                                        {{ 'اسم المستخدم' if lang == 'ar' else 'Username' }}
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        name="username" 
+                                        class="form-control" 
+                                        placeholder="{{ 'مثال: أحمد' if lang == 'ar' else 'e.g., John' }}"
+                                        required
+                                        autocomplete="username"
+                                    >
+                                </div>
+                                
+                                <!-- Email -->
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        <i class="fas fa-envelope me-1"></i>
+                                        {{ 'البريد الإلكتروني' if lang == 'ar' else 'Email Address' }}
+                                    </label>
+                                    <input 
+                                        type="email" 
+                                        name="email" 
+                                        class="form-control" 
+                                        placeholder="{{ 'email@example.com' if lang == 'ar' else 'email@example.com' }}"
+                                        required
+                                        autocomplete="email"
+                                    >
+                                </div>
+                                
+                                <!-- Company Name -->
+                                <div class="col-12">
+                                    <label class="form-label">
+                                        <i class="fas fa-building me-1"></i>
+                                        {{ 'اسم المؤسسة' if lang == 'ar' else 'Company Name' }}
+                                        <span class="text-muted small">({{ 'اختياري' if lang == 'ar' else 'Optional' }})</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        name="company_name" 
+                                        class="form-control" 
+                                        placeholder="{{ 'أدخل اسم المؤسسة' if lang == 'ar' else 'Enter company name' }}"
+                                        autocomplete="organization"
+                                    >
+                                </div>
+                                
+                                <!-- Password -->
+                                <div class="col-12">
+                                    <label class="form-label">
+                                        <i class="fas fa-lock me-1"></i>
+                                        {{ 'كلمة المرور' if lang == 'ar' else 'Password' }}
+                                    </label>
+                                    <input 
+                                        type="password" 
+                                        name="password" 
+                                        class="form-control" 
+                                        placeholder="{{ '8 أحرف على الأقل' if lang == 'ar' else 'At least 8 characters' }}"
+                                        required
+                                        autocomplete="new-password"
+                                        minlength="6"
+                                    >
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        {{ 'يجب أن تحتوي كلمة المرور على 6 أحرف على الأقل' if lang == 'ar' else 'Password must be at least 6 characters' }}
+                                    </div>
+                                </div>
+                                
+                                <!-- Account Type -->
+                                <div class="col-12">
+                                    <label class="form-label">
+                                        <i class="fas fa-user-tag me-1"></i>
+                                        {{ 'نوع الحساب' if lang == 'ar' else 'Account Type' }}
+                                    </label>
+                                    <select name="role" class="form-select">
+                                        <option value="client">
+                                            <i class="fas fa-user-circle"></i>
+                                            {{ 'عميل - مستخدم فردي' if lang == 'ar' else 'Client - Individual User' }}
+                                        </option>
+                                        <option value="company_user">
+                                            <i class="fas fa-users"></i>
+                                            {{ 'مستخدم مؤسسة - للفرق والمؤسسات' if lang == 'ar' else 'Company User - For Teams & Organizations' }}
+                                        </option>
+                                        <option value="consultant">
+                                            <i class="fas fa-user-tie"></i>
+                                            {{ 'مستشار - تقديم الاستشارات' if lang == 'ar' else 'Consultant - Provide Consulting' }}
+                                        </option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Terms & Conditions -->
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                                        <label class="form-check-label small text-muted" for="termsCheck">
+                                            {{ 'أوافق على' if lang == 'ar' else 'I agree to the' }}
+                                            <a href="#" class="text-primary">{{ 'الشروط والأحكام' if lang == 'ar' else 'Terms & Conditions' }}</a>
+                                            {{ 'و' if lang == 'ar' else 'and' }}
+                                            <a href="#" class="text-primary">{{ 'سياسة الخصوصية' if lang == 'ar' else 'Privacy Policy' }}</a>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</label>
-                                <input type="email" name="email" class="form-control" required>
-                            </div>
+                            <button type="submit" class="btn btn-primary w-100 btn-lg mt-4 mb-4">
+                                <i class="fas fa-rocket me-2"></i>
+                                {{ 'إنشاء حساب مجاني' if lang == 'ar' else 'Create Free Account' }}
+                            </button>
+                        </form>
+                        
+                        <!-- Divider -->
+                        <div class="position-relative mb-4">
+                            <hr class="my-4">
+                            <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small">
+                                {{ 'أو' if lang == 'ar' else 'OR' }}
+                            </span>
                         </div>
                         
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">{{ 'اسم المؤسسة (اختياري)' if lang == 'ar' else 'Company Name (Optional)' }}</label>
-                            <input type="text" name="company_name" class="form-control">
+                        <!-- Login Link -->
+                        <div class="text-center">
+                            <p class="text-muted mb-0">
+                                {{ 'لديك حساب بالفعل؟' if lang == 'ar' else 'Already have an account?' }}
+                                <a href="{{ url_for('auth.login') }}" class="fw-semibold text-primary text-decoration-none">
+                                    {{ 'تسجيل الدخول' if lang == 'ar' else 'Sign in' }}
+                                </a>
+                            </p>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">{{ 'كلمة المرور' if lang == 'ar' else 'Password' }}</label>
-                            <input type="password" name="password" class="form-control" required>
+                    </div>
+                </div>
+                
+                <!-- Benefits -->
+                <div class="row g-3 mt-4">
+                    <div class="col-md-4 text-center">
+                        <div class="small text-muted">
+                            <i class="fas fa-check-circle fa-lg text-success mb-2 d-block"></i>
+                            <div class="fw-medium">{{ 'تجربة مجانية 14 يوم' if lang == 'ar' else '14-day free trial' }}</div>
                         </div>
-                        
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">{{ 'نوع الحساب' if lang == 'ar' else 'Account Type' }}</label>
-                            <select name="role" class="form-select">
-                                <option value="client">{{ 'عميل' if lang == 'ar' else 'Client' }}</option>
-                                <option value="company_user">{{ 'مستخدم مؤسسة' if lang == 'ar' else 'Company User' }}</option>
-                                <option value="consultant">{{ 'مستشار' if lang == 'ar' else 'Consultant' }}</option>
-                            </select>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="small text-muted">
+                            <i class="fas fa-credit-card fa-lg text-primary mb-2 d-block"></i>
+                            <div class="fw-medium">{{ 'بدون بطاقة ائتمان' if lang == 'ar' else 'No credit card required' }}</div>
                         </div>
-                        
-                        <button type="submit" class="btn btn-primary w-100 mb-3">
-                            <i class="fas fa-user-plus"></i> {{ 'تسجيل' if lang == 'ar' else 'Register' }}
-                        </button>
-                    </form>
-                    
-                    <div class="text-center">
-                        <p class="text-secondary">
-                            {{ 'لديك حساب بالفعل؟' if lang == 'ar' else 'Already have an account?' }}
-                            <a href="{{ url_for('auth.login') }}">{{ 'تسجيل الدخول' if lang == 'ar' else 'Login' }}</a>
-                        </p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="small text-muted">
+                            <i class="fas fa-headset fa-lg text-secondary mb-2 d-block"></i>
+                            <div class="fw-medium">{{ 'دعم فني متواصل' if lang == 'ar' else '24/7 Support' }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}

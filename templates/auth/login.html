@@ -3,42 +3,121 @@
 {% block title %}{{ 'تسجيل الدخول' if lang == 'ar' else 'Login' }} - Mcidia{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card shadow">
-                <div class="card-body p-5">
-                    <div class="text-center mb-4">
-                        <h2 class="fw-bold">{{ 'تسجيل الدخول' if lang == 'ar' else 'Login' }}</h2>
-                        <p class="text-secondary">{{ 'مرحباً بعودتك!' if lang == 'ar' else 'Welcome back!' }}</p>
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-75">
+            <div class="col-lg-5 col-md-7">
+                <!-- Login Card -->
+                <div class="card shadow-lg border-0 animate-fadeIn">
+                    <div class="card__body p-5">
+                        <!-- Logo and Title -->
+                        <div class="text-center mb-5">
+                            <div class="icon-box icon-box--primary mb-4 mx-auto" style="width: 4rem; height: 4rem;">
+                                <i class="fas fa-brain fa-2x"></i>
+                            </div>
+                            <h2 class="card__title mb-2">{{ 'تسجيل الدخول' if lang == 'ar' else 'Welcome Back' }}</h2>
+                            <p class="card__description">
+                                {{ 'مرحباً بعودتك إلى منصة Mcidia' if lang == 'ar' else 'Sign in to continue to Mcidia' }}
+                            </p>
+                        </div>
+                        
+                        <!-- Login Form -->
+                        <form method="POST" action="{{ url_for('auth.login') }}">
+                            {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}
+                            
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-envelope me-1"></i>
+                                    {{ 'البريد الإلكتروني' if lang == 'ar' else 'Email Address' }}
+                                </label>
+                                <input 
+                                    type="email" 
+                                    name="email" 
+                                    class="form-control" 
+                                    placeholder="{{ 'أدخل بريدك الإلكتروني' if lang == 'ar' else 'Enter your email' }}"
+                                    required
+                                    autocomplete="email"
+                                >
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label mb-0">
+                                        <i class="fas fa-lock me-1"></i>
+                                        {{ 'كلمة المرور' if lang == 'ar' else 'Password' }}
+                                    </label>
+                                    <a href="#" class="small text-muted">
+                                        {{ 'نسيت كلمة المرور؟' if lang == 'ar' else 'Forgot password?' }}
+                                    </a>
+                                </div>
+                                <input 
+                                    type="password" 
+                                    name="password" 
+                                    class="form-control" 
+                                    placeholder="{{ '••••••••' if lang == 'ar' else '••••••••' }}"
+                                    required
+                                    autocomplete="current-password"
+                                >
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="rememberMe">
+                                    <label class="form-check-label text-muted" for="rememberMe">
+                                        {{ 'تذكرني' if lang == 'ar' else 'Remember me' }}
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 btn-lg mb-4">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                {{ 'تسجيل الدخول' if lang == 'ar' else 'Sign In' }}
+                            </button>
+                        </form>
+                        
+                        <!-- Divider -->
+                        <div class="position-relative mb-4">
+                            <hr class="my-4">
+                            <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small">
+                                {{ 'أو' if lang == 'ar' else 'OR' }}
+                            </span>
+                        </div>
+                        
+                        <!-- Register Link -->
+                        <div class="text-center">
+                            <p class="text-muted mb-0">
+                                {{ 'ليس لديك حساب؟' if lang == 'ar' else "Don't have an account?" }}
+                                <a href="{{ url_for('auth.register') }}" class="fw-semibold text-primary text-decoration-none">
+                                    {{ 'سجل الآن مجاناً' if lang == 'ar' else 'Register for free' }}
+                                </a>
+                            </p>
+                        </div>
                     </div>
-                    
-                    <form method="POST" action="{{ url_for('auth.login') }}">
-                        {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</label>
-                            <input type="email" name="email" class="form-control" required>
+                </div>
+                
+                <!-- Trust Badges -->
+                <div class="row g-3 mt-4 text-center">
+                    <div class="col-4">
+                        <div class="small text-muted">
+                            <i class="fas fa-shield-alt fa-lg text-success mb-2 d-block"></i>
+                            <div class="fw-medium">{{ 'آمن 100%' if lang == 'ar' else '100% Secure' }}</div>
                         </div>
-                        
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">{{ 'كلمة المرور' if lang == 'ar' else 'Password' }}</label>
-                            <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="col-4">
+                        <div class="small text-muted">
+                            <i class="fas fa-clock fa-lg text-primary mb-2 d-block"></i>
+                            <div class="fw-medium">{{ 'دعم 24/7' if lang == 'ar' else '24/7 Support' }}</div>
                         </div>
-                        
-                        <button type="submit" class="btn btn-primary w-100 mb-3">
-                            <i class="fas fa-sign-in-alt"></i> {{ 'دخول' if lang == 'ar' else 'Login' }}
-                        </button>
-                    </form>
-                    
-                    <div class="text-center">
-                        <p class="text-secondary">
-                            {{ 'ليس لديك حساب؟' if lang == 'ar' else "Don't have an account?" }}
-                            <a href="{{ url_for('auth.register') }}">{{ 'سجل الآن' if lang == 'ar' else 'Register now' }}</a>
-                        </p>
+                    </div>
+                    <div class="col-4">
+                        <div class="small text-muted">
+                            <i class="fas fa-users fa-lg text-secondary mb-2 d-block"></i>
+                            <div class="fw-medium">{{ '500+ عميل' if lang == 'ar' else '500+ Clients' }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}
