@@ -115,10 +115,12 @@ def create_app():
     from blueprints.billing import billing_bp
     from blueprints.admin import admin_bp
     from blueprints.main import main_bp
+    from blueprints.services_bp import services_bp
     
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
+    app.register_blueprint(services_bp)
     app.register_blueprint(strategy_bp, url_prefix='/strategy')
     app.register_blueprint(hr_bp, url_prefix='/hr')
     app.register_blueprint(finance_bp, url_prefix='/finance')

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}{{ service.title_ar if lang == 'ar' else service.title_en }} - Mcidia{% endblock %}
+
+{% block content %}
+<!-- Service Header -->
+<section class="py-5" style="background: linear-gradient(135deg, {{ service.color }} 0%, {{ service.color }}dd 100%);">
+    <div class="container text-white">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="icon-box icon-box--large me-3" style="background-color: rgba(255,255,255,0.2); width: 4rem; height: 4rem;">
+                        <i class="fas {{ service.icon }} fa-2x text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="fw-bold mb-1 text-white">
+                            {{ service.title_ar if lang == 'ar' else service.title_en }}
+                        </h1>
+                        <p class="mb-0" style="color: rgba(255,255,255,0.8);">
+                            {{ service.description_ar if lang == 'ar' else service.description_en }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <a href="{{ url_for('services.index') }}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>
+                    {{ 'عودة للخدمات' if lang == 'ar' else 'Back to Services' }}
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Service Offerings -->
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="fw-bold">
+                {{ 'الخدمات المتاحة' if lang == 'ar' else 'Available Services' }}
+            </h3>
+            <p class="text-muted">
+                {{ 'اختر الخدمة التي تحتاجها للبدء في العمل مع المستشار الذكي' if lang == 'ar' else 'Choose the service you need to start working with the AI consultant' }}
+            </p>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        {% for offering in offerings %}
+        <div class="col-lg-4 col-md-6">
+            <a href="{{ url_for('services.offering_detail', service_slug=service.slug, offering_slug=offering.slug) }}" class="text-decoration-none">
+                <div class="card card--feature hover-lift h-100">
+                    <div class="card__body">
+                        <div class="icon-box mb-3" style="background-color: {{ service.color }}20; color: {{ service.color }};">
+                            <i class="fas {{ offering.icon or 'fa-star' }} fa-2x"></i>
+                        </div>
+                        <h5 class="card__title mb-3">
+                            {{ offering.title_ar if lang == 'ar' else offering.title_en }}
+                        </h5>
+                        <p class="card__description mb-4">
+                            {{ offering.description_ar if lang == 'ar' else offering.description_en }}
+                        </p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="badge" style="background-color: {{ service.color }}20; color: {{ service.color }};">
+                                <i class="fas fa-brain me-1"></i>
+                                {{ offering.ai_credits_cost or 1 }} {{ 'رصيد' if lang == 'ar' else 'Credit' }}
+                            </span>
+                            <span class="text-primary small">
+                                {{ 'ابدأ الآن' if lang == 'ar' else 'Start Now' }}
+                                <i class="fas fa-arrow-{{ 'left' if lang == 'ar' else 'right' }} ms-1"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Empty State -->
+    {% if not offerings %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card text-center py-5">
+                <div class="card__body">
+                    <div class="icon-box icon-box--primary mb-4 mx-auto" style="width: 5rem; height: 5rem;">
+                        <i class="fas fa-inbox fa-3x"></i>
+                    </div>
+                    <h5 class="card__title">{{ 'لا توجد خدمات متاحة حالياً' if lang == 'ar' else 'No Services Available' }}</h5>
+                    <p class="card__description">
+                        {{ 'سيتم إضافة الخدمات قريباً' if lang == 'ar' else 'Services will be added soon' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

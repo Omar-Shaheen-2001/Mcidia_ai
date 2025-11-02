@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}{{ offering.title_ar if lang == 'ar' else offering.title_en }} - Mcidia{% endblock %}
+
+{% block content %}
+<!-- Offering Header -->
+<section class="py-4" style="background: linear-gradient(135deg, {{ service.color }} 0%, {{ service.color }}dd 100%);">
+    <div class="container text-white">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-3">
+                <li class="breadcrumb-item"><a href="{{ url_for('services.index') }}" class="text-white-50">{{ 'الخدمات' if lang == 'ar' else 'Services' }}</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('services.service_detail', service_slug=service.slug) }}" class="text-white-50">{{ service.title_ar if lang == 'ar' else service.title_en }}</a></li>
+                <li class="breadcrumb-item active text-white" aria-current="page">{{ offering.title_ar if lang == 'ar' else offering.title_en }}</li>
+            </ol>
+        </nav>
+        
+        <div class="row align-items-center">
+            <div class="col-lg-9">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="icon-box flex-shrink-0" style="background-color: rgba(255,255,255,0.2); width: 4rem; height: 4rem;">
+                        <i class="fas {{ offering.icon or 'fa-star' }} fa-2x text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="fw-bold mb-2 text-white h3">
+                            {{ offering.title_ar if lang == 'ar' else offering.title_en }}
+                        </h1>
+                        <p class="mb-0" style="color: rgba(255,255,255,0.9);">
+                            {{ offering.description_ar if lang == 'ar' else offering.description_en }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 text-lg-end mt-3 mt-lg-0">
+                <span class="badge bg-white text-dark px-3 py-2">
+                    <i class="fas fa-brain me-1"></i>
+                    {{ offering.ai_credits_cost or 1 }} {{ 'رصيد AI' if lang == 'ar' else 'AI Credits' }}
+                </span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container my-5">
+    <div class="row">
+        <!-- AI Form Section -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card__header">
+                    <h4 class="card__title mb-0">
+                        <i class="fas fa-magic me-2" style="color: {{ service.color }};"></i>
+                        {{ 'احصل على استشارة ذكية' if lang == 'ar' else 'Get AI-Powered Consultation' }}
+                    </h4>
+                </div>
+                <div class="card__body">
+                    <form id="aiConsultationForm">
+                        <!-- Project Name -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-folder me-1"></i>
+                                {{ 'اسم المشروع' if lang == 'ar' else 'Project Name' }}
+                            </label>
+                            <input type="text" class="form-control" name="project_name" 
+                                   placeholder="{{ 'أدخل اسم المشروع' if lang == 'ar' else 'Enter project name' }}" required>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-align-left me-1"></i>
+                                {{ 'وصف الاحتياجات' if lang == 'ar' else 'Description of Needs' }}
+                            </label>
+                            <textarea class="form-control" name="description" rows="6"
+                                      placeholder="{{ 'صف احتياجاتك بالتفصيل للحصول على استشارة دقيقة...' if lang == 'ar' else 'Describe your needs in detail for accurate consultation...' }}" required></textarea>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {{ 'كلما كانت المعلومات أكثر تفصيلاً، كانت النتائج أفضل' if lang == 'ar' else 'The more detailed the information, the better the results' }}
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Context -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-list me-1"></i>
+                                {{ 'معلومات إضافية (اختياري)' if lang == 'ar' else 'Additional Information (Optional)' }}
+                            </label>
+                            <textarea class="form-control" name="additional_context" rows="3"
+                                      placeholder="{{ 'أضف أي معلومات إضافية تساعد في تقديم استشارة أفضل' if lang == 'ar' else 'Add any additional information for better consultation' }}"></textarea>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-lg w-100" style="background-color: {{ service.color }}; color: white;" id="generateBtn">
+                            <i class="fas fa-robot me-2"></i>
+                            {{ 'إنشاء الاستشارة الذكية' if lang == 'ar' else 'Generate AI Consultation' }}
+                        </button>
+                    </form>
+                    
+                    <!-- Loading State -->
+                    <div id="loadingState" class="d-none text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted">
+                            <i class="fas fa-brain me-2"></i>
+                            {{ 'جاري إنشاء الاستشارة الذكية...' if lang == 'ar' else 'Generating AI consultation...' }}
+                        </p>
+                    </div>
+                    
+                    <!-- Result Section -->
+                    <div id="resultSection" class="d-none mt-4">
+                        <hr class="my-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            {{ 'نتيجة الاستشارة' if lang == 'ar' else 'Consultation Result' }}
+                        </h5>
+                        <div id="resultContent" class="card bg-light p-4" style="white-space: pre-wrap; line-height: 1.8;"></div>
+                        
+                        <div class="mt-3 d-flex gap-2">
+                            <button class="btn btn-outline-primary" onclick="window.print()">
+                                <i class="fas fa-print me-1"></i>
+                                {{ 'طباعة' if lang == 'ar' else 'Print' }}
+                            </button>
+                            <button class="btn btn-outline-secondary" id="newConsultationBtn">
+                                <i class="fas fa-plus me-1"></i>
+                                {{ 'استشارة جديدة' if lang == 'ar' else 'New Consultation' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Info Card -->
+            <div class="card mb-4">
+                <div class="card__header" style="background-color: {{ service.color }}10;">
+                    <h6 class="card__title mb-0" style="color: {{ service.color }};">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {{ 'معلومات الخدمة' if lang == 'ar' else 'Service Information' }}
+                    </h6>
+                </div>
+                <div class="card__body">
+                    <div class="mb-3">
+                        <div class="small text-muted mb-1">{{ 'الفئة' if lang == 'ar' else 'Category' }}</div>
+                        <div class="fw-semibold">{{ service.title_ar if lang == 'ar' else service.title_en }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="small text-muted mb-1">{{ 'تكلفة الاستخدام' if lang == 'ar' else 'Usage Cost' }}</div>
+                        <div class="fw-semibold">{{ offering.ai_credits_cost or 1 }} {{ 'رصيد AI' if lang == 'ar' else 'AI Credits' }}</div>
+                    </div>
+                    <div>
+                        <div class="small text-muted mb-1">{{ 'النموذج المستخدم' if lang == 'ar' else 'AI Model' }}</div>
+                        <div class="fw-semibold">{{ offering.ai_model or 'GPT-4' }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Projects -->
+            {% if projects %}
+            <div class="card">
+                <div class="card__header">
+                    <h6 class="card__title mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        {{ 'المشاريع الأخيرة' if lang == 'ar' else 'Recent Projects' }}
+                    </h6>
+                </div>
+                <div class="card__body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for project in projects %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 small">{{ project.title }}</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        {{ project.created_at.strftime('%Y-%m-%d') }}
+                                    </small>
+                                </div>
+                                <span class="badge badge--success small">{{ project.status }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Help Card -->
+            <div class="card mt-4" style="background-color: {{ service.color }}10; border-color: {{ service.color }}20;">
+                <div class="card__body text-center">
+                    <div class="icon-box mb-3 mx-auto" style="background-color: {{ service.color }}; color: white;">
+                        <i class="fas fa-headset fa-2x"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">{{ 'هل تحتاج مساعدة؟' if lang == 'ar' else 'Need Help?' }}</h6>
+                    <p class="small text-muted mb-3">
+                        {{ 'فريقنا جاهز لمساعدتك' if lang == 'ar' else 'Our team is ready to help' }}
+                    </p>
+                    <a href="{{ url_for('consultation.index') }}" class="btn btn-sm btn-outline-primary">
+                        {{ 'تحدث مع مستشار' if lang == 'ar' else 'Talk to Consultant' }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('aiConsultationForm');
+    const loadingState = document.getElementById('loadingState');
+    const resultSection = document.getElementById('resultSection');
+    const resultContent = document.getElementById('resultContent');
+    const generateBtn = document.getElementById('generateBtn');
+    const newConsultationBtn = document.getElementById('newConsultationBtn');
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        const formData = {
+            project_name: form.project_name.value,
+            description: form.description.value,
+            additional_context: form.additional_context.value
+        };
+        
+        // Show loading, hide form
+        form.classList.add('d-none');
+        loadingState.classList.remove('d-none');
+        resultSection.classList.add('d-none');
+        
+        try {
+            const response = await fetch('{{ url_for("services.api_generate_content", service_slug=service.slug, offering_slug=offering.slug) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Show result
+                resultContent.textContent = data.response;
+                loadingState.classList.add('d-none');
+                resultSection.classList.remove('d-none');
+                
+                // Show success message
+                alert('{{ "تم إنشاء الاستشارة بنجاح!" if lang == "ar" else "Consultation generated successfully!" }}');
+            } else {
+                throw new Error(data.error || 'Unknown error');
+            }
+        } catch (error) {
+            alert('{{ "حدث خطأ: " if lang == "ar" else "Error: " }}' + error.message);
+            form.classList.remove('d-none');
+            loadingState.classList.add('d-none');
+        }
+    });
+    
+    newConsultationBtn.addEventListener('click', function() {
+        form.reset();
+        form.classList.remove('d-none');
+        resultSection.classList.add('d-none');
+    });
+});
+</script>
+{% endblock %}
