@@ -206,3 +206,78 @@ class ChatSession(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
+
+class Service(db.Model):
+    __tablename__ = 'services'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(100), unique=True, nullable=False)  # URL-friendly identifier
+    title_ar = db.Column(db.String(200), nullable=False)  # Arabic title
+    title_en = db.Column(db.String(200), nullable=False)  # English title
+    description_ar = db.Column(db.Text)  # Arabic description
+    description_en = db.Column(db.Text)  # English description
+    icon = db.Column(db.String(50))  # FontAwesome icon class
+    color = db.Column(db.String(20))  # Hex color code
+    display_order = db.Column(db.Integer, default=0)  # Sort order
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    offerings = db.relationship('ServiceOffering', backref='service', lazy=True, cascade='all, delete-orphan')
+    
+    def to_dict(self, lang='ar'):
+        return {
+            'id': self.id,
+            'slug': self.slug,
+            'title': self.title_ar if lang == 'ar' else self.title_en,
+            'description': self.description_ar if lang == 'ar' else self.description_en,
+            'icon': self.icon,
+            'color': self.color,
+            'display_order': self.display_order,
+            'is_active': self.is_active,
+            'offerings_count': len(self.offerings) if self.offerings else 0
+        }
+
+class ServiceOffering(db.Model):
+    __tablename__ = 'service_offerings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    service_id = db.Column(db.Integer, db.ForeignKey('services.id'), nullable=False)
+    slug = db.Column(db.String(100), nullable=False)  # URL-friendly identifier
+    title_ar = db.Column(db.String(200), nullable=False)  # Arabic title
+    title_en = db.Column(db.String(200), nullable=False)  # English title
+    description_ar = db.Column(db.Text)  # Arabic description
+    description_en = db.Column(db.Text)  # English description
+    icon = db.Column(db.String(50))  # FontAwesome icon class
+    display_order = db.Column(db.Integer, default=0)  # Sort order
+    is_active = db.Column(db.Boolean, default=True)
+    
+    # AI Integration fields
+    ai_prompt_template = db.Column(db.Text)  # Template for AI prompts
+    ai_model = db.Column(db.String(50), default='gpt-4')  # AI model to use
+    ai_credits_cost = db.Column(db.Integer, default=1)  # Credits per AI request
+    
+    # Content fields
+    form_fields = db.Column(db.Text)  # JSON string of form configuration
+    output_template = db.Column(db.Text)  # Template for output formatting
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Unique constraint on service_id + slug combination
+    __table_args__ = (db.UniqueConstraint('service_id', 'slug', name='unique_service_offering_slug'),)
+    
+    def to_dict(self, lang='ar'):
+        return {
+            'id': self.id,
+            'service_id': self.service_id,
+            'slug': self.slug,
+            'title': self.title_ar if lang == 'ar' else self.title_en,
+            'description': self.description_ar if lang == 'ar' else self.description_en,
+            'icon': self.icon,
+            'display_order': self.display_order,
+            'is_active': self.is_active,
+            'ai_model': self.ai_model,
+            'ai_credits_cost': self.ai_credits_cost
+        }
