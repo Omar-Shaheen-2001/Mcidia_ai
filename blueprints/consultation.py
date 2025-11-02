@@ -12,7 +12,7 @@ consultation_bp = Blueprint('consultation', __name__)
 @login_required
 def index():
     user_id = get_jwt_identity()
-    sessions = ChatSession.query.filter_by(user_id=user_id).order_by(ChatSession.updated_at.desc()).all()
+    sessions = db.session.query(ChatSession).filter_by(user_id=user_id).order_by(ChatSession.updated_at.desc()).all()
     lang = session.get('language', 'ar')
     return render_template('consultation/index.html', sessions=sessions, lang=lang)
 
@@ -20,11 +20,11 @@ def index():
 @login_required
 def chat(domain):
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.query(User).get(user_id)
     lang = session.get('language', 'ar')
     
     # Get or create chat session
-    chat_session = ChatSession.query.filter_by(user_id=user_id, domain=domain).order_by(ChatSession.updated_at.desc()).first()
+    chat_session = db.session.query(ChatSession).filter_by(user_id=user_id, domain=domain).order_by(ChatSession.updated_at.desc()).first()
     
     if not chat_session:
         chat_session = ChatSession(

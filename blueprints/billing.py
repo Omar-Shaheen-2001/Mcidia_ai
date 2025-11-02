@@ -14,8 +14,8 @@ billing_bp = Blueprint('billing', __name__)
 @login_required
 def index():
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
-    transactions = Transaction.query.filter_by(user_id=user_id).order_by(Transaction.created_at.desc()).all()
+    user = db.session.query(User).get(user_id)
+    transactions = db.session.query(Transaction).filter_by(user_id=user_id).order_by(Transaction.created_at.desc()).all()
     lang = session.get('language', 'ar')
     return render_template('billing/index.html', user=user, transactions=transactions, lang=lang)
 
@@ -28,7 +28,7 @@ def pricing():
 @login_required
 def subscribe():
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.query(User).get(user_id)
     plan = request.form.get('plan')  # monthly, yearly, pay_per_use
     
     try:
@@ -90,7 +90,7 @@ def subscribe():
 @login_required
 def success():
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.query(User).get(user_id)
     session_id = request.args.get('session_id')
     
     try:

@@ -12,7 +12,7 @@ innovation_bp = Blueprint('innovation', __name__)
 @login_required
 def index():
     user_id = get_jwt_identity()
-    projects = Project.query.filter_by(user_id=user_id, module='innovation').all()
+    projects = db.session.query(Project).filter_by(user_id=user_id, module='innovation').all()
     lang = session.get('language', 'ar')
     return render_template('innovation/index.html', projects=projects, lang=lang)
 
@@ -20,7 +20,7 @@ def index():
 @login_required
 def business_canvas():
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.query(User).get(user_id)
     lang = session.get('language', 'ar')
     
     if request.method == 'POST':
@@ -102,7 +102,7 @@ def business_canvas():
 @login_required
 def innovation_ideas():
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.query(User).get(user_id)
     lang = session.get('language', 'ar')
     
     if request.method == 'POST':

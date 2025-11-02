@@ -10,18 +10,18 @@ dashboard_bp = Blueprint('dashboard', __name__)
 @login_required
 def index():
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.query(User).get(user_id)
     
     # Get statistics
-    total_projects = Project.query.filter_by(user_id=user_id).count()
-    active_projects = Project.query.filter_by(user_id=user_id, status='draft').count()
+    total_projects = db.session.query(Project).filter_by(user_id=user_id).count()
+    active_projects = db.session.query(Project).filter_by(user_id=user_id, status='draft').count()
     ai_credits = user.ai_credits_used if user else 0
     
     # Get recent projects
-    recent_projects = Project.query.filter_by(user_id=user_id).order_by(Project.updated_at.desc()).limit(5).all()
+    recent_projects = db.session.query(Project).filter_by(user_id=user_id).order_by(Project.updated_at.desc()).limit(5).all()
     
     # Get recent AI logs
-    recent_ai_activity = AILog.query.filter_by(user_id=user_id).order_by(AILog.created_at.desc()).limit(5).all()
+    recent_ai_activity = db.session.query(AILog).filter_by(user_id=user_id).order_by(AILog.created_at.desc()).limit(5).all()
     
     lang = session.get('language', 'ar')
     

@@ -12,7 +12,7 @@ strategy_bp = Blueprint('strategy', __name__)
 @login_required
 def index():
     user_id = get_jwt_identity()
-    projects = Project.query.filter_by(user_id=user_id, module='strategy').all()
+    projects = db.session.query(Project).filter_by(user_id=user_id, module='strategy').all()
     lang = session.get('language', 'ar')
     return render_template('strategy/index.html', projects=projects, lang=lang)
 
@@ -20,7 +20,7 @@ def index():
 @login_required
 def swot_analysis():
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.query(User).get(user_id)
     lang = session.get('language', 'ar')
     
     if request.method == 'POST':
@@ -101,7 +101,7 @@ def swot_analysis():
 @login_required
 def vision_mission():
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.query(User).get(user_id)
     lang = session.get('language', 'ar')
     
     if request.method == 'POST':

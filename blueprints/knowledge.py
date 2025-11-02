@@ -44,7 +44,7 @@ def extract_text_from_file(filepath, file_type):
 @login_required
 def index():
     user_id = get_jwt_identity()
-    documents = Document.query.filter_by(user_id=user_id).all()
+    documents = db.session.query(Document).filter_by(user_id=user_id).all()
     lang = session.get('language', 'ar')
     return render_template('knowledge/index.html', documents=documents, lang=lang)
 
@@ -97,14 +97,14 @@ def upload():
 @login_required
 def search():
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.query(User).get(user_id)
     lang = session.get('language', 'ar')
     
     if request.method == 'POST':
         query = request.form.get('query')
         
         # Get all user documents
-        documents = Document.query.filter_by(user_id=user_id).all()
+        documents = db.session.query(Document).filter_by(user_id=user_id).all()
         
         if not documents:
             flash('لا توجد مستندات مرفوعة / No documents uploaded yet', 'warning')
