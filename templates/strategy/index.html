@@ -3,42 +3,268 @@
 {% block title %}{{ 'التخطيط الاستراتيجي' if lang == 'ar' else 'Strategic Planning' }} - Mcidia{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row">
+<!-- Module Header -->
+<section class="bg-gradient-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="icon-box icon-box--large me-3" style="background-color: rgba(255,255,255,0.2); width: 4rem; height: 4rem;">
+                        <i class="fas fa-compass fa-2x text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="fw-bold mb-1 text-white">
+                            {{ 'التخطيط الاستراتيجي' if lang == 'ar' else 'Strategic Planning' }}
+                        </h1>
+                        <p class="mb-0 text-white-50">
+                            {{ 'بناء استراتيجية قوية لمؤسستك' if lang == 'ar' else 'Build a strong strategy for your organization' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>
+                    {{ 'عودة للوحة التحكم' if lang == 'ar' else 'Back to Dashboard' }}
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Module Content -->
+<div class="container my-5">
+    <!-- Features Overview -->
+    <div class="row mb-5">
         <div class="col-12">
-            <h2 class="fw-bold mb-4">
-                <i class="fas fa-compass text-primary"></i>
-                {{ 'التخطيط الاستراتيجي' if lang == 'ar' else 'Strategic Planning' }}
-            </h2>
-            <p class="text-secondary">
-                {{ 'وحدة التخطيط الاستراتيجي لمساعدتك في بناء استراتيجية قوية لمؤسستك' if lang == 'ar' else 'Strategic planning module to help you build a strong strategy for your organization' }}
-            </p>
+            <div class="text-center mb-4">
+                <h3 class="fw-bold">{{ 'الأدوات المتاحة' if lang == 'ar' else 'Available Tools' }}</h3>
+                <p class="text-muted">
+                    {{ 'مجموعة متكاملة من الأدوات الذكية للتخطيط الاستراتيجي' if lang == 'ar' else 'Complete set of smart tools for strategic planning' }}
+                </p>
+            </div>
         </div>
     </div>
     
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-chart-line"></i>
+    <div class="row g-4">
+        <!-- SWOT Analysis -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card card--feature hover-lift h-100">
+                <div class="card__body">
+                    <div class="icon-box icon-box--primary mb-4">
+                        <i class="fas fa-chart-line fa-2x"></i>
+                    </div>
+                    <h5 class="card__title">
                         {{ 'تحليل SWOT' if lang == 'ar' else 'SWOT Analysis' }}
                     </h5>
-                    <p class="card-text">{{ 'تحليل نقاط القوة والضعف والفرص والتهديدات' if lang == 'ar' else 'Analyze strengths, weaknesses, opportunities, and threats' }}</p>
-                    <button class="btn btn-primary" disabled>{{ 'قريباً' if lang == 'ar' else 'Coming Soon' }}</button>
+                    <p class="card__description mb-4">
+                        {{ 'تحليل شامل لنقاط القوة والضعف والفرص والتهديدات لمؤسستك' if lang == 'ar' else 'Comprehensive analysis of your organization strengths, weaknesses, opportunities, and threats' }}
+                    </p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" disabled>
+                            <i class="fas fa-rocket me-1"></i>
+                            {{ 'ابدأ الآن' if lang == 'ar' else 'Start Now' }}
+                        </button>
+                        <span class="badge badge--warning align-self-center">
+                            {{ 'قريباً' if lang == 'ar' else 'Coming Soon' }}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-bullseye"></i>
+        <!-- Vision & Mission -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card card--feature hover-lift h-100">
+                <div class="card__body">
+                    <div class="icon-box icon-box--secondary mb-4">
+                        <i class="fas fa-eye fa-2x"></i>
+                    </div>
+                    <h5 class="card__title">
+                        {{ 'الرؤية والرسالة' if lang == 'ar' else 'Vision & Mission' }}
+                    </h5>
+                    <p class="card__description mb-4">
+                        {{ 'صياغة رؤية ملهمة ورسالة واضحة تحدد اتجاه مؤسستك' if lang == 'ar' else 'Craft an inspiring vision and clear mission that defines your organization direction' }}
+                    </p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" disabled>
+                            <i class="fas fa-pen me-1"></i>
+                            {{ 'إنشاء' if lang == 'ar' else 'Create' }}
+                        </button>
+                        <span class="badge badge--warning align-self-center">
+                            {{ 'قريباً' if lang == 'ar' else 'Coming Soon' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Strategic Goals -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card card--feature hover-lift h-100">
+                <div class="card__body">
+                    <div class="icon-box icon-box--primary mb-4">
+                        <i class="fas fa-bullseye fa-2x"></i>
+                    </div>
+                    <h5 class="card__title">
                         {{ 'الأهداف الاستراتيجية' if lang == 'ar' else 'Strategic Goals' }}
                     </h5>
-                    <p class="card-text">{{ 'تحديد ومتابعة الأهداف الاستراتيجية' if lang == 'ar' else 'Define and track strategic goals' }}</p>
-                    <button class="btn btn-primary" disabled>{{ 'قريباً' if lang == 'ar' else 'Coming Soon' }}</button>
+                    <p class="card__description mb-4">
+                        {{ 'تحديد وصياغة أهداف SMART قابلة للقياس والتحقيق' if lang == 'ar' else 'Define and formulate SMART goals that are measurable and achievable' }}
+                    </p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" disabled>
+                            <i class="fas fa-target me-1"></i>
+                            {{ 'حدد الأهداف' if lang == 'ar' else 'Set Goals' }}
+                        </button>
+                        <span class="badge badge--warning align-self-center">
+                            {{ 'قريباً' if lang == 'ar' else 'Coming Soon' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Balanced Scorecard -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card card--feature hover-lift h-100">
+                <div class="card__body">
+                    <div class="icon-box icon-box--secondary mb-4">
+                        <i class="fas fa-clipboard-list fa-2x"></i>
+                    </div>
+                    <h5 class="card__title">
+                        {{ 'بطاقة الأداء المتوازن' if lang == 'ar' else 'Balanced Scorecard' }}
+                    </h5>
+                    <p class="card__description mb-4">
+                        {{ 'تتبع ومراقبة الأداء عبر أربعة أبعاد رئيسية' if lang == 'ar' else 'Track and monitor performance across four key perspectives' }}
+                    </p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" disabled>
+                            <i class="fas fa-chart-bar me-1"></i>
+                            {{ 'إنشاء بطاقة' if lang == 'ar' else 'Create Scorecard' }}
+                        </button>
+                        <span class="badge badge--warning align-self-center">
+                            {{ 'قريباً' if lang == 'ar' else 'Coming Soon' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Strategic Initiatives -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card card--feature hover-lift h-100">
+                <div class="card__body">
+                    <div class="icon-box icon-box--primary mb-4">
+                        <i class="fas fa-tasks fa-2x"></i>
+                    </div>
+                    <h5 class="card__title">
+                        {{ 'المبادرات الاستراتيجية' if lang == 'ar' else 'Strategic Initiatives' }}
+                    </h5>
+                    <p class="card__description mb-4">
+                        {{ 'تخطيط وإدارة المبادرات الاستراتيجية الرئيسية' if lang == 'ar' else 'Plan and manage key strategic initiatives' }}
+                    </p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" disabled>
+                            <i class="fas fa-plus me-1"></i>
+                            {{ 'أضف مبادرة' if lang == 'ar' else 'Add Initiative' }}
+                        </button>
+                        <span class="badge badge--warning align-self-center">
+                            {{ 'قريباً' if lang == 'ar' else 'Coming Soon' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Performance KPIs -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card card--feature hover-lift h-100">
+                <div class="card__body">
+                    <div class="icon-box icon-box--secondary mb-4">
+                        <i class="fas fa-tachometer-alt fa-2x"></i>
+                    </div>
+                    <h5 class="card__title">
+                        {{ 'مؤشرات الأداء KPIs' if lang == 'ar' else 'Performance KPIs' }}
+                    </h5>
+                    <p class="card__description mb-4">
+                        {{ 'تحديد ومتابعة مؤشرات الأداء الرئيسية' if lang == 'ar' else 'Define and track key performance indicators' }}
+                    </p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" disabled>
+                            <i class="fas fa-sliders-h me-1"></i>
+                            {{ 'إضافة KPIs' if lang == 'ar' else 'Add KPIs' }}
+                        </button>
+                        <span class="badge badge--warning align-self-center">
+                            {{ 'قريباً' if lang == 'ar' else 'Coming Soon' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Benefits Section -->
+    <div class="row mt-5 pt-5 border-top">
+        <div class="col-12 text-center mb-4">
+            <h3 class="fw-bold">{{ 'لماذا التخطيط الاستراتيجي؟' if lang == 'ar' else 'Why Strategic Planning?' }}</h3>
+            <p class="text-muted">
+                {{ 'فوائد استخدام أدوات التخطيط الاستراتيجي الذكية' if lang == 'ar' else 'Benefits of using smart strategic planning tools' }}
+            </p>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="text-center mb-4">
+                <div class="icon-box icon-box--primary mb-3 mx-auto">
+                    <i class="fas fa-brain fa-2x"></i>
+                </div>
+                <h5 class="fw-bold">{{ 'ذكاء اصطناعي متقدم' if lang == 'ar' else 'Advanced AI' }}</h5>
+                <p class="text-muted">
+                    {{ 'استفد من الذكاء الاصطناعي في بناء استراتيجية قوية' if lang == 'ar' else 'Leverage AI to build a strong strategy' }}
+                </p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="text-center mb-4">
+                <div class="icon-box icon-box--secondary mb-3 mx-auto">
+                    <i class="fas fa-clock fa-2x"></i>
+                </div>
+                <h5 class="fw-bold">{{ 'توفير الوقت' if lang == 'ar' else 'Save Time' }}</h5>
+                <p class="text-muted">
+                    {{ 'اختصر الوقت من أسابيع إلى دقائق' if lang == 'ar' else 'Reduce time from weeks to minutes' }}
+                </p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="text-center mb-4">
+                <div class="icon-box icon-box--primary mb-3 mx-auto">
+                    <i class="fas fa-award fa-2x"></i>
+                </div>
+                <h5 class="fw-bold">{{ 'جودة احترافية' if lang == 'ar' else 'Professional Quality' }}</h5>
+                <p class="text-muted">
+                    {{ 'نتائج بجودة استشارية عالمية' if lang == 'ar' else 'Results with world-class consulting quality' }}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CTA Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white text-center">
+                <div class="card__body py-5">
+                    <h4 class="fw-bold text-white mb-3">
+                        {{ 'هل تحتاج مساعدة في التخطيط الاستراتيجي؟' if lang == 'ar' else 'Need Help with Strategic Planning?' }}
+                    </h4>
+                    <p class="mb-4 text-white-50">
+                        {{ 'تحدث مع المستشار الذكي للحصول على إرشادات شخصية' if lang == 'ar' else 'Talk to our AI consultant for personalized guidance' }}
+                    </p>
+                    <a href="{{ url_for('consultation.index') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-comments me-2"></i>
+                        {{ 'استشارة فورية' if lang == 'ar' else 'Quick Consultation' }}
+                    </a>
                 </div>
             </div>
         </div>

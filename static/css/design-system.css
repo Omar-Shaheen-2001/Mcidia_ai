@@ -23,6 +23,7 @@
     --color-background-alt: #EEF5FC;
     --color-surface: #FFFFFF;
     --color-border: #E2E8F0;
+    --border-color: #E2E8F0;  /* Alias for consistency */
     --color-border-light: #F1F5F9;
     
     /* Text Colors */
