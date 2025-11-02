@@ -12,6 +12,40 @@ db = SQLAlchemy()
 jwt = JWTManager()
 csrf = CSRFProtect()
 
+def seed_database():
+    """Seed database with default roles and subscription plans"""
+    from models import Role, SubscriptionPlan
+    
+    # Create default roles if they don't exist
+    default_roles = [
+        {'name': 'admin', 'description': 'System Administrator'},
+        {'name': 'consultant', 'description': 'Professional Consultant'},
+        {'name': 'company_user', 'description': 'Company User'},
+        {'name': 'client', 'description': 'Individual Client'}
+    ]
+    
+    for role_data in default_roles:
+        existing = db.session.query(Role).filter_by(name=role_data['name']).first()
+        if not existing:
+            role = Role(**role_data)
+            db.session.add(role)
+    
+    # Create default subscription plans if they don't exist
+    default_plans = [
+        {'name': 'free', 'price': 0, 'billing_period': 'monthly', 'ai_credits_limit': 1000},
+        {'name': 'monthly', 'price': 99, 'billing_period': 'monthly', 'ai_credits_limit': 100000},
+        {'name': 'yearly', 'price': 999, 'billing_period': 'yearly', 'ai_credits_limit': 1500000},
+        {'name': 'pay_per_use', 'price': 0, 'billing_period': 'one_time', 'ai_credits_limit': None}
+    ]
+    
+    for plan_data in default_plans:
+        existing = db.session.query(SubscriptionPlan).filter_by(name=plan_data['name']).first()
+        if not existing:
+            plan = SubscriptionPlan(**plan_data)
+            db.session.add(plan)
+    
+    db.session.commit()
+
 def create_app():
     app = Flask(__name__)
     
@@ -80,47 +114,12 @@ def create_app():
     app.register_blueprint(billing_bp, url_prefix='/billing')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     
-    # Create tables
+    # Create tables and seed default data
     with app.app_context():
         db.create_all()
-    
-    # Seed default data
-    seed_default_data(app)
+        seed_database()
     
     return app
-
-def seed_default_data(app):
-    """Seed database with default roles and subscription plans"""
-    from models import Role, SubscriptionPlan
-    
-    with app.app_context():
-        # Create default roles if they don't exist
-        default_roles = [
-            {'name': 'admin', 'description': 'System Administrator'},
-            {'name': 'consultant', 'description': 'Professional Consultant'},
-            {'name': 'company_user', 'description': 'Company User'},
-            {'name': 'client', 'description': 'Individual Client'}
-        ]
-        
-        for role_data in default_roles:
-            if not Role.query.filter_by(name=role_data['name']).first():
-                role = Role(**role_data)
-                db.session.add(role)
-        
-        # Create default subscription plans if they don't exist
-        default_plans = [
-            {'name': 'free', 'price': 0, 'billing_period': 'monthly', 'ai_credits_limit': 1000},
-            {'name': 'monthly', 'price': 99, 'billing_period': 'monthly', 'ai_credits_limit': 100000},
-            {'name': 'yearly', 'price': 999, 'billing_period': 'yearly', 'ai_credits_limit': 1500000},
-            {'name': 'pay_per_use', 'price': 0, 'billing_period': 'one_time', 'ai_credits_limit': None}
-        ]
-        
-        for plan_data in default_plans:
-            if not SubscriptionPlan.query.filter_by(name=plan_data['name']).first():
-                plan = SubscriptionPlan(**plan_data)
-                db.session.add(plan)
-        
-        db.session.commit()
 
 if __name__ == '__main__':
     app = create_app()
