@@ -16,8 +16,8 @@
                     <form method="POST" action="{{ url_for('auth.login') }}">
                         {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">{{ 'اسم المستخدم' if lang == 'ar' else 'Username' }}</label>
-                            <input type="text" name="username" class="form-control" required>
+                            <label class="form-label fw-semibold">{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</label>
+                            <input type="email" name="email" class="form-control" required>
                         </div>
                         
                         <div class="mb-4">

@@ -55,10 +55,10 @@ def register():
 def login():
     if request.method == 'POST':
         db = current_app.extensions['sqlalchemy']
-        username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
         
-        user = db.session.query(User).filter_by(username=username).first()
+        user = db.session.query(User).filter_by(email=email).first()
         
         if user and user.check_password(password):
             access_token = create_access_token(identity=user.id)
@@ -67,7 +67,7 @@ def login():
             flash(f'مرحباً {user.username}! / Welcome {user.username}!', 'success')
             return response
         else:
-            flash('اسم المستخدم أو كلمة المرور غير صحيحة / Invalid username or password', 'danger')
+            flash('البريد الإلكتروني أو كلمة المرور غير صحيحة / Invalid email or password', 'danger')
             return redirect(url_for('auth.login'))
     
     lang = session.get('language', 'ar')
