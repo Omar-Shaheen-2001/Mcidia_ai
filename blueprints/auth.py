@@ -15,20 +15,20 @@ def register():
         role_name = request.form.get('role', 'client')
         
         # Check if user exists
-        if User.query.filter_by(username=username).first():
+        if db.session.query(User).filter_by(username=username).first():
             flash('اسم المستخدم موجود بالفعل / Username already exists', 'danger')
             return redirect(url_for('auth.register'))
         
-        if User.query.filter_by(email=email).first():
+        if db.session.query(User).filter_by(email=email).first():
             flash('البريد الإلكتروني مستخدم بالفعل / Email already registered', 'danger')
             return redirect(url_for('auth.register'))
         
         # Get role and default plan
-        role = Role.query.filter_by(name=role_name).first()
+        role = db.session.query(Role).filter_by(name=role_name).first()
         if not role:
-            role = Role.query.filter_by(name='client').first()
+            role = db.session.query(Role).filter_by(name='client').first()
         
-        free_plan = SubscriptionPlan.query.filter_by(name='free').first()
+        free_plan = db.session.query(SubscriptionPlan).filter_by(name='free').first()
         
         # Create new user
         user = User(
@@ -56,7 +56,7 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        user = User.query.filter_by(username=username).first()
+        user = db.session.query(User).filter_by(username=username).first()
         
         if user and user.check_password(password):
             access_token = create_access_token(identity=user.id)
