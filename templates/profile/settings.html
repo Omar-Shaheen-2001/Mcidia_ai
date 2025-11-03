@@ -308,7 +308,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="small">{{ 'استخدام الذكاء الاصطناعي' if lang == 'ar' else 'AI Usage' }}</span>
                             <span class="small text-muted">
-                                {{ user.ai_usage_current or 0 }} / 
+                                {{ user.ai_credits_used or 0 }} / 
                                 {{ subscription_plan.ai_credits_limit if subscription_plan and subscription_plan.ai_credits_limit else '∞' }}
                             </span>
                         </div>

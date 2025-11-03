@@ -21,13 +21,14 @@ def settings():
     
     lang = session.get('language', 'ar')
     
-    # Get user's subscription plan details
-    subscription_plan = user.subscription_plan if user.subscription_plan else None
+    # Get user's subscription plan details (use plan_ref to get the full object)
+    subscription_plan = user.plan_ref if user.plan_ref else None
     
     # Calculate AI usage percentage
     ai_usage_percentage = 0
     if subscription_plan and subscription_plan.ai_credits_limit:
-        ai_usage_percentage = min((user.ai_usage_current / subscription_plan.ai_credits_limit) * 100, 100)
+        # Use ai_credits_used instead of ai_usage_current
+        ai_usage_percentage = min((user.ai_credits_used / subscription_plan.ai_credits_limit) * 100, 100)
     
     return render_template('profile/settings.html', 
                          user=user, 
