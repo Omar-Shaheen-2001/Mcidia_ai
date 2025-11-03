@@ -61,9 +61,15 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="navbar__link nav-link" href="{{ url_for('services.index') }}">
+                            <i class="fas fa-cubes me-1"></i>
+                            {{ 'الوحدات الاستشارية' if lang == 'ar' else 'Consulting Modules' }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="navbar__link nav-link" href="{{ url_for('billing.pricing') }}">
                             <i class="fas fa-box me-1"></i>
-                            {{ 'الخدمات' if lang == 'ar' else 'Services' }}
+                            {{ 'الأسعار' if lang == 'ar' else 'Pricing' }}
                         </a>
                     </li>
                     {% if current_user %}
@@ -198,7 +204,8 @@
                     </h6>
                     <ul class="list-unstyled">
                         <li><a href="{{ url_for('main.index') }}" class="footer__link">{{ 'الرئيسية' if lang == 'ar' else 'Home' }}</a></li>
-                        <li><a href="{{ url_for('billing.pricing') }}" class="footer__link">{{ 'الخدمات' if lang == 'ar' else 'Services' }}</a></li>
+                        <li><a href="{{ url_for('services.index') }}" class="footer__link">{{ 'الوحدات الاستشارية' if lang == 'ar' else 'Consulting Modules' }}</a></li>
+                        <li><a href="{{ url_for('billing.pricing') }}" class="footer__link">{{ 'الأسعار' if lang == 'ar' else 'Pricing' }}</a></li>
                         <li><a href="{{ url_for('dashboard.index') }}" class="footer__link">{{ 'لوحة التحكم' if lang == 'ar' else 'Dashboard' }}</a></li>
                     </ul>
                 </div>
