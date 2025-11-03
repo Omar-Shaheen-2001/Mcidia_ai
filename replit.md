@@ -65,16 +65,25 @@ Preferred communication style: Simple, everyday language.
   - **Admin Models** (added Nov 2025):
     - `Organization`: Multi-tenant organization management with comprehensive fields (sector, city, website, logo_url, plan_type, subscription_status, ai_usage_limit/current)
     - `OrganizationSettings`: Granular organization-specific settings (language, timezone, notifications, AI preferences, enabled modules)
+    - `OrganizationMembership`: **Hierarchical role system** (Nov 2025 - CRITICAL SECURITY FIX)
+      - Links users to organizations with organization-specific roles (owner, admin, member)
+      - Prevents privilege escalation: organization admins only have org-scoped access
+      - Unique constraint: one membership per user per organization
     - `Notification`: System-wide notification tracking
     - `SupportTicket`: Customer support ticket system
     - `SystemSettings`: Platform-wide configuration key-value store
     - `AuditLog`: Comprehensive audit trail for admin actions
 - **Schema Design**: 
-  - Role-based access with 4 default roles (admin, consultant, company_user, client)
+  - **Hierarchical Role System** (Nov 2025):
+    - Global roles: system_admin (platform admin), external_user (default), consultant, company_user, client
+    - Organization roles (in OrganizationMembership): owner (full org control), admin (user/settings management), member (standard access)
   - Subscription plans (free, monthly, yearly, pay_per_use) with AI credits tracking
   - User authentication with password hashing via Werkzeug
   - User enhancements: `organization_id` (multi-tenancy), `is_active` (soft delete), `last_login` (tracking)
-- **Migration**: Custom migration scripts (e.g., `migrate_admin_models.py`) for schema updates
+- **Migration**: Custom migration scripts
+  - `migrate_admin_models.py`: Initial admin models
+  - `migrate_organizations.py`: Organizations and settings tables
+  - `migrate_roles_and_memberships.py`: **Hierarchical roles system** (renames 'admin' to 'system_admin', creates OrganizationMembership table, migrates existing users)
 
 **Rationale**: SQLAlchemy provides database abstraction allowing future migration to different databases. The role-subscription model supports flexible business models and usage-based billing. Organization model enables multi-tenant B2B scenarios. Audit logging ensures compliance and security.
 
@@ -87,11 +96,20 @@ Preferred communication style: Simple, everyday language.
 **Rationale**: Centralized AI client ensures consistent error handling and usage tracking across all 12+ modules. Token tracking enables pay-per-use billing model.
 
 ### Authorization & Access Control
-- **Custom Decorators**: `@login_required` and `@role_required` decorators in `utils/decorators.py`
+- **Hierarchical Role System** (Nov 2025 Enhanced):
+  - **Global System Roles**: Platform-wide permissions (system_admin, external_user, consultant, company_user, client)
+  - **Organization Roles**: Organization-scoped permissions via OrganizationMembership model (owner, admin, member)
+- **Custom Decorators** in `utils/decorators.py`:
+  - `@login_required`: JWT authentication verification
+  - `@role_required('system_admin')`: Global system role verification (for admin panel access)
+  - `@organization_role_required('owner', 'admin')`: Organization-scoped role verification (NEW)
 - **JWT Verification**: Request-level JWT validation with identity extraction
-- **Permission Model**: Role-based permissions stored as JSON in Role model
+- **Permission Model**: 
+  - Global roles stored in Role model
+  - Organization-specific roles stored in OrganizationMembership model
+  - Prevents privilege escalation: organization admins cannot access system-wide admin panel
 
-**Rationale**: Decorator pattern provides reusable authorization logic. Role-based system supports multi-tenant consulting scenarios with different access levels.
+**Rationale**: Hierarchical permission system prevents critical security vulnerability where organization admins were gaining system-wide access. OrganizationMembership model enables true multi-tenant role isolation.
 
 ## External Dependencies
 
