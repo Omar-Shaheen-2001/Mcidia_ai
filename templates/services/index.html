@@ -3,6 +3,16 @@
 {% block title %}{{ 'الوحدات الاستشارية الذكية' if lang == 'ar' else 'Smart Consulting Modules' }} - Mcidia{% endblock %}
 
 {% block content %}
+<!-- Mobile Sidebar Toggle -->
+<div class="d-lg-none bg-white border-bottom py-2 sticky-top" style="top: 70px; z-index: 1030;">
+    <div class="container">
+        <button class="btn btn-sm btn-outline-primary" type="button" id="sidebarToggle">
+            <i class="fas fa-bars me-2"></i>
+            {{ 'الوحدات الاستشارية' if lang == 'ar' else 'Consulting Modules' }}
+        </button>
+    </div>
+</div>
+
 <!-- Page Header -->
 <section class="bg-gradient-primary text-white py-5">
     <div class="container">
@@ -26,8 +36,17 @@
     </div>
 </section>
 
-<!-- Services Grid -->
-<div class="container my-5">
+<!-- Services Content with Sidebar -->
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 px-0">
+            {% include 'components/services_sidebar.html' %}
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <div class="container my-5">
     <div class="row g-4">
         {% for service in services %}
         <div class="col-lg-6">
@@ -84,7 +103,50 @@
                     </a>
                 </div>
             </div>
+            </div>
         </div>
     </div>
 </div>
+</div>
+
+<!-- Sidebar Overlay for Mobile -->
+<div class="sidebar-overlay d-lg-none" id="sidebarOverlay"></div>
+
+<script>
+// Mobile sidebar toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('servicesSidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    if (toggle && sidebar && overlay) {
+        toggle.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+        });
+        
+        overlay.addEventListener('click', function() {
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+        });
+    }
+});
+</script>
+
+<style>
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1035;
+    display: none;
+}
+
+.sidebar-overlay.show {
+    display: block;
+}
+</style>
 {% endblock %}

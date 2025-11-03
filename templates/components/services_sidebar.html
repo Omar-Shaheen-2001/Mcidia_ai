@@ -1,0 +1,152 @@
+<!-- Services Sidebar Component -->
+<div class="services-sidebar {{ 'd-none d-lg-block' if not always_show else '' }}" id="servicesSidebar">
+    <div class="sidebar-header p-3 bg-primary text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-cubes me-2"></i>
+            {{ 'الوحدات الاستشارية الذكية' if lang == 'ar' else 'Smart Consulting Modules' }}
+        </h5>
+    </div>
+    
+    <div class="sidebar-content">
+        <div class="accordion accordion-flush" id="servicesAccordion">
+            {% for service in all_services %}
+            <div class="accordion-item border-0">
+                <h2 class="accordion-header" id="heading{{ service.id }}">
+                    <button class="accordion-button {{ 'collapsed' if not (current_service and current_service.id == service.id) else '' }} px-3 py-2" 
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#collapse{{ service.id }}" 
+                            aria-expanded="{{ 'true' if (current_service and current_service.id == service.id) else 'false' }}" 
+                            aria-controls="collapse{{ service.id }}"
+                            style="background-color: {{ service.color }}10; border-{{ 'right' if lang == 'ar' else 'left' }}: 3px solid {{ service.color }};">
+                        <i class="fas {{ service.icon }} me-2" style="color: {{ service.color }};"></i>
+                        <span class="fw-semibold" style="font-size: 0.9rem;">
+                            {{ service.title_ar if lang == 'ar' else service.title_en }}
+                        </span>
+                    </button>
+                </h2>
+                <div id="collapse{{ service.id }}" 
+                     class="accordion-collapse collapse {{ 'show' if (current_service and current_service.id == service.id) else '' }}" 
+                     aria-labelledby="heading{{ service.id }}" 
+                     data-bs-parent="#servicesAccordion">
+                    <div class="accordion-body p-0">
+                        <ul class="list-unstyled mb-0">
+                            {% for offering in service.offerings if offering.is_active %}
+                            <li class="sidebar-offering-item {{ 'active' if (current_offering and current_offering.id == offering.id) else '' }}">
+                                <a href="{{ url_for('services.offering_detail', service_slug=service.slug, offering_slug=offering.slug) }}" 
+                                   class="d-block px-4 py-2 text-decoration-none sidebar-offering-link"
+                                   style="border-{{ 'right' if lang == 'ar' else 'left' }}: 2px solid transparent;">
+                                    <i class="fas fa-circle" style="font-size: 0.4rem; color: {{ service.color }}; opacity: 0.5;"></i>
+                                    <span class="ms-2" style="font-size: 0.85rem;">
+                                        {{ offering.title_ar if lang == 'ar' else offering.title_en }}
+                                    </span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+.services-sidebar {
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+    background-color: #ffffff;
+    border-{{ 'left' if lang == 'ar' else 'right' }}: 1px solid var(--color-border);
+    position: sticky;
+    top: 70px;
+}
+
+.sidebar-content {
+    padding: 0;
+}
+
+.accordion-button {
+    font-size: 0.9rem;
+    box-shadow: none !important;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: transparent;
+    color: inherit;
+}
+
+.accordion-button::after {
+    background-image: none;
+    content: "\f078";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 0.7rem;
+}
+
+.accordion-button:not(.collapsed)::after {
+    content: "\f077";
+}
+
+.sidebar-offering-link {
+    color: var(--color-text-secondary);
+    transition: all 0.2s ease;
+}
+
+.sidebar-offering-link:hover {
+    background-color: var(--color-background);
+    color: var(--color-primary);
+    padding-{{ 'right' if lang == 'ar' else 'left' }}: 1.5rem !important;
+}
+
+.sidebar-offering-item.active .sidebar-offering-link {
+    background-color: var(--color-primary-subtle);
+    color: var(--color-primary);
+    font-weight: 600;
+    border-{{ 'right' if lang == 'ar' else 'left' }}-color: var(--color-primary) !important;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .services-sidebar {
+        background-color: #1a1a1a;
+        border-color: #333;
+    }
+}
+
+/* Scrollbar styling */
+.services-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.services-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.services-sidebar::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+.services-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* Mobile toggle button */
+@media (max-width: 991px) {
+    .services-sidebar {
+        position: fixed;
+        {{ 'right' if lang == 'ar' else 'left' }}: -300px;
+        top: 70px;
+        width: 300px;
+        height: calc(100vh - 70px);
+        z-index: 1040;
+        transition: {{ 'right' if lang == 'ar' else 'left' }} 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    }
+    
+    .services-sidebar.show {
+        {{ 'right' if lang == 'ar' else 'left' }}: 0;
+    }
+}
+</style>

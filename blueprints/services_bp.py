@@ -18,6 +18,17 @@ def get_db():
     """Get database instance from current app"""
     return current_app.extensions['sqlalchemy']
 
+def get_all_services_with_offerings():
+    """Get all active services with their offerings for sidebar"""
+    db = get_db()
+    services = db.session.query(Service).filter_by(is_active=True).order_by(Service.display_order).all()
+    for service in services:
+        service.offerings = db.session.query(ServiceOffering).filter_by(
+            service_id=service.id,
+            is_active=True
+        ).order_by(ServiceOffering.display_order).all()
+    return services
+
 @services_bp.route('/')
 @login_required
 def index():
@@ -30,9 +41,15 @@ def index():
     user_id = get_jwt_identity()
     user = db.session.get(User, int(user_id))
     
+    # Get all services for sidebar
+    all_services = get_all_services_with_offerings()
+    
     return render_template(
         'services/index.html',
         services=services,
+        all_services=all_services,
+        current_service=None,
+        current_offering=None,
         lang=lang,
         user=user
     )
@@ -77,10 +94,16 @@ def service_detail(service_slug):
         is_active=True
     ).order_by(ServiceOffering.display_order).all()
     
+    # Get all services for sidebar
+    all_services = get_all_services_with_offerings()
+    
     return render_template(
         'services/service_detail.html',
         service=service,
         offerings=offerings,
+        all_services=all_services,
+        current_service=service,
+        current_offering=None,
         lang=lang,
         user=user
     )
@@ -116,11 +139,17 @@ def offering_detail(service_slug, offering_slug):
         module=f"{service_slug}_{offering_slug}"
     ).order_by(Project.updated_at.desc()).limit(5).all()
     
+    # Get all services for sidebar
+    all_services = get_all_services_with_offerings()
+    
     return render_template(
         'services/offering_detail.html',
         service=service,
         offering=offering,
         projects=projects,
+        all_services=all_services,
+        current_service=service,
+        current_offering=offering,
         lang=lang,
         user=user
     )
