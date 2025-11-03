@@ -1,0 +1,342 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'لوحة المعلومات' if lang == 'ar' else 'Dashboard' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-0">{{ 'لوحة المعلومات' if lang == 'ar' else 'Dashboard' }}</h2>
+        <p class="text-muted">{{ 'نظرة عامة على أداء المنصة' if lang == 'ar' else 'Platform Performance Overview' }}</p>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(10, 39, 86, 0.1); color: #0A2756;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ total_users }}</div>
+                    <div class="stat-label">{{ 'إجمالي المستخدمين' if lang == 'ar' else 'Total Users' }}</div>
+                    <small class="text-success">
+                        <i class="fas fa-arrow-up"></i>
+                        {{ active_users }} {{ 'نشط' if lang == 'ar' else 'active' }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(44, 140, 86, 0.1); color: #2C8C56;">
+                        <i class="fas fa-folder"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ total_projects }}</div>
+                    <div class="stat-label">{{ 'المشاريع' if lang == 'ar' else 'Projects' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(39, 103, 177, 0.1); color: #2767B1;">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">${{ "%.2f"|format(total_revenue) }}</div>
+                    <div class="stat-label">{{ 'الإيرادات' if lang == 'ar' else 'Revenue' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(255, 193, 7, 0.1); color: #FFC107;">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ total_ai_usage }}</div>
+                    <div class="stat-label">{{ 'استخدام AI' if lang == 'ar' else 'AI Credits Used' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="table-card">
+            <div class="table-header">
+                <h5 class="mb-0">{{ 'نمو المستخدمين' if lang == 'ar' else 'User Growth' }}</h5>
+            </div>
+            <div class="p-4">
+                <canvas id="usersChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="table-card">
+            <div class="table-header">
+                <h5 class="mb-0">{{ 'توزيع الأدوار' if lang == 'ar' else 'Role Distribution' }}</h5>
+            </div>
+            <div class="p-4">
+                <canvas id="rolesChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue and AI Charts -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="table-card">
+            <div class="table-header">
+                <h5 class="mb-0">{{ 'الإيرادات الشهرية' if lang == 'ar' else 'Monthly Revenue' }}</h5>
+            </div>
+            <div class="p-4">
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="table-card">
+            <div class="table-header">
+                <h5 class="mb-0">{{ 'استخدام AI حسب الوحدة' if lang == 'ar' else 'AI Usage by Module' }}</h5>
+            </div>
+            <div class="p-4">
+                <canvas id="aiModulesChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity Tables -->
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="table-card">
+            <div class="table-header">
+                <h5 class="mb-0">{{ 'المستخدمون الجدد' if lang == 'ar' else 'Recent Users' }}</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{ 'الاسم' if lang == 'ar' else 'Name' }}</th>
+                            <th>{{ 'البريد' if lang == 'ar' else 'Email' }}</th>
+                            <th>{{ 'الدور' if lang == 'ar' else 'Role' }}</th>
+                            <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in recent_users %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('admin.users.detail', user_id=user.id) }}" class="text-decoration-none">
+                                    {{ user.username }}
+                                </a>
+                            </td>
+                            <td><small class="text-muted">{{ user.email }}</small></td>
+                            <td><span class="badge bg-primary">{{ user.role }}</span></td>
+                            <td><small class="text-muted">{{ user.created_at.strftime('%Y-%m-%d') }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="table-card">
+            <div class="table-header">
+                <h5 class="mb-0">{{ 'المعاملات الأخيرة' if lang == 'ar' else 'Recent Transactions' }}</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{ 'المبلغ' if lang == 'ar' else 'Amount' }}</th>
+                            <th>{{ 'الوصف' if lang == 'ar' else 'Description' }}</th>
+                            <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                            <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trans in recent_transactions %}
+                        <tr>
+                            <td><strong>${{ "%.2f"|format(trans.amount) }}</strong></td>
+                            <td><small class="text-muted">{{ trans.description }}</small></td>
+                            <td>
+                                {% if trans.status == 'succeeded' %}
+                                    <span class="badge bg-success">{{ 'نجح' if lang == 'ar' else 'Success' }}</span>
+                                {% elif trans.status == 'pending' %}
+                                    <span class="badge bg-warning">{{ 'معلق' if lang == 'ar' else 'Pending' }}</span>
+                                {% else %}
+                                    <span class="badge bg-danger">{{ 'فشل' if lang == 'ar' else 'Failed' }}</span>
+                                {% endif %}
+                            </td>
+                            <td><small class="text-muted">{{ trans.created_at.strftime('%Y-%m-%d') }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Role Distribution Chart
+    const rolesCtx = document.getElementById('rolesChart').getContext('2d');
+    new Chart(rolesCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for role, count in role_distribution %}'{{ role }}',{% endfor %}],
+            datasets: [{
+                data: [{% for role, count in role_distribution %}{{ count }},{% endfor %}],
+                backgroundColor: [
+                    '#0A2756',
+                    '#2C8C56',
+                    '#2767B1',
+                    '#FFC107',
+                    '#DC3545'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: '{{ "right" if lang == "en" else "left" }}'
+                }
+            }
+        }
+    });
+    
+    // Monthly Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for month, revenue in monthly_revenue %}'{{ month.strftime("%b %Y") }}',{% endfor %}],
+            datasets: [{
+                label: '{{ "الإيرادات" if lang == "ar" else "Revenue" }}',
+                data: [{% for month, revenue in monthly_revenue %}{{ revenue or 0 }},{% endfor %}],
+                backgroundColor: '#2767B1',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // AI Usage by Module Chart
+    const aiModulesCtx = document.getElementById('aiModulesChart').getContext('2d');
+    new Chart(aiModulesCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for module, count, tokens in ai_by_module %}'{{ module }}',{% endfor %}],
+            datasets: [{
+                label: '{{ "عدد الطلبات" if lang == "ar" else "Requests" }}',
+                data: [{% for module, count, tokens in ai_by_module %}{{ count }},{% endfor %}],
+                backgroundColor: '#2C8C56',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // User Growth Chart (Fetch from API)
+    fetch('{{ url_for("admin.dashboard.api_metrics") }}')
+        .then(res => res.json())
+        .then(data => {
+            const usersCtx = document.getElementById('usersChart').getContext('2d');
+            new Chart(usersCtx, {
+                type: 'line',
+                data: {
+                    labels: data.daily_users.map(d => d.date),
+                    datasets: [{
+                        label: '{{ "مستخدمون جدد" if lang == "ar" else "New Users" }}',
+                        data: data.daily_users.map(d => d.count),
+                        borderColor: '#0A2756',
+                        backgroundColor: 'rgba(10, 39, 86, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        });
+</script>
+{% endblock %}

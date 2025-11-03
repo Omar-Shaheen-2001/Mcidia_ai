@@ -1,0 +1,284 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ user.username }} - {{ 'تفاصيل المستخدم' if lang == 'ar' else 'User Details' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="{{ url_for('admin.users.index') }}" class="btn btn-link">
+            <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+            {{ 'العودة إلى القائمة' if lang == 'ar' else 'Back to List' }}
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- User Info Card -->
+    <div class="col-lg-4">
+        <div class="table-card">
+            <div class="table-header">
+                <h5 class="mb-0">{{ 'معلومات المستخدم' if lang == 'ar' else 'User Information' }}</h5>
+            </div>
+            <div class="p-4">
+                <div class="text-center mb-4">
+                    <div class="stat-icon mx-auto mb-3" style="background: rgba(10, 39, 86, 0.1); color: #0A2756; width: 80px; height: 80px; font-size: 2rem;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h4>{{ user.username }}</h4>
+                    <p class="text-muted mb-0">{{ user.email }}</p>
+                </div>
+                
+                <hr>
+                
+                <table class="table table-sm">
+                    <tr>
+                        <th>{{ 'الدور' if lang == 'ar' else 'Role' }}:</th>
+                        <td><span class="badge bg-primary">{{ user.role }}</span></td>
+                    </tr>
+                    <tr>
+                        <th>{{ 'الخطة' if lang == 'ar' else 'Plan' }}:</th>
+                        <td><span class="badge bg-info">{{ user.subscription_plan or 'N/A' }}</span></td>
+                    </tr>
+                    <tr>
+                        <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}:</th>
+                        <td>
+                            {% if user.is_active %}
+                            <span class="badge bg-success">{{ 'نشط' if lang == 'ar' else 'Active' }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ 'غير نشط' if lang == 'ar' else 'Inactive' }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>{{ 'الشركة' if lang == 'ar' else 'Company' }}:</th>
+                        <td>{{ user.company_name or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>{{ 'تاريخ التسجيل' if lang == 'ar' else 'Join Date' }}:</th>
+                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Actions Card -->
+        <div class="table-card mt-3">
+            <div class="table-header">
+                <h5 class="mb-0">{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</h5>
+            </div>
+            <div class="p-3">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editUserModal">
+                        <i class="fas fa-edit {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                        {{ 'تعديل المستخدم' if lang == 'ar' else 'Edit User' }}
+                    </button>
+                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                        <i class="fas fa-key {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                        {{ 'إعادة تعيين كلمة المرور' if lang == 'ar' else 'Reset Password' }}
+                    </button>
+                    <form method="POST" action="{{ url_for('admin.users.delete', user_id=user.id) }}" onsubmit="return confirm('{{ 'هل أنت متأكد؟' if lang == 'ar' else 'Are you sure?' }}')">
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="fas fa-user-slash {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {{ 'تعطيل المستخدم' if lang == 'ar' else 'Deactivate User' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="col-lg-8">
+        <div class="table-card">
+            <ul class="nav nav-tabs px-3 pt-3" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#projects">
+                        <i class="fas fa-folder {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                        {{ 'المشاريع' if lang == 'ar' else 'Projects' }} ({{ projects|length }})
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#transactions">
+                        <i class="fas fa-dollar-sign {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                        {{ 'المعاملات' if lang == 'ar' else 'Transactions' }} ({{ transactions|length }})
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ai-logs">
+                        <i class="fas fa-robot {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                        {{ 'سجل AI' if lang == 'ar' else 'AI Logs' }}
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content p-3">
+                <div class="tab-pane fade show active" id="projects">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ 'العنوان' if lang == 'ar' else 'Title' }}</th>
+                                    <th>{{ 'الوحدة' if lang == 'ar' else 'Module' }}</th>
+                                    <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                                    <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for project in projects %}
+                                <tr>
+                                    <td>{{ project.title }}</td>
+                                    <td><span class="badge bg-primary">{{ project.module }}</span></td>
+                                    <td><span class="badge bg-info">{{ project.status }}</span></td>
+                                    <td><small class="text-muted">{{ project.created_at.strftime('%Y-%m-%d') }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="transactions">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ 'المبلغ' if lang == 'ar' else 'Amount' }}</th>
+                                    <th>{{ 'الوصف' if lang == 'ar' else 'Description' }}</th>
+                                    <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                                    <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trans in transactions %}
+                                <tr>
+                                    <td><strong>${{ "%.2f"|format(trans.amount) }}</strong></td>
+                                    <td><small>{{ trans.description }}</small></td>
+                                    <td>
+                                        {% if trans.status == 'succeeded' %}
+                                        <span class="badge bg-success">{{ 'نجح' if lang == 'ar' else 'Success' }}</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">{{ trans.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><small class="text-muted">{{ trans.created_at.strftime('%Y-%m-%d') }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="ai-logs">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ 'الوحدة' if lang == 'ar' else 'Module' }}</th>
+                                    <th>{{ 'Tokens' }}</th>
+                                    <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in ai_logs %}
+                                <tr>
+                                    <td><span class="badge bg-primary">{{ log.module }}</span></td>
+                                    <td><small>{{ log.tokens_used }}</small></td>
+                                    <td><small class="text-muted">{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin.users.update', user_id=user.id) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ 'تعديل المستخدم' if lang == 'ar' else 'Edit User' }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'اسم المستخدم' if lang == 'ar' else 'Username' }}</label>
+                        <input type="text" class="form-control" name="username" value="{{ user.username }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</label>
+                        <input type="email" class="form-control" name="email" value="{{ user.email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'الشركة' if lang == 'ar' else 'Company' }}</label>
+                        <input type="text" class="form-control" name="company_name" value="{{ user.company_name or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'الدور' if lang == 'ar' else 'Role' }}</label>
+                        <select class="form-select" name="role_id" required>
+                            {% for role in roles %}
+                            <option value="{{ role.id }}" {% if role.id == user.role_id %}selected{% endif %}>{{ role.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'الخطة' if lang == 'ar' else 'Plan' }}</label>
+                        <select class="form-select" name="subscription_plan_id">
+                            <option value="">N/A</option>
+                            {% for plan in plans %}
+                            <option value="{{ plan.id }}" {% if plan.id == user.subscription_plan_id %}selected{% endif %}>{{ plan.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'المؤسسة' if lang == 'ar' else 'Organization' }}</label>
+                        <select class="form-select" name="organization_id">
+                            <option value="none">N/A</option>
+                            {% for org in organizations %}
+                            <option value="{{ org.id }}" {% if org.id == user.organization_id %}selected{% endif %}>{{ org.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_active" {% if user.is_active %}checked{% endif %}>
+                        <label class="form-check-label">{{ 'نشط' if lang == 'ar' else 'Active' }}</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'إلغاء' if lang == 'ar' else 'Cancel' }}</button>
+                    <button type="submit" class="btn btn-primary">{{ 'حفظ' if lang == 'ar' else 'Save' }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin.users.reset_password', user_id=user.id) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ 'إعادة تعيين كلمة المرور' if lang == 'ar' else 'Reset Password' }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'كلمة المرور الجديدة' if lang == 'ar' else 'New Password' }}</label>
+                        <input type="password" class="form-control" name="new_password" minlength="6" required>
+                        <div class="form-text">{{ 'يجب أن تكون 6 أحرف على الأقل' if lang == 'ar' else 'Must be at least 6 characters' }}</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'إلغاء' if lang == 'ar' else 'Cancel' }}</button>
+                    <button type="submit" class="btn btn-warning">{{ 'إعادة تعيين' if lang == 'ar' else 'Reset' }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

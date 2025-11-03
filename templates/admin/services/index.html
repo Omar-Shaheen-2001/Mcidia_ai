@@ -1,0 +1,35 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'إدارة الخدمات' if lang == 'ar' else 'Services Management' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>{{ 'إدارة الخدمات والوحدات' if lang == 'ar' else 'Services & Modules Management' }}</h2>
+    </div>
+</div>
+
+<div class="row g-3">
+    {% for service in services %}
+    <div class="col-md-4">
+        <div class="table-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="stat-icon me-3" style="background: {{ service.color }}20; color: {{ service.color }};">
+                        <i class="{{ service.icon }}"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">{{ service.title_ar if lang == 'ar' else service.title_en }}</h5>
+                        <small class="text-muted">{{ service.offerings|length }} {{ 'خدمات فرعية' if lang == 'ar' else 'offerings' }}</small>
+                    </div>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" {% if service.is_active %}checked{% endif %} disabled>
+                    <label class="form-check-label">{{ 'نشط' if lang == 'ar' else 'Active' }}</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

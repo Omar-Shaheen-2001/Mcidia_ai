@@ -50,7 +50,10 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
     subscription_plan_id = db.Column(db.Integer, db.ForeignKey('subscription_plans.id'))
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
     company_name = db.Column(db.String(200))
+    is_active = db.Column(db.Boolean, default=True)
+    last_login = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Stripe integration
@@ -280,4 +283,130 @@ class ServiceOffering(db.Model):
             'is_active': self.is_active,
             'ai_model': self.ai_model,
             'ai_credits_cost': self.ai_credits_cost
+        }
+
+class Organization(db.Model):
+    __tablename__ = 'organizations'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    industry = db.Column(db.String(100))  # القطاع
+    country = db.Column(db.String(100))  # الدولة
+    size = db.Column(db.String(50))  # small, medium, large, enterprise
+    contact_email = db.Column(db.String(120))
+    contact_phone = db.Column(db.String(50))
+    address = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    users = db.relationship('User', backref='organization', lazy=True)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'industry': self.industry,
+            'country': self.country,
+            'size': self.size,
+            'contact_email': self.contact_email,
+            'is_active': self.is_active,
+            'users_count': len(self.users) if self.users else 0
+        }
+
+class Notification(db.Model):
+    __tablename__ = 'notifications'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # NULL for broadcast
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    notification_type = db.Column(db.String(50))  # email, internal, both
+    status = db.Column(db.String(50), default='pending')  # pending, sent, failed
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    sent_at = db.Column(db.DateTime)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'title': self.title,
+            'message': self.message,
+            'notification_type': self.notification_type,
+            'status': self.status,
+            'is_read': self.is_read,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class SupportTicket(db.Model):
+    __tablename__ = 'support_tickets'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    subject = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    priority = db.Column(db.String(20), default='medium')  # low, medium, high, urgent
+    status = db.Column(db.String(50), default='open')  # open, in_progress, resolved, closed
+    assigned_to = db.Column(db.Integer, db.ForeignKey('users.id'))  # Admin/Support user
+    messages = db.Column(db.Text)  # JSON string of conversation
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    resolved_at = db.Column(db.DateTime)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'subject': self.subject,
+            'priority': self.priority,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class SystemSettings(db.Model):
+    __tablename__ = 'system_settings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False)
+    value = db.Column(db.Text)
+    category = db.Column(db.String(50))  # general, ai, billing, security
+    description = db.Column(db.String(255))
+    is_public = db.Column(db.Boolean, default=False)  # If users can see this setting
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'key': self.key,
+            'value': self.value,
+            'category': self.category,
+            'description': self.description
+        }
+
+class AuditLog(db.Model):
+    __tablename__ = 'audit_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    action = db.Column(db.String(100), nullable=False)  # login, logout, create_user, update_role, etc.
+    entity_type = db.Column(db.String(50))  # user, transaction, service, etc.
+    entity_id = db.Column(db.Integer)
+    details = db.Column(db.Text)  # JSON string with additional details
+    ip_address = db.Column(db.String(50))
+    user_agent = db.Column(db.String(255))
+    status = db.Column(db.String(20), default='success')  # success, failed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'action': self.action,
+            'entity_type': self.entity_type,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }

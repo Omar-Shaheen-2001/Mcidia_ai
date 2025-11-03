@@ -23,22 +23,51 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend Architecture
 - **Framework**: Flask (Python) with Blueprint-based modular architecture
-- **Module Organization**: Separate blueprints for each consulting domain (auth, dashboard, strategy, hr, finance, etc.)
+- **Module Organization**: 
+  - Main blueprints for consulting domains (auth, dashboard, strategy, hr, finance, etc.)
+  - Admin package with 13 sub-blueprints for comprehensive admin panel
+- **Admin Structure**: Package-based architecture at `blueprints/admin/` with sub-blueprints:
+  - `dashboard`: Main admin dashboard with charts (Chart.js) and statistics
+  - `users`: Complete user management (CRUD, filtering, role assignment, password reset)
+  - `billing`: Transaction and payment management
+  - `services_admin`: Service configuration and management
+  - `organizations`: Multi-tenant organization management
+  - `roles`: Role and permission management
+  - `ai_management`: AI usage monitoring and credit management
+  - `knowledge_admin`: Knowledge base content management
+  - `reports`: Business intelligence and reporting
+  - `notifications_admin`: System notification management
+  - `settings`: Platform configuration and settings
+  - `logs`: Audit trail and system logs
+  - `support`: Support ticket system
 - **Authentication**: Flask-JWT-Extended for JWT-based authentication with cookie storage
 - **Security**: Flask-WTF CSRF protection, Flask-CORS for cross-origin requests
 - **Session Management**: Server-side sessions for language preferences and user state
+- **URL Structure**: 
+  - Public services: `/services/*`
+  - Admin panel: `/admin/*` (role-restricted, redirects `/admin/` to `/admin/dashboard/`)
 
-**Rationale**: Flask's lightweight nature and blueprint system allows clean separation of 12+ consulting modules. JWT provides stateless authentication suitable for potential API expansion.
+**Rationale**: Flask's lightweight nature and blueprint system allows clean separation of 12+ consulting modules. Package-based admin structure enables scalability and maintainability. JWT provides stateless authentication suitable for potential API expansion.
 
 ### Database & ORM
 - **ORM**: Flask-SQLAlchemy (SQLAlchemy core)
-- **Models**: User, Role, SubscriptionPlan, Project, Transaction, AILog, Document (models.py shows partial implementation)
+- **Database**: PostgreSQL (via Replit's built-in Neon-backed database)
+- **Models**: 
+  - **Core Models**: User, Role, SubscriptionPlan, Project, Transaction, AILog, Document
+  - **Admin Models** (added Nov 2025):
+    - `Organization`: Multi-tenant organization management with settings
+    - `Notification`: System-wide notification tracking
+    - `SupportTicket`: Customer support ticket system
+    - `SystemSettings`: Platform-wide configuration key-value store
+    - `AuditLog`: Comprehensive audit trail for admin actions
 - **Schema Design**: 
   - Role-based access with 4 default roles (admin, consultant, company_user, client)
   - Subscription plans (free, monthly, yearly, pay_per_use) with AI credits tracking
   - User authentication with password hashing via Werkzeug
+  - User enhancements: `organization_id` (multi-tenancy), `is_active` (soft delete), `last_login` (tracking)
+- **Migration**: Custom migration scripts (e.g., `migrate_admin_models.py`) for schema updates
 
-**Rationale**: SQLAlchemy provides database abstraction allowing future migration to different databases. The role-subscription model supports flexible business models and usage-based billing.
+**Rationale**: SQLAlchemy provides database abstraction allowing future migration to different databases. The role-subscription model supports flexible business models and usage-based billing. Organization model enables multi-tenant B2B scenarios. Audit logging ensures compliance and security.
 
 ### AI Integration
 - **Provider**: OpenAI API (GPT-5 model)
@@ -80,6 +109,7 @@ Preferred communication style: Simple, everyday language.
 - **Bootstrap 5**: UI framework and components
 - **FontAwesome 6**: Icon library
 - **Google Fonts**: Cairo (Arabic), Poppins (English)
+- **Chart.js**: Interactive charts for admin dashboard analytics (user growth, revenue, AI usage)
 
 ### Environment Configuration
 - `.env` file for sensitive credentials (API keys, database URLs, secret keys)

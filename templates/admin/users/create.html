@@ -1,0 +1,92 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'إضافة مستخدم' if lang == 'ar' else 'Add User' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="{{ url_for('admin.users.index') }}" class="btn btn-link">
+            <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+            {{ 'العودة إلى القائمة' if lang == 'ar' else 'Back to List' }}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mx-auto">
+        <div class="table-card">
+            <div class="table-header">
+                <h5 class="mb-0">{{ 'إضافة مستخدم جديد' if lang == 'ar' else 'Add New User' }}</h5>
+            </div>
+            <div class="p-4">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'اسم المستخدم' if lang == 'ar' else 'Username' }}</label>
+                        <input type="text" class="form-control" name="username" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'كلمة المرور' if lang == 'ar' else 'Password' }}</label>
+                        <input type="password" class="form-control" name="password" minlength="6" required>
+                        <div class="form-text">{{ 'يجب أن تكون 6 أحرف على الأقل' if lang == 'ar' else 'Must be at least 6 characters' }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'الشركة' if lang == 'ar' else 'Company' }}</label>
+                        <input type="text" class="form-control" name="company_name">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'الدور' if lang == 'ar' else 'Role' }}</label>
+                        <select class="form-select" name="role_id" required>
+                            {% for role in roles %}
+                            <option value="{{ role.id }}">{{ role.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'الخطة' if lang == 'ar' else 'Plan' }}</label>
+                        <select class="form-select" name="subscription_plan_id">
+                            <option value="">N/A</option>
+                            {% for plan in plans %}
+                            <option value="{{ plan.id }}">{{ plan.name }} - ${{ plan.price }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'المؤسسة' if lang == 'ar' else 'Organization' }}</label>
+                        <select class="form-select" name="organization_id">
+                            <option value="none">N/A</option>
+                            {% for org in organizations %}
+                            <option value="{{ org.id }}">{{ org.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" name="is_active" checked>
+                        <label class="form-check-label">{{ 'نشط' if lang == 'ar' else 'Active' }}</label>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {{ 'حفظ المستخدم' if lang == 'ar' else 'Save User' }}
+                        </button>
+                        <a href="{{ url_for('admin.users.index') }}" class="btn btn-outline-secondary">
+                            {{ 'إلغاء' if lang == 'ar' else 'Cancel' }}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

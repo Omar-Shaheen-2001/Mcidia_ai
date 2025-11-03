@@ -1,0 +1,46 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'إدارة الفواتير' if lang == 'ar' else 'Billing Management' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>{{ 'إدارة الفواتير والمعاملات' if lang == 'ar' else 'Billing & Transactions' }}</h2>
+    </div>
+</div>
+
+<div class="table-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>{{ 'المبلغ' if lang == 'ar' else 'Amount' }}</th>
+                    <th>{{ 'الوصف' if lang == 'ar' else 'Description' }}</th>
+                    <th>{{ 'النوع' if lang == 'ar' else 'Type' }}</th>
+                    <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                    <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trans in transactions %}
+                <tr>
+                    <td><strong>${{ "%.2f"|format(trans.amount) }}</strong></td>
+                    <td><small>{{ trans.description }}</small></td>
+                    <td><span class="badge bg-info">{{ trans.transaction_type }}</span></td>
+                    <td>
+                        {% if trans.status == 'succeeded' %}
+                        <span class="badge bg-success">{{ 'نجح' if lang == 'ar' else 'Success' }}</span>
+                        {% elif trans.status == 'pending' %}
+                        <span class="badge bg-warning">{{ 'معلق' if lang == 'ar' else 'Pending' }}</span>
+                        {% else %}
+                        <span class="badge bg-danger">{{ 'فشل' if lang == 'ar' else 'Failed' }}</span>
+                        {% endif %}
+                    </td>
+                    <td><small class="text-muted">{{ trans.created_at.strftime('%Y-%m-%d') }}</small></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
