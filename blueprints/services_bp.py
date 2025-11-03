@@ -3,10 +3,9 @@ Services Blueprint
 Handles all consulting services pages and API endpoints
 """
 
-from flask import Blueprint, render_template, session, jsonify
+from flask import Blueprint, render_template, session, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import Service, ServiceOffering, User, Project
-from app import db
 from utils.decorators import login_required
 
 services_bp = Blueprint('services', __name__, url_prefix='/services')
@@ -15,17 +14,21 @@ def get_lang():
     """Get current language from session"""
     return session.get('lang', 'ar')
 
+def get_db():
+    """Get database instance from current app"""
+    return current_app.extensions['sqlalchemy']
+
 @services_bp.route('/')
 @login_required
 def index():
     """Services homepage - shows all categories"""
     lang = get_lang()
-    services = Service.query.filter_by(is_active=True).order_by(Service.display_order).all()
+    db = get_db()
+    services = db.session.query(Service).filter_by(is_active=True).order_by(Service.display_order).all()
     
     # Get current user
-    from flask_jwt_extended import get_jwt_identity
     user_id = get_jwt_identity()
-    user = db.session.get(User, user_id)
+    user = db.session.get(User, int(user_id))
     
     return render_template(
         'services/index.html',
@@ -38,7 +41,8 @@ def index():
 def api_get_all_services():
     """API endpoint to get all services with their offerings"""
     lang = get_lang()
-    services = Service.query.filter_by(is_active=True).order_by(Service.display_order).all()
+    db = get_db()
+    services = db.session.query(Service).filter_by(is_active=True).order_by(Service.display_order).all()
     
     result = []
     for service in services:
@@ -57,15 +61,18 @@ def api_get_all_services():
 def service_detail(service_slug):
     """Service category page - shows all offerings for a service"""
     lang = get_lang()
-    service = Service.query.filter_by(slug=service_slug, is_active=True).first_or_404()
+    db = get_db()
+    service = db.session.query(Service).filter_by(slug=service_slug, is_active=True).first()
+    if not service:
+        from flask import abort
+        abort(404)
     
     # Get current user
-    from flask_jwt_extended import get_jwt_identity
     user_id = get_jwt_identity()
-    user = db.session.get(User, user_id)
+    user = db.session.get(User, int(user_id))
     
     # Get active offerings
-    offerings = ServiceOffering.query.filter_by(
+    offerings = db.session.query(ServiceOffering).filter_by(
         service_id=service.id,
         is_active=True
     ).order_by(ServiceOffering.display_order).all()
@@ -83,21 +90,29 @@ def service_detail(service_slug):
 def offering_detail(service_slug, offering_slug):
     """Service offering page - individual service with AI interaction"""
     lang = get_lang()
-    service = Service.query.filter_by(slug=service_slug, is_active=True).first_or_404()
-    offering = ServiceOffering.query.filter_by(
+    db = get_db()
+    
+    service = db.session.query(Service).filter_by(slug=service_slug, is_active=True).first()
+    if not service:
+        from flask import abort
+        abort(404)
+    
+    offering = db.session.query(ServiceOffering).filter_by(
         service_id=service.id,
         slug=offering_slug,
         is_active=True
-    ).first_or_404()
+    ).first()
+    if not offering:
+        from flask import abort
+        abort(404)
     
     # Get current user
-    from flask_jwt_extended import get_jwt_identity
     user_id = get_jwt_identity()
-    user = db.session.get(User, user_id)
+    user = db.session.get(User, int(user_id))
     
     # Get user's projects for this offering
-    projects = Project.query.filter_by(
-        user_id=user_id,
+    projects = db.session.query(Project).filter_by(
+        user_id=int(user_id),
         module=f"{service_slug}_{offering_slug}"
     ).order_by(Project.updated_at.desc()).limit(5).all()
     
@@ -114,22 +129,28 @@ def offering_detail(service_slug, offering_slug):
 @login_required
 def api_generate_content(service_slug, offering_slug):
     """API endpoint to generate AI content for an offering"""
-    from flask import request
+    from flask import request, abort
     from utils.ai_client import llm_chat
     from models import AILog
     import json
     
+    db = get_db()
+    
     # Get offering
-    service = Service.query.filter_by(slug=service_slug).first_or_404()
-    offering = ServiceOffering.query.filter_by(
+    service = db.session.query(Service).filter_by(slug=service_slug).first()
+    if not service:
+        abort(404)
+    
+    offering = db.session.query(ServiceOffering).filter_by(
         service_id=service.id,
         slug=offering_slug
-    ).first_or_404()
+    ).first()
+    if not offering:
+        abort(404)
     
     # Get current user
-    from flask_jwt_extended import get_jwt_identity
     user_id = get_jwt_identity()
-    user = db.session.get(User, user_id)
+    user = db.session.get(User, int(user_id))
     
     # Check AI credits
     plan = user.plan_ref
@@ -141,36 +162,36 @@ def api_generate_content(service_slug, offering_slug):
     form_data = request.get_json()
     
     # Build prompt from template
-    prompt_template = offering.ai_prompt_template or """
-    أنت مستشار خبير في {service_title}.
-    المطلوب: {offering_title}
-    
-    البيانات المقدمة:
-    {form_data}
-    
-    قدم استشارة احترافية وشاملة.
-    """
-    
     lang = session.get('lang', 'ar')
-    prompt = prompt_template.format(
-        service_title=service.title_ar if lang == 'ar' else service.title_en,
-        offering_title=offering.title_ar if lang == 'ar' else offering.title_en,
-        form_data=json.dumps(form_data, ensure_ascii=False, indent=2)
-    )
+    
+    # System prompt
+    system_prompt = f"""أنت مستشار خبير في {service.title_ar if lang == 'ar' else service.title_en}.
+مهمتك تقديم استشارات احترافية وشاملة في مجال {offering.title_ar if lang == 'ar' else offering.title_en}.
+قدم تحليلاً دقيقاً وتوصيات عملية بناءً على المعلومات المقدمة."""
+    
+    # User message
+    user_message = f"""المشروع: {form_data.get('project_name', 'غير محدد')}
+
+الوصف:
+{form_data.get('description', '')}
+
+{f"معلومات إضافية: {form_data.get('additional_context', '')}" if form_data.get('additional_context') else ''}
+
+يرجى تقديم استشارة شاملة ومفصلة."""
     
     try:
         # Call AI
         response_text = llm_chat(
-            prompt=prompt,
-            model=offering.ai_model or 'gpt-4',
-            temperature=0.7
+            system_prompt=system_prompt,
+            user_message=user_message,
+            response_format="text"
         )
         
         # Log AI usage
         ai_log = AILog(
-            user_id=user_id,
+            user_id=int(user_id),
             module=f"{service_slug}_{offering_slug}",
-            prompt=prompt,
+            prompt=f"{system_prompt}\n\nUser: {user_message}",
             response=response_text,
             tokens_used=offering.ai_credits_cost or 1
         )
@@ -181,7 +202,7 @@ def api_generate_content(service_slug, offering_slug):
         
         # Create project
         project = Project(
-            user_id=user_id,
+            user_id=int(user_id),
             title=f"{offering.title_ar if lang == 'ar' else offering.title_en} - {form_data.get('project_name', 'جديد')}",
             module=f"{service_slug}_{offering_slug}",
             content=json.dumps({
