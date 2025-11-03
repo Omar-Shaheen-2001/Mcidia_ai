@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, make_response
 from utils.decorators import login_required, role_required
-from models import Organization, OrganizationSettings, User, Role, Project, Transaction, AILog, db
+from models import Organization, OrganizationSettings, User, Role, Project, Transaction, AILog, OrganizationMembership, db
 from flask import current_app
 from datetime import datetime, timedelta
 from sqlalchemy import func
@@ -18,7 +18,7 @@ def get_lang():
 
 @organizations_bp.route('/')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def index():
     """List all organizations with search and filters"""
     db_session = get_db()
@@ -77,7 +77,7 @@ def index():
 
 @organizations_bp.route('/create', methods=['GET', 'POST'])
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def create():
     """Create a new organization"""
     db_session = get_db()
@@ -123,7 +123,7 @@ def create():
 
 @organizations_bp.route('/<int:org_id>')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def view(org_id):
     """View organization details"""
     db_session = get_db()
@@ -153,7 +153,7 @@ def view(org_id):
 
 @organizations_bp.route('/<int:org_id>/edit', methods=['GET', 'POST'])
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def edit(org_id):
     """Edit organization details"""
     db_session = get_db()
@@ -191,9 +191,9 @@ def edit(org_id):
 
 @organizations_bp.route('/<int:org_id>/users')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def users(org_id):
-    """View organization users"""
+    """View organization users with their organization-specific roles"""
     db_session = get_db()
     lang = get_lang()
     
@@ -202,20 +202,61 @@ def users(org_id):
         flash('المؤسسة غير موجودة / Organization not found', 'danger')
         return redirect(url_for('admin.organizations.index'))
     
-    users = db_session.session.query(User).filter_by(organization_id=org_id).all()
-    roles = db_session.session.query(Role).all()
+    # Get all memberships for this organization with user info
+    memberships = db_session.session.query(OrganizationMembership).filter_by(
+        organization_id=org_id
+    ).order_by(OrganizationMembership.joined_at.desc()).all()
+    
+    # Also get users who have organization_id set but no membership (legacy data)
+    legacy_users = db_session.session.query(User).filter(
+        User.organization_id == org_id,
+        ~User.id.in_([m.user_id for m in memberships])
+    ).all()
+    
+    # Organization membership roles (not system roles)
+    org_roles = ['owner', 'admin', 'member']
     
     return render_template(
         'admin/organizations/users.html',
         org=org,
-        users=users,
-        roles=roles,
+        memberships=memberships,
+        legacy_users=legacy_users,
+        org_roles=org_roles,
         lang=lang
     )
 
+@organizations_bp.route('/<int:org_id>/users/<int:membership_id>/change-role', methods=['POST'])
+@login_required
+@role_required('system_admin')
+def change_user_org_role(org_id, membership_id):
+    """Change a user's organization-specific role"""
+    db_session = get_db()
+    lang = get_lang()
+    
+    membership = db_session.session.query(OrganizationMembership).get(membership_id)
+    if not membership or membership.organization_id != org_id:
+        flash('العضوية غير موجودة / Membership not found', 'danger')
+        return redirect(url_for('admin.organizations.users', org_id=org_id))
+    
+    new_role = request.form.get('membership_role')
+    if new_role not in ['owner', 'admin', 'member']:
+        flash('دور غير صالح / Invalid role', 'danger')
+        return redirect(url_for('admin.organizations.users', org_id=org_id))
+    
+    try:
+        membership.membership_role = new_role
+        membership.updated_at = datetime.utcnow()
+        db_session.session.commit()
+        flash('تم تحديث دور المستخدم بنجاح / User role updated successfully', 'success')
+    except Exception as e:
+        db_session.session.rollback()
+        flash(f'خطأ في تحديث الدور / Error updating role: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin.organizations.users', org_id=org_id))
+
 @organizations_bp.route('/<int:org_id>/analytics')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def analytics(org_id):
     """View organization analytics and performance"""
     db_session = get_db()
@@ -253,7 +294,7 @@ def analytics(org_id):
 
 @organizations_bp.route('/<int:org_id>/settings', methods=['GET', 'POST'])
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def settings(org_id):
     """Manage organization settings"""
     db_session = get_db()
@@ -307,7 +348,7 @@ def settings(org_id):
 
 @organizations_bp.route('/<int:org_id>/delete', methods=['POST'])
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def delete(org_id):
     """Delete an organization"""
     db_session = get_db()
@@ -334,7 +375,7 @@ def delete(org_id):
 
 @organizations_bp.route('/<int:org_id>/suspend', methods=['POST'])
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def suspend(org_id):
     """Suspend an organization"""
     db_session = get_db()
@@ -354,7 +395,7 @@ def suspend(org_id):
 
 @organizations_bp.route('/<int:org_id>/activate', methods=['POST'])
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def activate(org_id):
     """Activate a suspended organization"""
     db_session = get_db()
@@ -374,7 +415,7 @@ def activate(org_id):
 
 @organizations_bp.route('/export')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def export():
     """Export organizations list to CSV"""
     db_session = get_db()
@@ -412,7 +453,7 @@ def export():
 
 @organizations_bp.route('/<int:org_id>/reset-ai-usage', methods=['POST'])
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def reset_ai_usage(org_id):
     """Reset AI usage counter for an organization"""
     db_session = get_db()

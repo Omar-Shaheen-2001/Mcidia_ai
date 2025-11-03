@@ -16,7 +16,7 @@ def get_lang():
 
 @users_bp.route('/')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def index():
     """List all users with filtering"""
     db = get_db()
@@ -70,7 +70,7 @@ def index():
 
 @users_bp.route('/<int:user_id>')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def detail(user_id):
     """User detail page"""
     db = get_db()
@@ -99,7 +99,7 @@ def detail(user_id):
 
 @users_bp.route('/<int:user_id>/update', methods=['POST'])
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def update(user_id):
     """Update user details"""
     db = get_db()
@@ -141,7 +141,7 @@ def update(user_id):
 
 @users_bp.route('/<int:user_id>/reset-password', methods=['POST'])
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def reset_password(user_id):
     """Reset user password"""
     db = get_db()
@@ -161,7 +161,7 @@ def reset_password(user_id):
 
 @users_bp.route('/create', methods=['GET', 'POST'])
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def create():
     """Create new user"""
     db = get_db()
@@ -199,7 +199,7 @@ def create():
 
 @users_bp.route('/<int:user_id>/delete', methods=['POST'])
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def delete(user_id):
     """Delete user (soft delete)"""
     db = get_db()

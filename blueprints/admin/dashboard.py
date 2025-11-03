@@ -16,7 +16,7 @@ def get_lang():
 
 @dashboard_bp.route('/')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def index():
     """Admin Dashboard - Main Overview"""
     db = get_db()
@@ -80,7 +80,7 @@ def index():
 
 @dashboard_bp.route('/api/metrics')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def api_metrics():
     """API endpoint for dashboard metrics"""
     db = get_db()

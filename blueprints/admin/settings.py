@@ -13,7 +13,7 @@ def get_lang():
 
 @settings_bp.route('/')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def index():
     """System settings"""
     db = get_db()

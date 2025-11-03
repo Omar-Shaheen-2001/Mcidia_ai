@@ -13,7 +13,7 @@ def get_lang():
 
 @logs_bp.route('/')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def index():
     """Audit logs and security"""
     db = get_db()

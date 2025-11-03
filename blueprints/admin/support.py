@@ -13,7 +13,7 @@ def get_lang():
 
 @support_bp.route('/')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def index():
     """Support tickets"""
     db = get_db()

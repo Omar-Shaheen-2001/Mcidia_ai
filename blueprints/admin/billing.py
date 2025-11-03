@@ -13,7 +13,7 @@ def get_lang():
 
 @billing_bp.route('/')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def index():
     """List all transactions"""
     db = get_db()

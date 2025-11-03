@@ -12,7 +12,7 @@ def get_lang():
 
 @reports_bp.route('/')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def index():
     """Reports and analytics"""
     db = get_db()

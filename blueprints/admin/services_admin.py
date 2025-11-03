@@ -13,7 +13,7 @@ def get_lang():
 
 @services_admin_bp.route('/')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def index():
     """Manage services and offerings"""
     db = get_db()

@@ -13,7 +13,7 @@ def get_lang():
 
 @knowledge_admin_bp.route('/')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def index():
     """Knowledge base management"""
     db = get_db()

@@ -23,91 +23,118 @@
             </a>
         </div>
         <div class="card-body">
-            {% if users %}
+            {% if memberships or legacy_users %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                {{ 'يعرض هذا الجدول أدوار المؤسسة (مالك، مدير، عضو) وليس أدوار النظام العامة' if lang == 'ar' else 'This table shows organization-specific roles (owner, admin, member), not global system roles' }}
+            </div>
+            
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
                         <tr>
                             <th>{{ 'الاسم' if lang == 'ar' else 'Name' }}</th>
                             <th>{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</th>
-                            <th>{{ 'الدور' if lang == 'ar' else 'Role' }}</th>
-                            <th>{{ 'الاشتراك' if lang == 'ar' else 'Subscription' }}</th>
+                            <th>{{ 'دور المؤسسة' if lang == 'ar' else 'Organization Role' }}</th>
+                            <th>{{ 'دور النظام' if lang == 'ar' else 'System Role' }}</th>
                             <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
-                            <th>{{ 'آخر دخول' if lang == 'ar' else 'Last Login' }}</th>
+                            <th>{{ 'تاريخ الانضمام' if lang == 'ar' else 'Joined' }}</th>
                             <th>{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for user in users %}
+                        {% for membership in memberships %}
                         <tr>
                             <td>
-                                <strong>{{ user.username }}</strong>
-                                {% if user.company_name %}
-                                <br><small class="text-muted">{{ user.company_name }}</small>
+                                <strong>{{ membership.user.username }}</strong>
+                                {% if membership.user.company_name %}
+                                <br><small class="text-muted">{{ membership.user.company_name }}</small>
                                 {% endif %}
                             </td>
-                            <td>{{ user.email }}</td>
+                            <td>{{ membership.user.email }}</td>
                             <td>
-                                {% if user.role %}
-                                <span class="badge bg-info">{{ user.role.name }}</span>
+                                {% if membership.membership_role == 'owner' %}
+                                <span class="badge bg-danger">{{ 'مالك' if lang == 'ar' else 'Owner' }}</span>
+                                {% elif membership.membership_role == 'admin' %}
+                                <span class="badge bg-warning">{{ 'مدير' if lang == 'ar' else 'Admin' }}</span>
+                                {% else %}
+                                <span class="badge bg-info">{{ 'عضو' if lang == 'ar' else 'Member' }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if membership.user.role %}
+                                <span class="badge bg-secondary">{{ membership.user.role }}</span>
                                 {% else %}
                                 <span class="badge bg-secondary">-</span>
                                 {% endif %}
                             </td>
                             <td>
-                                {% if user.plan_ref %}
-                                <span class="badge bg-primary">{{ user.plan_ref.name }}</span>
-                                {% else %}
-                                <span class="badge bg-secondary">-</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if user.is_active %}
+                                {% if membership.is_active and membership.user.is_active %}
                                 <span class="badge bg-success">{{ 'نشط' if lang == 'ar' else 'Active' }}</span>
                                 {% else %}
                                 <span class="badge bg-secondary">{{ 'معطل' if lang == 'ar' else 'Inactive' }}</span>
                                 {% endif %}
                             </td>
                             <td>
-                                {% if user.last_login %}
-                                {{ user.last_login.strftime('%Y-%m-%d %H:%M') }}
+                                {% if membership.joined_at %}
+                                {{ membership.joined_at.strftime('%Y-%m-%d') }}
                                 {% else %}
                                 <span class="text-muted">-</span>
                                 {% endif %}
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <a href="{{ url_for('admin.users.detail', user_id=user.id) }}" class="btn btn-sm btn-outline-primary" title="{{ 'عرض' if lang == 'ar' else 'View' }}">
+                                    <a href="{{ url_for('admin.users.detail', user_id=membership.user.id) }}" class="btn btn-sm btn-outline-primary" title="{{ 'عرض' if lang == 'ar' else 'View' }}">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <button class="btn btn-sm btn-outline-warning" title="{{ 'تغيير الدور' if lang == 'ar' else 'Change Role' }}" data-bs-toggle="modal" data-bs-target="#changeRoleModal{{ user.id }}">
+                                    <button class="btn btn-sm btn-outline-warning" title="{{ 'تغيير دور المؤسسة' if lang == 'ar' else 'Change Organization Role' }}" data-bs-toggle="modal" data-bs-target="#changeRoleModal{{ membership.id }}">
                                         <i class="fas fa-user-tag"></i>
                                     </button>
                                 </div>
                             </td>
                         </tr>
 
-                        <!-- Change Role Modal -->
-                        <div class="modal fade" id="changeRoleModal{{ user.id }}" tabindex="-1">
+                        <!-- Change Organization Role Modal -->
+                        <div class="modal fade" id="changeRoleModal{{ membership.id }}" tabindex="-1">
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h5 class="modal-title">{{ 'تغيير دور المستخدم' if lang == 'ar' else 'Change User Role' }}</h5>
+                                        <h5 class="modal-title">{{ 'تغيير دور المستخدم في المؤسسة' if lang == 'ar' else 'Change User Organization Role' }}</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <p><strong>{{ user.username }}</strong> ({{ user.email }})</p>
-                                        <form method="POST" action="{{ url_for('admin.users.change_role', user_id=user.id) }}">
+                                        <p><strong>{{ membership.user.username }}</strong> ({{ membership.user.email }})</p>
+                                        <div class="alert alert-warning">
+                                            <small>
+                                                {{ 'هذا سيغير دور المستخدم داخل المؤسسة فقط، وليس دوره في النظام بالكامل' if lang == 'ar' else 'This will change the user role within this organization only, not their system-wide role' }}
+                                            </small>
+                                        </div>
+                                        <form method="POST" action="{{ url_for('admin.organizations.change_user_org_role', org_id=org.id, membership_id=membership.id) }}">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                                             <div class="mb-3">
-                                                <label class="form-label">{{ 'الدور الجديد' if lang == 'ar' else 'New Role' }}</label>
-                                                <select class="form-select" name="role_id" required>
-                                                    {% for role in roles %}
-                                                    <option value="{{ role.id }}" {% if user.role_id == role.id %}selected{% endif %}>{{ role.name }}</option>
+                                                <label class="form-label">{{ 'دور المؤسسة الجديد' if lang == 'ar' else 'New Organization Role' }}</label>
+                                                <select class="form-select" name="membership_role" required>
+                                                    {% for role in org_roles %}
+                                                    <option value="{{ role }}" {% if membership.membership_role == role %}selected{% endif %}>
+                                                        {% if role == 'owner' %}
+                                                            {{ 'مالك' if lang == 'ar' else 'Owner' }}
+                                                        {% elif role == 'admin' %}
+                                                            {{ 'مدير' if lang == 'ar' else 'Admin' }}
+                                                        {% else %}
+                                                            {{ 'عضو' if lang == 'ar' else 'Member' }}
+                                                        {% endif %}
+                                                    </option>
                                                     {% endfor %}
                                                 </select>
+                                                <small class="form-text text-muted">
+                                                    <ul class="mb-0 mt-2">
+                                                        <li><strong>{{ 'مالك' if lang == 'ar' else 'Owner' }}:</strong> {{ 'إدارة كاملة للمؤسسة والمدراء والفوترة' if lang == 'ar' else 'Full management of organization, admins, and billing' }}</li>
+                                                        <li><strong>{{ 'مدير' if lang == 'ar' else 'Admin' }}:</strong> {{ 'إدارة المستخدمين والإعدادات داخل المؤسسة' if lang == 'ar' else 'Manage users and settings within organization' }}</li>
+                                                        <li><strong>{{ 'عضو' if lang == 'ar' else 'Member' }}:</strong> {{ 'الوصول القياسي للمستخدم' if lang == 'ar' else 'Standard user access' }}</li>
+                                                    </ul>
+                                                </small>
                                             </div>
-                                            <button type="submit" class="btn btn-primary w-100">{{ 'تحديث' if lang == 'ar' else 'Update' }}</button>
+                                            <button type="submit" class="btn btn-primary w-100">{{ 'تحديث الدور' if lang == 'ar' else 'Update Role' }}</button>
                                         </form>
                                     </div>
                                 </div>
@@ -117,6 +144,19 @@
                     </tbody>
                 </table>
             </div>
+            
+            {% if legacy_users %}
+            <div class="alert alert-warning mt-3">
+                <h6>{{ 'مستخدمون قدامى بدون عضوية' if lang == 'ar' else 'Legacy Users Without Membership' }}</h6>
+                <p class="mb-0">{{ 'المستخدمون التاليون لديهم organization_id ولكن ليس لديهم سجل عضوية. يرجى إنشاء عضوية لهم.' if lang == 'ar' else 'The following users have organization_id but no membership record. Please create membership for them.' }}</p>
+                <ul>
+                    {% for user in legacy_users %}
+                    <li>{{ user.username }} ({{ user.email }})</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
             {% else %}
             <div class="text-center py-5">
                 <i class="fas fa-users fa-3x text-muted mb-3"></i>

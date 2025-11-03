@@ -14,7 +14,7 @@ def get_lang():
 
 @ai_management_bp.route('/')
 @login_required
-@role_required('admin')
+@role_required('system_admin')
 def index():
     """AI management dashboard"""
     db = get_db()
