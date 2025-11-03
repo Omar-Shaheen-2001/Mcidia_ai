@@ -22,8 +22,9 @@ def get_all_services_with_offerings():
     """Get all active services with their offerings for sidebar"""
     db = get_db()
     services = db.session.query(Service).filter_by(is_active=True).order_by(Service.display_order).all()
+    # Use a separate attribute to avoid mutating the SQLAlchemy relationship
     for service in services:
-        service.offerings = db.session.query(ServiceOffering).filter_by(
+        service.active_offerings = db.session.query(ServiceOffering).filter_by(
             service_id=service.id,
             is_active=True
         ).order_by(ServiceOffering.display_order).all()

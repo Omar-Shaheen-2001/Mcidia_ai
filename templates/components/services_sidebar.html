@@ -31,7 +31,7 @@
                      data-bs-parent="#servicesAccordion">
                     <div class="accordion-body p-0">
                         <ul class="list-unstyled mb-0">
-                            {% for offering in service.offerings if offering.is_active %}
+                            {% for offering in service.active_offerings %}
                             <li class="sidebar-offering-item {{ 'active' if (current_offering and current_offering.id == offering.id) else '' }}">
                                 <a href="{{ url_for('services.offering_detail', service_slug=service.slug, offering_slug=offering.slug) }}" 
                                    class="d-block px-4 py-2 text-decoration-none sidebar-offering-link"
