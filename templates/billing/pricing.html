@@ -1,17 +1,410 @@
 {% extends "base.html" %}
+
+{% block title %}{{ 'خطط الاشتراك' if lang == 'ar' else 'Subscription Plans' }} - Mcidia{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <h2 class="fw-bold text-center mb-5">{{ 'خطط الاشتراك' if lang == 'ar' else 'Subscription Plans' }}</h2>
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card"><div class="card-body text-center p-4"><h4 class="fw-bold">{{ 'شهري' if lang == 'ar' else 'Monthly' }}</h4><h2 class="fw-bold my-3">$99<small>/{{ 'شهر' if lang == 'ar' else 'month' }}</small></h2><form method="POST">{% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}<form method="POST" action="{{ url_for('billing.subscribe') }}"><input type="hidden" name="plan" value="monthly"><button type="submit" class="btn btn-primary w-100">{{ 'اشترك الآن' if lang == 'ar' else 'Subscribe Now' }}</button></form></div></div>
+<!-- Pricing Header -->
+<section class="bg-gradient-primary text-white py-5">
+    <div class="container text-center">
+        <h1 class="fw-bold mb-3">
+            {{ 'اختر الخطة المناسبة لك' if lang == 'ar' else 'Choose Your Perfect Plan' }}
+        </h1>
+        <p class="lead mb-0">
+            {{ 'خطط مرنة تناسب جميع احتياجاتك مع ضمان الجودة والتميز' if lang == 'ar' else 'Flexible plans for all your needs with guaranteed quality and excellence' }}
+        </p>
+    </div>
+</section>
+
+<!-- Pricing Cards -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4 align-items-stretch">
+            <!-- Free Plan -->
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 shadow-sm hover-lift">
+                    <div class="card-body d-flex flex-column p-4">
+                        <div class="text-center mb-4">
+                            <div class="icon-box mx-auto mb-3" style="background-color: #f3f4f6; color: #6b7280; width: 4rem; height: 4rem;">
+                                <i class="fas fa-gift fa-2x"></i>
+                            </div>
+                            <h4 class="fw-bold mb-2">{{ 'مجاني' if lang == 'ar' else 'Free' }}</h4>
+                            <div class="pricing-amount mb-2">
+                                <span class="h2 fw-bold">$0</span>
+                                <span class="text-muted">/{{ 'شهر' if lang == 'ar' else 'month' }}</span>
+                            </div>
+                            <p class="text-muted small mb-0">{{ 'للتجربة والاستكشاف' if lang == 'ar' else 'For trial and exploration' }}</p>
+                        </div>
+                        
+                        <div class="features-list mb-4 flex-grow-1">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ '1,000 رصيد AI شهرياً' if lang == 'ar' else '1,000 AI Credits/month' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'الوصول لـ 3 وحدات استشارية' if lang == 'ar' else 'Access to 3 consulting modules' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'دعم فني أساسي' if lang == 'ar' else 'Basic support' }}</span>
+                                </li>
+                                <li class="mb-2 text-muted">
+                                    <i class="fas fa-times-circle me-2"></i>
+                                    <span>{{ 'تقارير متقدمة' if lang == 'ar' else 'Advanced reports' }}</span>
+                                </li>
+                                <li class="mb-2 text-muted">
+                                    <i class="fas fa-times-circle me-2"></i>
+                                    <span>{{ 'تكامل مع الأنظمة' if lang == 'ar' else 'System integrations' }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <button class="btn btn-outline-primary w-100" disabled>
+                            <i class="fas fa-check me-2"></i>
+                            {{ 'خطتك الحالية' if lang == 'ar' else 'Current Plan' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Monthly Plan -->
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 shadow hover-lift" style="border: 2px solid var(--color-primary);">
+                    <div class="card-body d-flex flex-column p-4">
+                        <div class="badge badge--primary position-absolute top-0 start-50 translate-middle px-3 py-2">
+                            {{ 'الأكثر شعبية' if lang == 'ar' else 'Most Popular' }}
+                        </div>
+                        
+                        <div class="text-center mb-4 mt-3">
+                            <div class="icon-box mx-auto mb-3" style="background-color: var(--color-primary); color: white; width: 4rem; height: 4rem;">
+                                <i class="fas fa-calendar-alt fa-2x"></i>
+                            </div>
+                            <h4 class="fw-bold mb-2">{{ 'شهري' if lang == 'ar' else 'Monthly' }}</h4>
+                            <div class="pricing-amount mb-2">
+                                <span class="h2 fw-bold text-primary">$99</span>
+                                <span class="text-muted">/{{ 'شهر' if lang == 'ar' else 'month' }}</span>
+                            </div>
+                            <p class="text-muted small mb-0">{{ 'للشركات المتوسطة' if lang == 'ar' else 'For medium businesses' }}</p>
+                        </div>
+                        
+                        <div class="features-list mb-4 flex-grow-1">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span class="fw-semibold">{{ '100,000 رصيد AI شهرياً' if lang == 'ar' else '100,000 AI Credits/month' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'الوصول لجميع الوحدات (12+)' if lang == 'ar' else 'Access to all modules (12+)' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'دعم فني ذو أولوية' if lang == 'ar' else 'Priority support' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'تقارير وتحليلات متقدمة' if lang == 'ar' else 'Advanced analytics' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'تصدير البيانات' if lang == 'ar' else 'Data export' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'حتى 10 مستخدمين' if lang == 'ar' else 'Up to 10 users' }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <form method="POST" action="{{ url_for('billing.subscribe') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="plan" value="monthly">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-rocket me-2"></i>
+                                {{ 'اشترك الآن' if lang == 'ar' else 'Subscribe Now' }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Yearly Plan -->
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 shadow hover-lift" style="border: 2px solid var(--color-secondary);">
+                    <div class="card-body d-flex flex-column p-4">
+                        <div class="badge badge--success position-absolute top-0 start-50 translate-middle px-3 py-2">
+                            {{ 'وفر 17%' if lang == 'ar' else 'Save 17%' }}
+                        </div>
+                        
+                        <div class="text-center mb-4 mt-3">
+                            <div class="icon-box mx-auto mb-3" style="background-color: var(--color-secondary); color: white; width: 4rem; height: 4rem;">
+                                <i class="fas fa-star fa-2x"></i>
+                            </div>
+                            <h4 class="fw-bold mb-2">{{ 'سنوي' if lang == 'ar' else 'Yearly' }}</h4>
+                            <div class="pricing-amount mb-2">
+                                <span class="h2 fw-bold text-success">$999</span>
+                                <span class="text-muted">/{{ 'سنة' if lang == 'ar' else 'year' }}</span>
+                            </div>
+                            <p class="text-muted small mb-1">
+                                <del class="text-danger">$1,188</del>
+                                {{ 'وفر $189' if lang == 'ar' else 'Save $189' }}
+                            </p>
+                            <p class="text-muted small mb-0">{{ 'للشركات الكبيرة' if lang == 'ar' else 'For large enterprises' }}</p>
+                        </div>
+                        
+                        <div class="features-list mb-4 flex-grow-1">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span class="fw-semibold">{{ '1,500,000 رصيد AI سنوياً' if lang == 'ar' else '1,500,000 AI Credits/year' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'جميع ميزات الخطة الشهرية' if lang == 'ar' else 'All monthly plan features' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'دعم فني مخصص 24/7' if lang == 'ar' else 'Dedicated 24/7 support' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'مدير حساب شخصي' if lang == 'ar' else 'Personal account manager' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'تكامل API كامل' if lang == 'ar' else 'Full API integration' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'مستخدمين غير محدودين' if lang == 'ar' else 'Unlimited users' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'تدريب مخصص' if lang == 'ar' else 'Custom training' }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <form method="POST" action="{{ url_for('billing.subscribe') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="plan" value="yearly">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-trophy me-2"></i>
+                                {{ 'اشترك الآن' if lang == 'ar' else 'Subscribe Now' }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pay Per Use Plan -->
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 shadow-sm hover-lift">
+                    <div class="card-body d-flex flex-column p-4">
+                        <div class="text-center mb-4">
+                            <div class="icon-box mx-auto mb-3" style="background-color: #FEF3C7; color: #F59E0B; width: 4rem; height: 4rem;">
+                                <i class="fas fa-bolt fa-2x"></i>
+                            </div>
+                            <h4 class="fw-bold mb-2">{{ 'الدفع حسب الاستخدام' if lang == 'ar' else 'Pay Per Use' }}</h4>
+                            <div class="pricing-amount mb-2">
+                                <span class="h2 fw-bold" style="color: #F59E0B;">{{ 'مرن' if lang == 'ar' else 'Flexible' }}</span>
+                            </div>
+                            <p class="text-muted small mb-0">{{ 'للاستخدام المتقطع' if lang == 'ar' else 'For occasional use' }}</p>
+                        </div>
+                        
+                        <div class="features-list mb-4 flex-grow-1">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'ادفع فقط مقابل ما تستخدمه' if lang == 'ar' else 'Pay only for what you use' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ '$0.01 لكل رصيد AI' if lang == 'ar' else '$0.01 per AI credit' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'لا توجد رسوم شهرية' if lang == 'ar' else 'No monthly fees' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'الوصول لجميع الوحدات' if lang == 'ar' else 'Access to all modules' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'دعم فني قياسي' if lang == 'ar' else 'Standard support' }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span>{{ 'بدون التزام طويل الأمد' if lang == 'ar' else 'No long-term commitment' }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <form method="POST" action="{{ url_for('billing.subscribe') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="plan" value="pay_per_use">
+                            <button type="submit" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-play me-2"></i>
+                                {{ 'ابدأ الآن' if lang == 'ar' else 'Start Now' }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="col-md-4">
-            <div class="card"><div class="card-body text-center p-4"><h4 class="fw-bold">{{ 'سنوي' if lang == 'ar' else 'Yearly' }}</h4><h2 class="fw-bold my-3">$999<small>/{{ 'سنة' if lang == 'ar' else 'year' }}</small></h2><form method="POST">{% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}<form method="POST" action="{{ url_for('billing.subscribe') }}"><input type="hidden" name="plan" value="yearly"><button type="submit" class="btn btn-primary w-100">{{ 'اشترك الآن' if lang == 'ar' else 'Subscribe Now' }}</button></form></div></div>
+        
+        <!-- Features Comparison Table -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3 class="text-center fw-bold mb-4">{{ 'مقارنة شاملة للخطط' if lang == 'ar' else 'Detailed Plan Comparison' }}</h3>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>{{ 'الميزة' if lang == 'ar' else 'Feature' }}</th>
+                                <th class="text-center">{{ 'مجاني' if lang == 'ar' else 'Free' }}</th>
+                                <th class="text-center">{{ 'شهري' if lang == 'ar' else 'Monthly' }}</th>
+                                <th class="text-center">{{ 'سنوي' if lang == 'ar' else 'Yearly' }}</th>
+                                <th class="text-center">{{ 'حسب الاستخدام' if lang == 'ar' else 'Pay Per Use' }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ 'رصيد AI' if lang == 'ar' else 'AI Credits' }}</td>
+                                <td class="text-center">1,000/{{ 'شهر' if lang == 'ar' else 'mo' }}</td>
+                                <td class="text-center fw-bold text-primary">100,000/{{ 'شهر' if lang == 'ar' else 'mo' }}</td>
+                                <td class="text-center fw-bold text-success">1.5M/{{ 'سنة' if lang == 'ar' else 'yr' }}</td>
+                                <td class="text-center">{{ 'حسب الحاجة' if lang == 'ar' else 'As needed' }}</td>
+                            </tr>
+                            <tr>
+                                <td>{{ 'الوحدات الاستشارية' if lang == 'ar' else 'Consulting Modules' }}</td>
+                                <td class="text-center">3</td>
+                                <td class="text-center"><i class="fas fa-check text-success"></i> {{ 'جميع' if lang == 'ar' else 'All' }}</td>
+                                <td class="text-center"><i class="fas fa-check text-success"></i> {{ 'جميع' if lang == 'ar' else 'All' }}</td>
+                                <td class="text-center"><i class="fas fa-check text-success"></i> {{ 'جميع' if lang == 'ar' else 'All' }}</td>
+                            </tr>
+                            <tr>
+                                <td>{{ 'عدد المستخدمين' if lang == 'ar' else 'Number of Users' }}</td>
+                                <td class="text-center">1</td>
+                                <td class="text-center">10</td>
+                                <td class="text-center fw-bold text-success">{{ 'غير محدود' if lang == 'ar' else 'Unlimited' }}</td>
+                                <td class="text-center">5</td>
+                            </tr>
+                            <tr>
+                                <td>{{ 'الدعم الفني' if lang == 'ar' else 'Support' }}</td>
+                                <td class="text-center">{{ 'أساسي' if lang == 'ar' else 'Basic' }}</td>
+                                <td class="text-center">{{ 'ذو أولوية' if lang == 'ar' else 'Priority' }}</td>
+                                <td class="text-center fw-bold text-success">{{ 'مخصص 24/7' if lang == 'ar' else 'Dedicated 24/7' }}</td>
+                                <td class="text-center">{{ 'قياسي' if lang == 'ar' else 'Standard' }}</td>
+                            </tr>
+                            <tr>
+                                <td>{{ 'التقارير المتقدمة' if lang == 'ar' else 'Advanced Reports' }}</td>
+                                <td class="text-center"><i class="fas fa-times text-danger"></i></td>
+                                <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                                <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                                <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                            </tr>
+                            <tr>
+                                <td>{{ 'تكامل API' if lang == 'ar' else 'API Integration' }}</td>
+                                <td class="text-center"><i class="fas fa-times text-danger"></i></td>
+                                <td class="text-center">{{ 'محدود' if lang == 'ar' else 'Limited' }}</td>
+                                <td class="text-center fw-bold text-success">{{ 'كامل' if lang == 'ar' else 'Full' }}</td>
+                                <td class="text-center">{{ 'محدود' if lang == 'ar' else 'Limited' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="col-md-4">
-            <div class="card"><div class="card-body text-center p-4"><h4 class="fw-bold">{{ 'الدفع حسب الاستخدام' if lang == 'ar' else 'Pay Per Use' }}</h4><h2 class="fw-bold my-3">{{ 'مرن' if lang == 'ar' else 'Flexible' }}</h2><form method="POST">{% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}<form method="POST" action="{{ url_for('billing.subscribe') }}"><input type="hidden" name="plan" value="pay_per_use"><button type="submit" class="btn btn-outline-primary w-100">{{ 'ابدأ' if lang == 'ar' else 'Start' }}</button></form></div></div>
+        
+        <!-- FAQ Section -->
+        <div class="row mt-5">
+            <div class="col-lg-8 mx-auto">
+                <h3 class="text-center fw-bold mb-4">{{ 'الأسئلة الشائعة' if lang == 'ar' else 'Frequently Asked Questions' }}</h3>
+                <div class="accordion" id="pricingFAQ">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                {{ 'هل يمكنني تغيير خطتي لاحقاً؟' if lang == 'ar' else 'Can I change my plan later?' }}
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#pricingFAQ">
+                            <div class="accordion-body">
+                                {{ 'نعم، يمكنك الترقية أو التخفيض في أي وقت. سيتم تطبيق التغييرات في دورة الفوترة التالية.' if lang == 'ar' else 'Yes, you can upgrade or downgrade at any time. Changes will be applied in the next billing cycle.' }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                {{ 'ما هو رصيد AI؟' if lang == 'ar' else 'What are AI Credits?' }}
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#pricingFAQ">
+                            <div class="accordion-body">
+                                {{ 'رصيد AI هو وحدة القياس لاستخدام خدمات الذكاء الاصطناعي. كل استشارة أو تحليل يستهلك عدد معين من الأرصدة حسب التعقيد.' if lang == 'ar' else 'AI Credits are units that measure AI service usage. Each consultation or analysis consumes credits based on complexity.' }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                {{ 'هل توجد فترة تجريبية مجانية؟' if lang == 'ar' else 'Is there a free trial?' }}
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#pricingFAQ">
+                            <div class="accordion-body">
+                                {{ 'الخطة المجانية تتيح لك تجربة المنصة بدون الحاجة لبطاقة ائتمان. يمكنك الترقية في أي وقت للحصول على ميزات إضافية.' if lang == 'ar' else 'The free plan allows you to try the platform without a credit card. You can upgrade anytime for additional features.' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CTA Section -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card bg-gradient-primary text-white">
+                    <div class="card-body text-center py-5">
+                        <h3 class="fw-bold mb-3">{{ 'هل لديك احتياجات خاصة؟' if lang == 'ar' else 'Have Special Requirements?' }}</h3>
+                        <p class="mb-4">
+                            {{ 'نحن نقدم حلول مخصصة للمؤسسات الكبيرة والاحتياجات الفريدة' if lang == 'ar' else 'We offer custom solutions for large enterprises and unique needs' }}
+                        </p>
+                        <a href="{{ url_for('consultation.index') }}" class="btn btn-light btn-lg">
+                            <i class="fas fa-phone me-2"></i>
+                            {{ 'تواصل معنا' if lang == 'ar' else 'Contact Us' }}
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+</section>
+
+<style>
+.pricing-amount {
+    line-height: 1;
+}
+
+.features-list li {
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.hover-lift {
+    transition: transform 0.2s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-8px);
+}
+
+.table th {
+    font-weight: 600;
+    color: var(--color-primary);
+}
+</style>
 {% endblock %}
