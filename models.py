@@ -89,6 +89,8 @@ class User(db.Model):
     
     def has_role(self, *role_names):
         """Check if user has any of the specified roles"""
+        if not self.role:
+            return False
         return self.role in role_names
     
     def to_dict(self):

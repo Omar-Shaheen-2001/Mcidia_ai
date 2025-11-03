@@ -30,13 +30,22 @@ def role_required(*roles):
                 db = current_app.extensions['sqlalchemy']
                 user = db.session.query(User).get(user_id)
                 
+                # Debug logging
+                print(f"[role_required] User ID: {user_id}, User: {user.username if user else 'None'}, Required roles: {roles}")
+                if user:
+                    print(f"[role_required] User role: {user.role if user.role else 'No role'}")
+                
                 if user and user.has_role(*roles):
                     return f(*args, **kwargs)
                 else:
+                    print(f"[role_required] Access denied - user does not have required role")
                     lang = session.get('language', 'ar')
                     flash('ليس لديك صلاحية للوصول / You do not have permission to access this page' if lang == 'ar' else 'You do not have permission to access this page', 'danger')
                     return redirect(url_for('dashboard.index'))
             except Exception as e:
+                print(f"[role_required] Exception: {type(e).__name__}: {str(e)}")
+                import traceback
+                traceback.print_exc()
                 lang = session.get('language', 'ar')
                 flash('يرجى تسجيل الدخول / Please login' if lang == 'ar' else 'Please login', 'warning')
                 return redirect(url_for('auth.login'))

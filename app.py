@@ -79,7 +79,7 @@ def create_app():
     def expired_token_callback(jwt_header, jwt_payload):
         return redirect(url_for('auth.login'))
     
-    # Make CSRF token and current user available to all templates
+    # Make current user and CSRF token available to all templates
     @app.context_processor
     def inject_context():
         from flask_wtf.csrf import generate_csrf
