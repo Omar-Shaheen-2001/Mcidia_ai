@@ -470,6 +470,59 @@ class SystemSettings(db.Model):
             'description': self.description
         }
 
+class OrganizationMembership(db.Model):
+    """
+    Links users to organizations with organization-specific roles.
+    This enables multi-tenant role-based access control.
+    """
+    __tablename__ = 'organization_memberships'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
+    
+    # Organization-level role: owner, admin, member
+    # 'owner' - can manage admins, billing, delete org
+    # 'admin' - can manage users, settings within org
+    # 'member' - standard user access
+    membership_role = db.Column(db.String(50), nullable=False, default='member')
+    
+    # Optional: per-membership custom permissions (JSON)
+    permissions = db.Column(db.Text)  # JSON string for granular permissions
+    
+    # Status
+    is_active = db.Column(db.Boolean, default=True)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Unique constraint: a user can only have one membership per organization
+    __table_args__ = (db.UniqueConstraint('user_id', 'organization_id', name='unique_user_org_membership'),)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('memberships', lazy='dynamic', cascade='all, delete-orphan'))
+    organization = db.relationship('Organization', backref=db.backref('memberships', lazy='dynamic', cascade='all, delete-orphan'))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'organization_id': self.organization_id,
+            'membership_role': self.membership_role,
+            'is_active': self.is_active,
+            'joined_at': self.joined_at.isoformat() if self.joined_at else None
+        }
+    
+    def has_permission(self, permission):
+        """Check if this membership has a specific permission"""
+        import json
+        if not self.permissions:
+            return False
+        try:
+            perms = json.loads(self.permissions)
+            return permission in perms
+        except:
+            return False
+
 class AuditLog(db.Model):
     __tablename__ = 'audit_logs'
     
