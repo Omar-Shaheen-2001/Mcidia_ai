@@ -88,13 +88,15 @@
    ========================================== */
 
 .services-sidebar {
-    height: calc(100vh - 70px);
+    min-height: calc(100vh - 70px);
+    height: auto;
     display: flex;
     flex-direction: column;
     background: #ffffff;
     border-{{ 'left' if lang == 'ar' else 'right' }}: 1px solid #e5e7eb;
     position: sticky;
     top: 70px;
+    align-self: flex-start;
 }
 
 /* ==========================================
