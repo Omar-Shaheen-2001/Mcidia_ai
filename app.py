@@ -18,10 +18,11 @@ def seed_database():
     
     # Create default roles if they don't exist
     default_roles = [
-        {'name': 'admin', 'description': 'System Administrator'},
+        {'name': 'system_admin', 'description': 'Platform System Administrator - Full Access'},
         {'name': 'consultant', 'description': 'Professional Consultant'},
         {'name': 'company_user', 'description': 'Company User'},
-        {'name': 'client', 'description': 'Individual Client'}
+        {'name': 'client', 'description': 'Individual Client'},
+        {'name': 'external_user', 'description': 'External User - Organization Member'}
     ]
     
     for role_data in default_roles:
