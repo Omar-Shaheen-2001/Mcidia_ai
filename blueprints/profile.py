@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_wtf.csrf import generate_csrf
 from models import User
 from utils.decorators import login_required
 from datetime import datetime
@@ -30,12 +31,15 @@ def settings():
         # Use ai_credits_used instead of ai_usage_current
         ai_usage_percentage = min((user.ai_credits_used / subscription_plan.ai_credits_limit) * 100, 100)
     
+    # Generate fresh CSRF token
+    csrf_token = generate_csrf()
+    
     return render_template('profile/settings.html', 
                          user=user, 
                          lang=lang,
                          subscription_plan=subscription_plan,
                          ai_usage_percentage=ai_usage_percentage,
-                         csrf_token=session.get('csrf_token', ''))
+                         csrf_token=csrf_token)
 
 @profile_bp.route('/update-personal-info', methods=['POST'])
 @login_required
