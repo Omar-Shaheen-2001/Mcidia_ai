@@ -1,152 +1,437 @@
-<!-- Services Sidebar Component -->
+<!-- Services Sidebar Component - Enhanced Design -->
 <div class="services-sidebar {{ 'd-none d-lg-block' if not always_show else '' }}" id="servicesSidebar">
-    <div class="sidebar-header p-3 bg-primary text-white">
-        <h5 class="mb-0">
-            <i class="fas fa-cubes me-2"></i>
-            {{ 'الوحدات الاستشارية الذكية' if lang == 'ar' else 'Smart Consulting Modules' }}
-        </h5>
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+        <div class="d-flex align-items-center gap-3">
+            <div class="header-icon">
+                <i class="fas fa-cubes"></i>
+            </div>
+            <div>
+                <h6 class="mb-0 fw-bold">
+                    {{ 'الوحدات الاستشارية' if lang == 'ar' else 'Consulting Modules' }}
+                </h6>
+                <small class="text-muted">{{ 'اختر الخدمة المناسبة' if lang == 'ar' else 'Choose your service' }}</small>
+            </div>
+        </div>
     </div>
     
+    <!-- Sidebar Content -->
     <div class="sidebar-content">
         <div class="accordion accordion-flush" id="servicesAccordion">
             {% for service in all_services %}
-            <div class="accordion-item border-0">
+            <div class="accordion-item">
+                <!-- Service Category Header -->
                 <h2 class="accordion-header" id="heading{{ service.id }}">
-                    <button class="accordion-button {{ 'collapsed' if not (current_service and current_service.id == service.id) else '' }} px-3 py-2" 
+                    <button class="accordion-button service-category-btn {{ 'collapsed' if not (current_service and current_service.id == service.id) else '' }}" 
                             type="button" 
                             data-bs-toggle="collapse" 
                             data-bs-target="#collapse{{ service.id }}" 
                             aria-expanded="{{ 'true' if (current_service and current_service.id == service.id) else 'false' }}" 
-                            aria-controls="collapse{{ service.id }}"
-                            style="background-color: {{ service.color }}10; border-{{ 'right' if lang == 'ar' else 'left' }}: 3px solid {{ service.color }};">
-                        <i class="fas {{ service.icon }} me-2" style="color: {{ service.color }};"></i>
-                        <span class="fw-semibold" style="font-size: 0.9rem;">
-                            {{ service.title_ar if lang == 'ar' else service.title_en }}
-                        </span>
+                            aria-controls="collapse{{ service.id }}">
+                        <div class="d-flex align-items-center w-100 gap-3">
+                            <div class="service-icon-wrapper" style="background: linear-gradient(135deg, {{ service.color }}15, {{ service.color }}05); border-{{ 'right' if lang == 'ar' else 'left' }}: 3px solid {{ service.color }};">
+                                <i class="fas {{ service.icon }}" style="color: {{ service.color }};"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="service-title">
+                                    {{ service.title_ar if lang == 'ar' else service.title_en }}
+                                </div>
+                                <div class="service-count">
+                                    {{ service.active_offerings|length }} {{ 'خدمات' if lang == 'ar' else 'services' }}
+                                </div>
+                            </div>
+                        </div>
                     </button>
                 </h2>
+                
+                <!-- Service Offerings List -->
                 <div id="collapse{{ service.id }}" 
                      class="accordion-collapse collapse {{ 'show' if (current_service and current_service.id == service.id) else '' }}" 
                      aria-labelledby="heading{{ service.id }}" 
                      data-bs-parent="#servicesAccordion">
-                    <div class="accordion-body p-0">
-                        <ul class="list-unstyled mb-0">
+                    <div class="accordion-body">
+                        <div class="offerings-list">
                             {% for offering in service.active_offerings %}
-                            <li class="sidebar-offering-item {{ 'active' if (current_offering and current_offering.id == offering.id) else '' }}">
-                                <a href="{{ url_for('services.offering_detail', service_slug=service.slug, offering_slug=offering.slug) }}" 
-                                   class="d-block px-4 py-2 text-decoration-none sidebar-offering-link"
-                                   style="border-{{ 'right' if lang == 'ar' else 'left' }}: 2px solid transparent;">
-                                    <i class="fas fa-circle" style="font-size: 0.4rem; color: {{ service.color }}; opacity: 0.5;"></i>
-                                    <span class="ms-2" style="font-size: 0.85rem;">
+                            <a href="{{ url_for('services.offering_detail', service_slug=service.slug, offering_slug=offering.slug) }}" 
+                               class="offering-item {{ 'active' if (current_offering and current_offering.id == offering.id) else '' }}"
+                               data-service-color="{{ service.color }}">
+                                <div class="offering-indicator" style="background-color: {{ service.color }};"></div>
+                                <div class="offering-content">
+                                    <span class="offering-title">
                                         {{ offering.title_ar if lang == 'ar' else offering.title_en }}
                                     </span>
-                                </a>
-                            </li>
+                                    {% if offering.is_ai_powered %}
+                                    <span class="ai-badge">
+                                        <i class="fas fa-robot"></i>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <i class="fas fa-chevron-{{ 'left' if lang == 'ar' else 'right' }} offering-arrow"></i>
+                            </a>
                             {% endfor %}
-                        </ul>
+                        </div>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
     </div>
+    
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+        <div class="text-center">
+            <i class="fas fa-info-circle text-muted mb-2"></i>
+            <p class="small text-muted mb-0">
+                {{ 'جميع الخدمات معززة بالذكاء الاصطناعي' if lang == 'ar' else 'All services are AI-powered' }}
+            </p>
+        </div>
+    </div>
 </div>
 
 <style>
+/* ========================================
+   Services Sidebar - Enhanced Styling
+   ======================================== */
+
 .services-sidebar {
     height: calc(100vh - 70px);
-    overflow-y: auto;
-    background-color: #ffffff;
-    border-{{ 'left' if lang == 'ar' else 'right' }}: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(to bottom, #ffffff 0%, #f8fafb 100%);
+    border-{{ 'left' if lang == 'ar' else 'right' }}: 1px solid var(--color-border-light);
     position: sticky;
     top: 70px;
+    box-shadow: 2px 0 8px rgba(10, 39, 86, 0.03);
 }
 
+/* Sidebar Header */
+.sidebar-header {
+    padding: 1.5rem 1.25rem;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #0D3168 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.header-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+}
+
+.sidebar-header h6 {
+    color: white;
+    font-size: 0.95rem;
+    letter-spacing: -0.01em;
+}
+
+.sidebar-header small {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75rem;
+}
+
+/* Sidebar Content */
 .sidebar-content {
-    padding: 0;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.5rem 0;
+}
+
+/* Scrollbar Styling */
+.sidebar-content::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 10px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* Accordion Styling */
+.accordion-item {
+    border: none;
+    background: transparent;
+    margin-bottom: 0.25rem;
 }
 
 .accordion-button {
-    font-size: 0.9rem;
+    padding: 0;
+    background: transparent !important;
+    border: none;
     box-shadow: none !important;
+    color: var(--color-text-primary);
 }
 
-.accordion-button:not(.collapsed) {
-    background-color: transparent;
-    color: inherit;
+.accordion-button:focus {
+    outline: none;
+    box-shadow: none;
 }
 
+/* Service Category Button */
+.service-category-btn {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    margin: 0.25rem 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.service-category-btn:hover {
+    background: rgba(10, 39, 86, 0.03) !important;
+    transform: translateX({{ '2px' if lang == 'ar' else '-2px' }});
+}
+
+.service-category-btn:not(.collapsed) {
+    background: linear-gradient(to {{ 'left' if lang == 'ar' else 'right' }}, rgba(10, 39, 86, 0.05), transparent) !important;
+}
+
+/* Service Icon Wrapper */
+.service-icon-wrapper {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+}
+
+.service-category-btn:hover .service-icon-wrapper {
+    transform: scale(1.05);
+}
+
+/* Service Title and Count */
+.service-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.3;
+    display: block;
+}
+
+.service-count {
+    font-size: 0.7rem;
+    color: var(--color-text-tertiary);
+    margin-top: 0.125rem;
+}
+
+/* Accordion Arrow */
 .accordion-button::after {
     background-image: none;
     content: "\f078";
     font-family: "Font Awesome 6 Free";
     font-weight: 900;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
+    color: var(--color-text-secondary);
+    transition: transform 0.2s ease;
+    margin-{{ 'right' if lang == 'ar' else 'left' }}: auto;
 }
 
 .accordion-button:not(.collapsed)::after {
-    content: "\f077";
+    transform: rotate(180deg);
+    color: var(--color-primary);
 }
 
-.sidebar-offering-link {
+/* Accordion Body */
+.accordion-body {
+    padding: 0.5rem 0.75rem 1rem 0.75rem;
+}
+
+/* Offerings List */
+.offerings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+/* Offering Item */
+.offering-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    border-radius: var(--radius-md);
+    text-decoration: none;
     color: var(--color-text-secondary);
     transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    margin-{{ 'right' if lang == 'ar' else 'left' }}: 0.5rem;
 }
 
-.sidebar-offering-link:hover {
-    background-color: var(--color-background);
+.offering-item::before {
+    content: '';
+    position: absolute;
+    {{ 'right' if lang == 'ar' else 'left' }}: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background: var(--color-background);
+    transition: width 0.2s ease;
+    z-index: 0;
+}
+
+.offering-item:hover::before {
+    width: 100%;
+}
+
+.offering-item:hover {
     color: var(--color-primary);
-    padding-{{ 'right' if lang == 'ar' else 'left' }}: 1.5rem !important;
+    transform: translateX({{ '3px' if lang == 'ar' else '-3px' }});
+    background: rgba(10, 39, 86, 0.02);
 }
 
-.sidebar-offering-item.active .sidebar-offering-link {
-    background-color: var(--color-primary-subtle);
+.offering-item.active {
+    background: linear-gradient(to {{ 'left' if lang == 'ar' else 'right' }}, rgba(10, 39, 86, 0.08), rgba(10, 39, 86, 0.02));
     color: var(--color-primary);
     font-weight: 600;
-    border-{{ 'right' if lang == 'ar' else 'left' }}-color: var(--color-primary) !important;
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-    .services-sidebar {
-        background-color: #1a1a1a;
-        border-color: #333;
-    }
-}
-
-/* Scrollbar styling */
-.services-sidebar::-webkit-scrollbar {
+/* Offering Indicator */
+.offering-indicator {
     width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    opacity: 0.4;
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
 }
 
-.services-sidebar::-webkit-scrollbar-track {
-    background: transparent;
+.offering-item:hover .offering-indicator,
+.offering-item.active .offering-indicator {
+    opacity: 1;
+    transform: scale(1.3);
 }
 
-.services-sidebar::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 3px;
+/* Offering Content */
+.offering-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    z-index: 1;
 }
 
-.services-sidebar::-webkit-scrollbar-thumb:hover {
-    background: #999;
+.offering-title {
+    font-size: 0.8125rem;
+    line-height: 1.4;
 }
 
-/* Mobile toggle button */
+/* AI Badge */
+.ai-badge {
+    width: 18px;
+    height: 18px;
+    background: linear-gradient(135deg, #2767B1, #0A2756);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Offering Arrow */
+.offering-arrow {
+    font-size: 0.6rem;
+    color: var(--color-text-tertiary);
+    opacity: 0;
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.offering-item:hover .offering-arrow,
+.offering-item.active .offering-arrow {
+    opacity: 1;
+    transform: translateX({{ '3px' if lang == 'ar' else '-3px' }});
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--color-border-light);
+    background: white;
+}
+
+.sidebar-footer i {
+    font-size: 1.25rem;
+    display: block;
+}
+
+.sidebar-footer p {
+    line-height: 1.4;
+}
+
+/* Mobile Responsive */
 @media (max-width: 991px) {
     .services-sidebar {
         position: fixed;
-        {{ 'right' if lang == 'ar' else 'left' }}: -300px;
+        {{ 'right' if lang == 'ar' else 'left' }}: -320px;
         top: 70px;
-        width: 300px;
+        width: 320px;
         height: calc(100vh - 70px);
         z-index: 1040;
-        transition: {{ 'right' if lang == 'ar' else 'left' }} 0.3s ease;
-        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        transition: {{ 'right' if lang == 'ar' else 'left' }} 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 4px 0 20px rgba(10, 39, 86, 0.15);
     }
     
     .services-sidebar.show {
         {{ 'right' if lang == 'ar' else 'left' }}: 0;
+    }
+}
+
+/* RTL Adjustments */
+[dir="rtl"] .services-sidebar {
+    border-right: 1px solid var(--color-border-light);
+    border-left: none;
+}
+
+/* Dark Mode Support (Future) */
+@media (prefers-color-scheme: dark) {
+    .services-sidebar {
+        background: linear-gradient(to bottom, #1a1a1a 0%, #0f0f0f 100%);
+        border-color: #2a2a2a;
+    }
+    
+    .sidebar-header {
+        background: linear-gradient(135deg, #0A2756 0%, #081d3f 100%);
+    }
+    
+    .sidebar-footer {
+        background: #1a1a1a;
+        border-color: #2a2a2a;
+    }
+    
+    .service-title {
+        color: #e5e7eb;
+    }
+    
+    .offering-item {
+        color: #9ca3af;
+    }
+    
+    .offering-item:hover,
+    .offering-item.active {
+        color: #60a5fa;
     }
 }
 </style>
