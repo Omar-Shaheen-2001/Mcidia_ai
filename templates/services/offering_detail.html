@@ -72,6 +72,26 @@
                     </h4>
                 </div>
                 <div class="card__body">
+                    {% if not current_user %}
+                    <!-- Login Required Message -->
+                    <div class="text-center py-5">
+                        <i class="fas fa-lock fa-3x text-muted mb-3"></i>
+                        <h5 class="mb-3">{{ 'يجب تسجيل الدخول للحصول على استشارة' if lang == 'ar' else 'Login Required for Consultation' }}</h5>
+                        <p class="text-muted mb-4">
+                            {{ 'سجل الدخول أو أنشئ حساباً جديداً للاستفادة من خدمات الاستشارة الذكية' if lang == 'ar' else 'Login or create an account to access AI consultation services' }}
+                        </p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <a href="{{ url_for('auth.login') }}?next={{ request.path }}" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                {{ 'تسجيل الدخول' if lang == 'ar' else 'Login' }}
+                            </a>
+                            <a href="{{ url_for('auth.register') }}?next={{ request.path }}" class="btn btn-outline-primary">
+                                <i class="fas fa-user-plus me-2"></i>
+                                {{ 'إنشاء حساب' if lang == 'ar' else 'Register' }}
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
                     <form id="aiConsultationForm">
                         <!-- Project Name -->
                         <div class="mb-4">
@@ -113,6 +133,7 @@
                             {{ 'إنشاء الاستشارة الذكية' if lang == 'ar' else 'Generate AI Consultation' }}
                         </button>
                     </form>
+                    {% endif %}
                     
                     <!-- Loading State -->
                     <div id="loadingState" class="d-none text-center py-5">
@@ -248,8 +269,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // AI Form functionality
+    // AI Form functionality (only if user is logged in)
     const form = document.getElementById('aiConsultationForm');
+    if (!form) {
+        // User not logged in, skip form initialization
+        return;
+    }
+    
     const loadingState = document.getElementById('loadingState');
     const resultSection = document.getElementById('resultSection');
     const resultContent = document.getElementById('resultContent');

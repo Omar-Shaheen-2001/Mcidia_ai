@@ -31,16 +31,20 @@ def get_all_services_with_offerings():
     return services
 
 @services_bp.route('/')
-@login_required
 def index():
-    """Services homepage - shows all categories"""
+    """Services homepage - shows all categories (public access)"""
     lang = get_lang()
     db = get_db()
     services = db.session.query(Service).filter_by(is_active=True).order_by(Service.display_order).all()
     
-    # Get current user
-    user_id = get_jwt_identity()
-    user = db.session.get(User, int(user_id))
+    # Get current user if logged in
+    user = None
+    try:
+        user_id = get_jwt_identity()
+        if user_id:
+            user = db.session.get(User, int(user_id))
+    except:
+        pass
     
     # Get all services for sidebar
     all_services = get_all_services_with_offerings()
@@ -52,7 +56,8 @@ def index():
         current_service=None,
         current_offering=None,
         lang=lang,
-        user=user
+        user=user,
+        current_user=user
     )
 
 @services_bp.route('/api/all')
@@ -75,9 +80,8 @@ def api_get_all_services():
     return jsonify(result)
 
 @services_bp.route('/<service_slug>')
-@login_required
 def service_detail(service_slug):
-    """Service category page - shows all offerings for a service"""
+    """Service category page - shows all offerings for a service (public access)"""
     lang = get_lang()
     db = get_db()
     service = db.session.query(Service).filter_by(slug=service_slug, is_active=True).first()
@@ -85,9 +89,14 @@ def service_detail(service_slug):
         from flask import abort
         abort(404)
     
-    # Get current user
-    user_id = get_jwt_identity()
-    user = db.session.get(User, int(user_id))
+    # Get current user if logged in
+    user = None
+    try:
+        user_id = get_jwt_identity()
+        if user_id:
+            user = db.session.get(User, int(user_id))
+    except:
+        pass
     
     # Get active offerings
     offerings = db.session.query(ServiceOffering).filter_by(
@@ -106,13 +115,13 @@ def service_detail(service_slug):
         current_service=service,
         current_offering=None,
         lang=lang,
-        user=user
+        user=user,
+        current_user=user
     )
 
 @services_bp.route('/<service_slug>/<offering_slug>')
-@login_required
 def offering_detail(service_slug, offering_slug):
-    """Service offering page - individual service with AI interaction"""
+    """Service offering page - individual service with AI interaction (public access)"""
     lang = get_lang()
     db = get_db()
     
@@ -130,15 +139,20 @@ def offering_detail(service_slug, offering_slug):
         from flask import abort
         abort(404)
     
-    # Get current user
-    user_id = get_jwt_identity()
-    user = db.session.get(User, int(user_id))
-    
-    # Get user's projects for this offering
-    projects = db.session.query(Project).filter_by(
-        user_id=int(user_id),
-        module=f"{service_slug}_{offering_slug}"
-    ).order_by(Project.updated_at.desc()).limit(5).all()
+    # Get current user if logged in
+    user = None
+    projects = []
+    try:
+        user_id = get_jwt_identity()
+        if user_id:
+            user = db.session.get(User, int(user_id))
+            # Get user's projects for this offering only if logged in
+            projects = db.session.query(Project).filter_by(
+                user_id=int(user_id),
+                module=f"{service_slug}_{offering_slug}"
+            ).order_by(Project.updated_at.desc()).limit(5).all()
+    except:
+        pass
     
     # Get all services for sidebar
     all_services = get_all_services_with_offerings()
@@ -152,7 +166,8 @@ def offering_detail(service_slug, offering_slug):
         current_service=service,
         current_offering=offering,
         lang=lang,
-        user=user
+        user=user,
+        current_user=user
     )
 
 @services_bp.route('/api/<service_slug>/<offering_slug>/generate', methods=['POST'])
