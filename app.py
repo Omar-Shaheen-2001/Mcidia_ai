@@ -105,6 +105,7 @@ def create_app():
     # Register blueprints
     from blueprints.auth import auth_bp
     from blueprints.dashboard import dashboard_bp
+    from blueprints.profile import profile_bp
     from blueprints.strategy import strategy_bp
     from blueprints.hr import hr_bp
     from blueprints.finance import finance_bp
@@ -121,6 +122,7 @@ def create_app():
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
+    app.register_blueprint(profile_bp)
     app.register_blueprint(services_bp)
     app.register_blueprint(strategy_bp, url_prefix='/strategy')
     app.register_blueprint(hr_bp, url_prefix='/hr')
