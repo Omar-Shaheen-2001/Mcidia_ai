@@ -37,15 +37,6 @@ def index():
     db = get_db()
     services = db.session.query(Service).filter_by(is_active=True).order_by(Service.display_order).all()
     
-    # Get current user if logged in
-    user = None
-    try:
-        user_id = get_jwt_identity()
-        if user_id:
-            user = db.session.get(User, int(user_id))
-    except:
-        pass
-    
     # Get all services for sidebar
     all_services = get_all_services_with_offerings()
     
@@ -55,9 +46,7 @@ def index():
         all_services=all_services,
         current_service=None,
         current_offering=None,
-        lang=lang,
-        user=user,
-        current_user=user
+        lang=lang
     )
 
 @services_bp.route('/api/all')
@@ -89,15 +78,6 @@ def service_detail(service_slug):
         from flask import abort
         abort(404)
     
-    # Get current user if logged in
-    user = None
-    try:
-        user_id = get_jwt_identity()
-        if user_id:
-            user = db.session.get(User, int(user_id))
-    except:
-        pass
-    
     # Get active offerings
     offerings = db.session.query(ServiceOffering).filter_by(
         service_id=service.id,
@@ -114,14 +94,14 @@ def service_detail(service_slug):
         all_services=all_services,
         current_service=service,
         current_offering=None,
-        lang=lang,
-        user=user,
-        current_user=user
+        lang=lang
     )
 
 @services_bp.route('/<service_slug>/<offering_slug>')
 def offering_detail(service_slug, offering_slug):
     """Service offering page - individual service with AI interaction (public access)"""
+    from flask_jwt_extended import verify_jwt_in_request
+    
     lang = get_lang()
     db = get_db()
     
@@ -143,6 +123,7 @@ def offering_detail(service_slug, offering_slug):
     user = None
     projects = []
     try:
+        verify_jwt_in_request(optional=True)
         user_id = get_jwt_identity()
         if user_id:
             user = db.session.get(User, int(user_id))
@@ -165,9 +146,7 @@ def offering_detail(service_slug, offering_slug):
         all_services=all_services,
         current_service=service,
         current_offering=offering,
-        lang=lang,
-        user=user,
-        current_user=user
+        lang=lang
     )
 
 @services_bp.route('/api/<service_slug>/<offering_slug>/generate', methods=['POST'])
