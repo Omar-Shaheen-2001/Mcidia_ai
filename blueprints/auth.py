@@ -61,6 +61,16 @@ def login():
         user = db.session.query(User).filter_by(email=email).first()
         
         if user and user.check_password(password):
+            # Check if account is active
+            if not user.is_active:
+                flash('تم تعطيل حسابك من قبل المسؤول. يرجى التواصل مع الدعم الفني / Your account has been deactivated by administrator. Please contact support', 'danger')
+                return redirect(url_for('auth.login'))
+            
+            # Update last login time
+            from datetime import datetime
+            user.last_login = datetime.utcnow()
+            db.session.commit()
+            
             access_token = create_access_token(identity=str(user.id))
             response = make_response(redirect(url_for('dashboard.index')))
             set_access_cookies(response, access_token)
