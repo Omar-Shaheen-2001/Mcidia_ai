@@ -1,23 +1,23 @@
-<!-- Services Sidebar Component - Enhanced Design -->
+<!-- Services Sidebar Component - Responsive Design -->
 <div class="services-sidebar {{ 'd-none d-lg-block' if not always_show else '' }}" id="servicesSidebar">
     <!-- Sidebar Header -->
     <div class="sidebar-header">
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
             <div class="header-icon">
                 <i class="fas fa-cubes"></i>
             </div>
-            <div>
-                <h6 class="mb-0 fw-bold">
+            <div class="flex-grow-1">
+                <h6 class="mb-0 fw-bold header-title">
                     {{ 'الوحدات الاستشارية' if lang == 'ar' else 'Consulting Modules' }}
                 </h6>
-                <small class="text-muted">{{ 'اختر الخدمة المناسبة' if lang == 'ar' else 'Choose your service' }}</small>
+                <small class="header-subtitle">{{ all_services|length }} {{ 'فئات' if lang == 'ar' else 'categories' }}</small>
             </div>
         </div>
     </div>
     
     <!-- Sidebar Content -->
     <div class="sidebar-content">
-        <div class="accordion accordion-flush" id="servicesAccordion">
+        <div class="accordion" id="servicesAccordion">
             {% for service in all_services %}
             <div class="accordion-item">
                 <!-- Service Category Header -->
@@ -28,16 +28,17 @@
                             data-bs-target="#collapse{{ service.id }}" 
                             aria-expanded="{{ 'true' if (current_service and current_service.id == service.id) else 'false' }}" 
                             aria-controls="collapse{{ service.id }}">
-                        <div class="d-flex align-items-center w-100 gap-3">
-                            <div class="service-icon-wrapper" style="background: linear-gradient(135deg, {{ service.color }}15, {{ service.color }}05); border-{{ 'right' if lang == 'ar' else 'left' }}: 3px solid {{ service.color }};">
+                        <div class="service-header-content">
+                            <div class="service-icon-box" style="background: linear-gradient(135deg, {{ service.color }}20, {{ service.color }}08);">
                                 <i class="fas {{ service.icon }}" style="color: {{ service.color }};"></i>
                             </div>
-                            <div class="flex-grow-1">
-                                <div class="service-title">
+                            <div class="service-text">
+                                <div class="service-name">
                                     {{ service.title_ar if lang == 'ar' else service.title_en }}
                                 </div>
-                                <div class="service-count">
-                                    {{ service.active_offerings|length }} {{ 'خدمات' if lang == 'ar' else 'services' }}
+                                <div class="service-badge">
+                                    <i class="fas fa-layer-group"></i>
+                                    <span>{{ service.active_offerings|length }}</span>
                                 </div>
                             </div>
                         </div>
@@ -50,26 +51,19 @@
                      aria-labelledby="heading{{ service.id }}" 
                      data-bs-parent="#servicesAccordion">
                     <div class="accordion-body">
-                        <div class="offerings-list">
-                            {% for offering in service.active_offerings %}
-                            <a href="{{ url_for('services.offering_detail', service_slug=service.slug, offering_slug=offering.slug) }}" 
-                               class="offering-item {{ 'active' if (current_offering and current_offering.id == offering.id) else '' }}"
-                               data-service-color="{{ service.color }}">
-                                <div class="offering-indicator" style="background-color: {{ service.color }};"></div>
-                                <div class="offering-content">
-                                    <span class="offering-title">
-                                        {{ offering.title_ar if lang == 'ar' else offering.title_en }}
-                                    </span>
-                                    {% if offering.is_ai_powered %}
-                                    <span class="ai-badge">
-                                        <i class="fas fa-robot"></i>
-                                    </span>
-                                    {% endif %}
-                                </div>
-                                <i class="fas fa-chevron-{{ 'left' if lang == 'ar' else 'right' }} offering-arrow"></i>
-                            </a>
-                            {% endfor %}
-                        </div>
+                        {% for offering in service.active_offerings %}
+                        <a href="{{ url_for('services.offering_detail', service_slug=service.slug, offering_slug=offering.slug) }}" 
+                           class="offering-link {{ 'active' if (current_offering and current_offering.id == offering.id) else '' }}">
+                            <div class="offering-dot" style="background-color: {{ service.color }};"></div>
+                            <span class="offering-name">{{ offering.title_ar if lang == 'ar' else offering.title_en }}</span>
+                            {% if offering.is_ai_powered %}
+                            <span class="ai-indicator" title="{{ 'معزز بالذكاء الاصطناعي' if lang == 'ar' else 'AI Powered' }}">
+                                <i class="fas fa-robot"></i>
+                            </span>
+                            {% endif %}
+                            <i class="fas fa-angle-{{ 'left' if lang == 'ar' else 'right' }} offering-chevron"></i>
+                        </a>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -79,63 +73,69 @@
     
     <!-- Sidebar Footer -->
     <div class="sidebar-footer">
-        <div class="text-center">
-            <i class="fas fa-info-circle text-muted mb-2"></i>
-            <p class="small text-muted mb-0">
-                {{ 'جميع الخدمات معززة بالذكاء الاصطناعي' if lang == 'ar' else 'All services are AI-powered' }}
+        <div class="footer-content">
+            <i class="fas fa-sparkles footer-icon"></i>
+            <p class="footer-text">
+                {{ 'مدعوم بالذكاء الاصطناعي' if lang == 'ar' else 'AI-Powered Services' }}
             </p>
         </div>
     </div>
 </div>
 
 <style>
-/* ========================================
-   Services Sidebar - Enhanced Styling
-   ======================================== */
+/* ==========================================
+   Services Sidebar - Responsive Design
+   ========================================== */
 
 .services-sidebar {
     height: calc(100vh - 70px);
     display: flex;
     flex-direction: column;
-    background: linear-gradient(to bottom, #ffffff 0%, #f8fafb 100%);
-    border-{{ 'left' if lang == 'ar' else 'right' }}: 1px solid var(--color-border-light);
+    background: #ffffff;
+    border-{{ 'left' if lang == 'ar' else 'right' }}: 1px solid #e5e7eb;
     position: sticky;
     top: 70px;
-    box-shadow: 2px 0 8px rgba(10, 39, 86, 0.03);
 }
 
-/* Sidebar Header */
+/* ==========================================
+   Sidebar Header
+   ========================================== */
 .sidebar-header {
-    padding: 1.5rem 1.25rem;
-    background: linear-gradient(135deg, var(--color-primary) 0%, #0D3168 100%);
+    padding: 1.25rem 1rem;
+    background: linear-gradient(135deg, #0A2756 0%, #0D3168 100%);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
+    flex-shrink: 0;
 }
 
 .header-icon {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
     background: rgba(255, 255, 255, 0.15);
-    border-radius: var(--radius-lg);
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     color: white;
+    flex-shrink: 0;
 }
 
-.sidebar-header h6 {
+.header-title {
     color: white;
-    font-size: 0.95rem;
+    font-size: 0.9375rem;
     letter-spacing: -0.01em;
+    line-height: 1.3;
 }
 
-.sidebar-header small {
+.header-subtitle {
     color: rgba(255, 255, 255, 0.7);
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
 }
 
-/* Sidebar Content */
+/* ==========================================
+   Sidebar Content
+   ========================================== */
 .sidebar-content {
     flex: 1;
     overflow-y: auto;
@@ -143,9 +143,9 @@
     padding: 0.5rem 0;
 }
 
-/* Scrollbar Styling */
+/* Custom Scrollbar */
 .sidebar-content::-webkit-scrollbar {
-    width: 5px;
+    width: 4px;
 }
 
 .sidebar-content::-webkit-scrollbar-track {
@@ -161,184 +161,194 @@
     background: #9ca3af;
 }
 
-/* Accordion Styling */
+/* ==========================================
+   Accordion Base Styles
+   ========================================== */
+.accordion {
+    --bs-accordion-bg: transparent;
+    --bs-accordion-border-width: 0;
+    --bs-accordion-border-radius: 0;
+}
+
 .accordion-item {
     border: none;
     background: transparent;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.125rem;
 }
 
 .accordion-button {
     padding: 0;
-    background: transparent !important;
+    background: transparent;
     border: none;
     box-shadow: none !important;
-    color: var(--color-text-primary);
+    outline: none;
 }
 
 .accordion-button:focus {
+    box-shadow: none;
     outline: none;
+}
+
+.accordion-button:not(.collapsed) {
+    background: transparent;
+    color: inherit;
     box-shadow: none;
 }
 
-/* Service Category Button */
+/* ==========================================
+   Service Category Button
+   ========================================== */
 .service-category-btn {
-    padding: 0.75rem 1rem;
-    border-radius: var(--radius-md);
-    margin: 0.25rem 0.75rem;
-    transition: all 0.2s ease;
+    padding: 0.875rem 1rem;
+    margin: 0 0.625rem;
+    border-radius: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .service-category-btn:hover {
-    background: rgba(10, 39, 86, 0.03) !important;
-    transform: translateX({{ '2px' if lang == 'ar' else '-2px' }});
+    background: #f9fafb !important;
+    transform: translateX({{ '-2px' if lang == 'ar' else '2px' }});
 }
 
 .service-category-btn:not(.collapsed) {
-    background: linear-gradient(to {{ 'left' if lang == 'ar' else 'right' }}, rgba(10, 39, 86, 0.05), transparent) !important;
+    background: linear-gradient(to {{ 'left' if lang == 'ar' else 'right' }}, #f3f4f6, transparent) !important;
 }
 
-/* Service Icon Wrapper */
-.service-icon-wrapper {
-    width: 42px;
-    height: 42px;
-    border-radius: var(--radius-md);
+.service-header-content {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    width: 100%;
+}
+
+/* Service Icon Box */
+.service-icon-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-size: 1.1rem;
+    font-size: 1rem;
     transition: all 0.2s ease;
 }
 
-.service-category-btn:hover .service-icon-wrapper {
-    transform: scale(1.05);
+.service-category-btn:hover .service-icon-box {
+    transform: scale(1.08);
 }
 
-/* Service Title and Count */
-.service-title {
-    font-size: 0.875rem;
+/* Service Text */
+.service-text {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+
+.service-name {
+    font-size: 0.8125rem;
     font-weight: 600;
-    color: var(--color-text-primary);
-    line-height: 1.3;
-    display: block;
+    color: #1f2937;
+    line-height: 1.4;
+    flex: 1;
 }
 
-.service-count {
-    font-size: 0.7rem;
-    color: var(--color-text-tertiary);
-    margin-top: 0.125rem;
+.service-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1875rem 0.5rem;
+    background: #f3f4f6;
+    border-radius: 12px;
+    font-size: 0.6875rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.service-badge i {
+    font-size: 0.625rem;
 }
 
 /* Accordion Arrow */
 .accordion-button::after {
     background-image: none;
-    content: "\f078";
+    content: "\f107";
     font-family: "Font Awesome 6 Free";
     font-weight: 900;
-    font-size: 0.65rem;
-    color: var(--color-text-secondary);
+    font-size: 0.75rem;
+    color: #9ca3af;
     transition: transform 0.2s ease;
-    margin-{{ 'right' if lang == 'ar' else 'left' }}: auto;
+    margin-{{ 'right' if lang == 'ar' else 'left' }}: 0.5rem;
 }
 
 .accordion-button:not(.collapsed)::after {
     transform: rotate(180deg);
-    color: var(--color-primary);
+    color: #0A2756;
 }
 
-/* Accordion Body */
+/* ==========================================
+   Accordion Body
+   ========================================== */
 .accordion-body {
-    padding: 0.5rem 0.75rem 1rem 0.75rem;
+    padding: 0.375rem 0.625rem 0.75rem 0.625rem;
 }
 
-/* Offerings List */
-.offerings-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-/* Offering Item */
-.offering-item {
+/* ==========================================
+   Offering Links
+   ========================================== */
+.offering-link {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     padding: 0.625rem 1rem;
-    border-radius: var(--radius-md);
+    margin: 0.125rem 0.375rem;
+    border-radius: 6px;
     text-decoration: none;
-    color: var(--color-text-secondary);
-    transition: all 0.2s ease;
+    color: #6b7280;
+    font-size: 0.8125rem;
+    transition: all 0.15s ease;
     position: relative;
-    overflow: hidden;
-    margin-{{ 'right' if lang == 'ar' else 'left' }}: 0.5rem;
 }
 
-.offering-item::before {
-    content: '';
-    position: absolute;
-    {{ 'right' if lang == 'ar' else 'left' }}: 0;
-    top: 0;
-    bottom: 0;
-    width: 0;
-    background: var(--color-background);
-    transition: width 0.2s ease;
-    z-index: 0;
+.offering-link:hover {
+    background: #f9fafb;
+    color: #0A2756;
+    transform: translateX({{ '-3px' if lang == 'ar' else '3px' }});
 }
 
-.offering-item:hover::before {
-    width: 100%;
-}
-
-.offering-item:hover {
-    color: var(--color-primary);
-    transform: translateX({{ '3px' if lang == 'ar' else '-3px' }});
-    background: rgba(10, 39, 86, 0.02);
-}
-
-.offering-item.active {
+.offering-link.active {
     background: linear-gradient(to {{ 'left' if lang == 'ar' else 'right' }}, rgba(10, 39, 86, 0.08), rgba(10, 39, 86, 0.02));
-    color: var(--color-primary);
+    color: #0A2756;
     font-weight: 600;
 }
 
-/* Offering Indicator */
-.offering-indicator {
-    width: 6px;
-    height: 6px;
+/* Offering Dot */
+.offering-dot {
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     flex-shrink: 0;
-    opacity: 0.4;
+    opacity: 0.5;
     transition: all 0.2s ease;
-    position: relative;
-    z-index: 1;
 }
 
-.offering-item:hover .offering-indicator,
-.offering-item.active .offering-indicator {
+.offering-link:hover .offering-dot,
+.offering-link.active .offering-dot {
     opacity: 1;
-    transform: scale(1.3);
+    transform: scale(1.4);
 }
 
-/* Offering Content */
-.offering-content {
+/* Offering Name */
+.offering-name {
     flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    position: relative;
-    z-index: 1;
-}
-
-.offering-title {
-    font-size: 0.8125rem;
     line-height: 1.4;
 }
 
-/* AI Badge */
-.ai-badge {
-    width: 18px;
-    height: 18px;
+/* AI Indicator */
+.ai-indicator {
+    width: 16px;
+    height: 16px;
     background: linear-gradient(135deg, #2767B1, #0A2756);
     color: white;
     border-radius: 50%;
@@ -349,89 +359,216 @@
     flex-shrink: 0;
 }
 
-/* Offering Arrow */
-.offering-arrow {
-    font-size: 0.6rem;
-    color: var(--color-text-tertiary);
+/* Offering Chevron */
+.offering-chevron {
+    font-size: 0.625rem;
+    color: #d1d5db;
     opacity: 0;
     transition: all 0.2s ease;
-    position: relative;
-    z-index: 1;
 }
 
-.offering-item:hover .offering-arrow,
-.offering-item.active .offering-arrow {
+.offering-link:hover .offering-chevron,
+.offering-link.active .offering-chevron {
     opacity: 1;
-    transform: translateX({{ '3px' if lang == 'ar' else '-3px' }});
 }
 
-/* Sidebar Footer */
+/* ==========================================
+   Sidebar Footer
+   ========================================== */
 .sidebar-footer {
-    padding: 1rem 1.25rem;
-    border-top: 1px solid var(--color-border-light);
+    padding: 0.875rem 1rem;
+    border-top: 1px solid #f3f4f6;
     background: white;
+    flex-shrink: 0;
 }
 
-.sidebar-footer i {
-    font-size: 1.25rem;
+.footer-content {
+    text-align: center;
+}
+
+.footer-icon {
+    font-size: 1.125rem;
+    color: #fbbf24;
+    margin-bottom: 0.375rem;
     display: block;
 }
 
-.sidebar-footer p {
-    line-height: 1.4;
+.footer-text {
+    font-size: 0.6875rem;
+    color: #9ca3af;
+    margin: 0;
+    font-weight: 500;
 }
 
-/* Mobile Responsive */
+/* ==========================================
+   Responsive Design
+   ========================================== */
+
+/* Large Desktops (1440px+) */
+@media (min-width: 1440px) {
+    .sidebar-header {
+        padding: 1.5rem 1.25rem;
+    }
+    
+    .header-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.25rem;
+    }
+    
+    .header-title {
+        font-size: 1rem;
+    }
+    
+    .service-category-btn {
+        padding: 1rem 1.125rem;
+        margin: 0 0.75rem;
+    }
+    
+    .service-icon-box {
+        width: 42px;
+        height: 42px;
+        font-size: 1.125rem;
+    }
+    
+    .service-name {
+        font-size: 0.875rem;
+    }
+    
+    .offering-link {
+        padding: 0.75rem 1.125rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Standard Desktops (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+    .sidebar-header {
+        padding: 1.125rem 0.875rem;
+    }
+    
+    .header-icon {
+        width: 38px;
+        height: 38px;
+    }
+    
+    .service-category-btn {
+        padding: 0.75rem 0.875rem;
+        margin: 0 0.5rem;
+    }
+    
+    .service-icon-box {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9375rem;
+    }
+    
+    .service-name {
+        font-size: 0.78125rem;
+    }
+    
+    .offering-link {
+        padding: 0.5625rem 0.875rem;
+        gap: 0.625rem;
+    }
+}
+
+/* Tablets & Mobile (< 992px) */
 @media (max-width: 991px) {
     .services-sidebar {
         position: fixed;
-        {{ 'right' if lang == 'ar' else 'left' }}: -320px;
+        {{ 'right' if lang == 'ar' else 'left' }}: -100%;
         top: 70px;
-        width: 320px;
+        width: 85%;
+        max-width: 320px;
         height: calc(100vh - 70px);
         z-index: 1040;
         transition: {{ 'right' if lang == 'ar' else 'left' }} 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 4px 0 20px rgba(10, 39, 86, 0.15);
+        box-shadow: 4px 0 24px rgba(10, 39, 86, 0.15);
+        border: none;
     }
     
     .services-sidebar.show {
         {{ 'right' if lang == 'ar' else 'left' }}: 0;
     }
+    
+    .service-category-btn {
+        padding: 0.875rem 1rem;
+    }
+    
+    .offering-link {
+        padding: 0.75rem 1rem;
+    }
 }
 
-/* RTL Adjustments */
-[dir="rtl"] .services-sidebar {
-    border-right: 1px solid var(--color-border-light);
-    border-left: none;
-}
-
-/* Dark Mode Support (Future) */
-@media (prefers-color-scheme: dark) {
+/* Small Mobile (< 576px) */
+@media (max-width: 575px) {
     .services-sidebar {
-        background: linear-gradient(to bottom, #1a1a1a 0%, #0f0f0f 100%);
-        border-color: #2a2a2a;
+        width: 90%;
+        max-width: 280px;
     }
     
     .sidebar-header {
-        background: linear-gradient(135deg, #0A2756 0%, #081d3f 100%);
+        padding: 1rem 0.875rem;
+    }
+    
+    .header-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+    
+    .header-title {
+        font-size: 0.875rem;
+    }
+    
+    .header-subtitle {
+        font-size: 0.625rem;
+    }
+    
+    .service-category-btn {
+        padding: 0.75rem 0.875rem;
+        margin: 0 0.5rem;
+    }
+    
+    .service-icon-box {
+        width: 34px;
+        height: 34px;
+        font-size: 0.875rem;
+    }
+    
+    .service-name {
+        font-size: 0.75rem;
+    }
+    
+    .service-badge {
+        padding: 0.125rem 0.375rem;
+        font-size: 0.625rem;
+    }
+    
+    .offering-link {
+        padding: 0.625rem 0.875rem;
+        font-size: 0.75rem;
+        gap: 0.625rem;
     }
     
     .sidebar-footer {
-        background: #1a1a1a;
-        border-color: #2a2a2a;
+        padding: 0.75rem 0.875rem;
     }
     
-    .service-title {
-        color: #e5e7eb;
+    .footer-text {
+        font-size: 0.625rem;
     }
-    
-    .offering-item {
-        color: #9ca3af;
-    }
-    
-    .offering-item:hover,
-    .offering-item.active {
-        color: #60a5fa;
-    }
+}
+
+/* RTL Support */
+[dir="rtl"] .services-sidebar {
+    border-right: 1px solid #e5e7eb;
+    border-left: none;
+}
+
+[dir="rtl"] .accordion-button::after {
+    margin-right: 0.5rem;
+    margin-left: 0;
 }
 </style>
