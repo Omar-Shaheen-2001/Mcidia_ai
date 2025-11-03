@@ -292,29 +292,110 @@ class Organization(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
-    industry = db.Column(db.String(100))  # القطاع
+    sector = db.Column(db.String(100))  # القطاع: صناعي، خدمي، حكومي، غير ربحي
     country = db.Column(db.String(100))  # الدولة
+    city = db.Column(db.String(100))  # المدينة
     size = db.Column(db.String(50))  # small, medium, large, enterprise
-    contact_email = db.Column(db.String(120))
-    contact_phone = db.Column(db.String(50))
-    address = db.Column(db.Text)
+    email = db.Column(db.String(120))  # البريد الرسمي
+    phone = db.Column(db.String(50))  # رقم التواصل
+    website = db.Column(db.String(200))  # موقع الويب
+    address = db.Column(db.Text)  # العنوان
+    logo_url = db.Column(db.String(500))  # شعار المؤسسة
+    
+    # Subscription & Billing
+    plan_type = db.Column(db.String(50), default='free')  # free, monthly, yearly, pay_per_use
+    subscription_status = db.Column(db.String(50), default='active')  # active, suspended, expired
+    ai_usage_limit = db.Column(db.Integer, default=1000)  # حد استخدام الذكاء الاصطناعي الشهري
+    ai_usage_current = db.Column(db.Integer, default=0)  # الاستخدام الحالي
+    
+    # Status & Metadata
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
     users = db.relationship('User', backref='organization', lazy=True)
+    settings = db.relationship('OrganizationSettings', backref='organization', uselist=False, cascade='all, delete-orphan')
     
     def to_dict(self):
         return {
             'id': self.id,
             'name': self.name,
-            'industry': self.industry,
+            'sector': self.sector,
             'country': self.country,
+            'city': self.city,
             'size': self.size,
-            'contact_email': self.contact_email,
+            'email': self.email,
+            'phone': self.phone,
+            'website': self.website,
+            'logo_url': self.logo_url,
+            'plan_type': self.plan_type,
+            'subscription_status': self.subscription_status,
+            'ai_usage_limit': self.ai_usage_limit,
+            'ai_usage_current': self.ai_usage_current,
             'is_active': self.is_active,
-            'users_count': len(self.users) if self.users else 0
+            'users_count': len(self.users) if self.users else 0,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+    
+    def get_ai_usage_percentage(self):
+        """Calculate AI usage percentage"""
+        if self.ai_usage_limit == 0:
+            return 0
+        return min(100, int((self.ai_usage_current / self.ai_usage_limit) * 100))
+    
+    def can_use_ai(self, credits=1):
+        """Check if organization can use AI credits"""
+        if self.plan_type == 'pay_per_use':
+            return True  # Pay per use has no limit
+        return (self.ai_usage_current + credits) <= self.ai_usage_limit
+
+class OrganizationSettings(db.Model):
+    __tablename__ = 'organization_settings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False, unique=True)
+    
+    # Language & Localization
+    default_language = db.Column(db.String(10), default='ar')  # ar, en
+    timezone = db.Column(db.String(50), default='Asia/Riyadh')
+    
+    # Notifications
+    email_notifications = db.Column(db.Boolean, default=True)
+    internal_notifications = db.Column(db.Boolean, default=True)
+    
+    # AI Settings
+    ai_model_preference = db.Column(db.String(50), default='gpt-4')
+    ai_monthly_limit_override = db.Column(db.Integer)  # Override the plan limit
+    
+    # Features
+    allow_document_upload = db.Column(db.Boolean, default=True)
+    enable_api_access = db.Column(db.Boolean, default=False)
+    
+    # Modules Access (JSON string of enabled modules)
+    enabled_modules = db.Column(db.Text)  # JSON: ["strategy", "hr", "finance", ...]
+    
+    # Custom Settings (JSON string for future extensions)
+    custom_settings = db.Column(db.Text)  # JSON for flexible custom settings
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'organization_id': self.organization_id,
+            'default_language': self.default_language,
+            'timezone': self.timezone,
+            'email_notifications': self.email_notifications,
+            'internal_notifications': self.internal_notifications,
+            'ai_model_preference': self.ai_model_preference,
+            'ai_monthly_limit_override': self.ai_monthly_limit_override,
+            'allow_document_upload': self.allow_document_upload,
+            'enable_api_access': self.enable_api_access,
+            'enabled_modules': self.enabled_modules,
+            'custom_settings': self.custom_settings
         }
 
 class Notification(db.Model):
