@@ -1,0 +1,125 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'إضافة مؤسسة جديدة' if lang == 'ar' else 'Create New Organization' }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin.organizations.index') }}">{{ 'المؤسسات' if lang == 'ar' else 'Organizations' }}</a></li>
+            <li class="breadcrumb-item active">{{ 'إضافة جديدة' if lang == 'ar' else 'Create New' }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-building me-2"></i>
+                        {{ 'إضافة مؤسسة جديدة' if lang == 'ar' else 'Create New Organization' }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.organizations.create') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label required">{{ 'اسم المؤسسة' if lang == 'ar' else 'Organization Name' }}</label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'القطاع' if lang == 'ar' else 'Sector' }}</label>
+                                <select class="form-select" name="sector">
+                                    <option value="">{{ 'اختر...' if lang == 'ar' else 'Select...' }}</option>
+                                    <option value="صناعي">{{ 'صناعي' if lang == 'ar' else 'Industrial' }}</option>
+                                    <option value="خدمي">{{ 'خدمي' if lang == 'ar' else 'Service' }}</option>
+                                    <option value="حكومي">{{ 'حكومي' if lang == 'ar' else 'Government' }}</option>
+                                    <option value="غير ربحي">{{ 'غير ربحي' if lang == 'ar' else 'Non-Profit' }}</option>
+                                    <option value="تعليمي">{{ 'تعليمي' if lang == 'ar' else 'Educational' }}</option>
+                                    <option value="صحي">{{ 'صحي' if lang == 'ar' else 'Healthcare' }}</option>
+                                    <option value="تقني">{{ 'تقني' if lang == 'ar' else 'Technology' }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'حجم المؤسسة' if lang == 'ar' else 'Organization Size' }}</label>
+                                <select class="form-select" name="size">
+                                    <option value="small">{{ 'صغيرة (1-50)' if lang == 'ar' else 'Small (1-50)' }}</option>
+                                    <option value="medium" selected>{{ 'متوسطة (51-250)' if lang == 'ar' else 'Medium (51-250)' }}</option>
+                                    <option value="large">{{ 'كبيرة (251-1000)' if lang == 'ar' else 'Large (251-1000)' }}</option>
+                                    <option value="enterprise">{{ 'مؤسسية (1000+)' if lang == 'ar' else 'Enterprise (1000+)' }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</label>
+                                <input type="email" class="form-control" name="email">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'الهاتف' if lang == 'ar' else 'Phone' }}</label>
+                                <input type="tel" class="form-control" name="phone">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'الدولة' if lang == 'ar' else 'Country' }}</label>
+                                <input type="text" class="form-control" name="country">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'المدينة' if lang == 'ar' else 'City' }}</label>
+                                <input type="text" class="form-control" name="city">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ 'الموقع الإلكتروني' if lang == 'ar' else 'Website' }}</label>
+                            <input type="url" class="form-control" name="website" placeholder="https://">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ 'العنوان' if lang == 'ar' else 'Address' }}</label>
+                            <textarea class="form-control" name="address" rows="2"></textarea>
+                        </div>
+
+                        <hr class="my-4">
+                        <h5 class="mb-3">{{ 'إعدادات الاشتراك' if lang == 'ar' else 'Subscription Settings' }}</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'نوع الخطة' if lang == 'ar' else 'Plan Type' }}</label>
+                                <select class="form-select" name="plan_type">
+                                    <option value="free" selected>{{ 'مجاني' if lang == 'ar' else 'Free' }}</option>
+                                    <option value="monthly">{{ 'شهري' if lang == 'ar' else 'Monthly' }}</option>
+                                    <option value="yearly">{{ 'سنوي' if lang == 'ar' else 'Yearly' }}</option>
+                                    <option value="pay_per_use">{{ 'حسب الاستخدام' if lang == 'ar' else 'Pay Per Use' }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'حد استخدام AI الشهري' if lang == 'ar' else 'Monthly AI Usage Limit' }}</label>
+                                <input type="number" class="form-control" name="ai_usage_limit" value="1000" min="0">
+                                <small class="text-muted">{{ 'عدد الأرصدة المسموح بها شهرياً' if lang == 'ar' else 'Credits allowed per month' }}</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('admin.organizations.index') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>{{ 'إلغاء' if lang == 'ar' else 'Cancel' }}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>{{ 'حفظ' if lang == 'ar' else 'Save' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

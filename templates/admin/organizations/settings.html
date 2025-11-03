@@ -1,0 +1,130 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'إعدادات' if lang == 'ar' else 'Settings' }} - {{ org.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin.organizations.index') }}">{{ 'المؤسسات' if lang == 'ar' else 'Organizations' }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('admin.organizations.view', org_id=org.id) }}">{{ org.name }}</a></li>
+            <li class="breadcrumb-item active">{{ 'الإعدادات' if lang == 'ar' else 'Settings' }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>
+                        {{ 'إعدادات المؤسسة' if lang == 'ar' else 'Organization Settings' }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.organizations.settings', org_id=org.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                        <!-- Language & Localization -->
+                        <h5 class="mb-3">{{ 'اللغة والتوطين' if lang == 'ar' else 'Language & Localization' }}</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'اللغة الافتراضية' if lang == 'ar' else 'Default Language' }}</label>
+                                <select class="form-select" name="default_language">
+                                    <option value="ar" {% if settings.default_language == 'ar' %}selected{% endif %}>{{ 'العربية' if lang == 'ar' else 'Arabic' }}</option>
+                                    <option value="en" {% if settings.default_language == 'en' %}selected{% endif %}>{{ 'الإنجليزية' if lang == 'ar' else 'English' }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'المنطقة الزمنية' if lang == 'ar' else 'Timezone' }}</label>
+                                <select class="form-select" name="timezone">
+                                    <option value="Asia/Riyadh" {% if settings.timezone == 'Asia/Riyadh' %}selected{% endif %}>Asia/Riyadh</option>
+                                    <option value="Asia/Dubai" {% if settings.timezone == 'Asia/Dubai' %}selected{% endif %}>Asia/Dubai</option>
+                                    <option value="Asia/Kuwait" {% if settings.timezone == 'Asia/Kuwait' %}selected{% endif %}>Asia/Kuwait</option>
+                                    <option value="Africa/Cairo" {% if settings.timezone == 'Africa/Cairo' %}selected{% endif %}>Africa/Cairo</option>
+                                    <option value="UTC" {% if settings.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Notifications -->
+                        <h5 class="mb-3">{{ 'الإشعارات' if lang == 'ar' else 'Notifications' }}</h5>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" name="email_notifications" value="1" id="emailNotif" {% if settings.email_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="emailNotif">
+                                {{ 'إشعارات البريد الإلكتروني' if lang == 'ar' else 'Email Notifications' }}
+                            </label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" name="internal_notifications" value="1" id="internalNotif" {% if settings.internal_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="internalNotif">
+                                {{ 'الإشعارات الداخلية' if lang == 'ar' else 'Internal Notifications' }}
+                            </label>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- AI Settings -->
+                        <h5 class="mb-3">{{ 'إعدادات الذكاء الاصطناعي' if lang == 'ar' else 'AI Settings' }}</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'نموذج AI المفضل' if lang == 'ar' else 'Preferred AI Model' }}</label>
+                                <select class="form-select" name="ai_model_preference">
+                                    <option value="gpt-4" {% if settings.ai_model_preference == 'gpt-4' %}selected{% endif %}>GPT-4</option>
+                                    <option value="gpt-3.5-turbo" {% if settings.ai_model_preference == 'gpt-3.5-turbo' %}selected{% endif %}>GPT-3.5 Turbo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Features -->
+                        <h5 class="mb-3">{{ 'الميزات' if lang == 'ar' else 'Features' }}</h5>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" name="allow_document_upload" value="1" id="docUpload" {% if settings.allow_document_upload %}checked{% endif %}>
+                            <label class="form-check-label" for="docUpload">
+                                {{ 'السماح برفع المستندات' if lang == 'ar' else 'Allow Document Upload' }}
+                            </label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" name="enable_api_access" value="1" id="apiAccess" {% if settings.enable_api_access %}checked{% endif %}>
+                            <label class="form-check-label" for="apiAccess">
+                                {{ 'تفعيل الوصول لـ API' if lang == 'ar' else 'Enable API Access' }}
+                            </label>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Enabled Modules -->
+                        <h5 class="mb-3">{{ 'الوحدات المفعّلة' if lang == 'ar' else 'Enabled Modules' }}</h5>
+                        <div class="row">
+                            {% for module in available_modules %}
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="enabled_modules" value="{{ module }}" id="module_{{ module }}" 
+                                           {% if module in current_modules %}checked{% endif %}>
+                                    <label class="form-check-label" for="module_{{ module }}">
+                                        {{ module|capitalize }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('admin.organizations.view', org_id=org.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>{{ 'إلغاء' if lang == 'ar' else 'Cancel' }}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>{{ 'حفظ الإعدادات' if lang == 'ar' else 'Save Settings' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

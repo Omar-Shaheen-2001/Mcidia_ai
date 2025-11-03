@@ -1,0 +1,144 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'تعديل' if lang == 'ar' else 'Edit' }} - {{ org.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin.organizations.index') }}">{{ 'المؤسسات' if lang == 'ar' else 'Organizations' }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('admin.organizations.view', org_id=org.id) }}">{{ org.name }}</a></li>
+            <li class="breadcrumb-item active">{{ 'تعديل' if lang == 'ar' else 'Edit' }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        {{ 'تعديل معلومات المؤسسة' if lang == 'ar' else 'Edit Organization' }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.organizations.edit', org_id=org.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label required">{{ 'اسم المؤسسة' if lang == 'ar' else 'Organization Name' }}</label>
+                                <input type="text" class="form-control" name="name" value="{{ org.name }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'القطاع' if lang == 'ar' else 'Sector' }}</label>
+                                <select class="form-select" name="sector">
+                                    <option value="">{{ 'اختر...' if lang == 'ar' else 'Select...' }}</option>
+                                    <option value="صناعي" {% if org.sector == 'صناعي' %}selected{% endif %}>{{ 'صناعي' if lang == 'ar' else 'Industrial' }}</option>
+                                    <option value="خدمي" {% if org.sector == 'خدمي' %}selected{% endif %}>{{ 'خدمي' if lang == 'ar' else 'Service' }}</option>
+                                    <option value="حكومي" {% if org.sector == 'حكومي' %}selected{% endif %}>{{ 'حكومي' if lang == 'ar' else 'Government' }}</option>
+                                    <option value="غير ربحي" {% if org.sector == 'غير ربحي' %}selected{% endif %}>{{ 'غير ربحي' if lang == 'ar' else 'Non-Profit' }}</option>
+                                    <option value="تعليمي" {% if org.sector == 'تعليمي' %}selected{% endif %}>{{ 'تعليمي' if lang == 'ar' else 'Educational' }}</option>
+                                    <option value="صحي" {% if org.sector == 'صحي' %}selected{% endif %}>{{ 'صحي' if lang == 'ar' else 'Healthcare' }}</option>
+                                    <option value="تقني" {% if org.sector == 'تقني' %}selected{% endif %}>{{ 'تقني' if lang == 'ar' else 'Technology' }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'حجم المؤسسة' if lang == 'ar' else 'Organization Size' }}</label>
+                                <select class="form-select" name="size">
+                                    <option value="small" {% if org.size == 'small' %}selected{% endif %}>{{ 'صغيرة (1-50)' if lang == 'ar' else 'Small (1-50)' }}</option>
+                                    <option value="medium" {% if org.size == 'medium' %}selected{% endif %}>{{ 'متوسطة (51-250)' if lang == 'ar' else 'Medium (51-250)' }}</option>
+                                    <option value="large" {% if org.size == 'large' %}selected{% endif %}>{{ 'كبيرة (251-1000)' if lang == 'ar' else 'Large (251-1000)' }}</option>
+                                    <option value="enterprise" {% if org.size == 'enterprise' %}selected{% endif %}>{{ 'مؤسسية (1000+)' if lang == 'ar' else 'Enterprise (1000+)' }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</label>
+                                <input type="email" class="form-control" name="email" value="{{ org.email or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'الهاتف' if lang == 'ar' else 'Phone' }}</label>
+                                <input type="tel" class="form-control" name="phone" value="{{ org.phone or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'الدولة' if lang == 'ar' else 'Country' }}</label>
+                                <input type="text" class="form-control" name="country" value="{{ org.country or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'المدينة' if lang == 'ar' else 'City' }}</label>
+                                <input type="text" class="form-control" name="city" value="{{ org.city or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ 'الموقع الإلكتروني' if lang == 'ar' else 'Website' }}</label>
+                            <input type="url" class="form-control" name="website" value="{{ org.website or '' }}" placeholder="https://">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ 'العنوان' if lang == 'ar' else 'Address' }}</label>
+                            <textarea class="form-control" name="address" rows="2">{{ org.address or '' }}</textarea>
+                        </div>
+
+                        <hr class="my-4">
+                        <h5 class="mb-3">{{ 'إعدادات الاشتراك' if lang == 'ar' else 'Subscription Settings' }}</h5>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ 'نوع الخطة' if lang == 'ar' else 'Plan Type' }}</label>
+                                <select class="form-select" name="plan_type">
+                                    <option value="free" {% if org.plan_type == 'free' %}selected{% endif %}>{{ 'مجاني' if lang == 'ar' else 'Free' }}</option>
+                                    <option value="monthly" {% if org.plan_type == 'monthly' %}selected{% endif %}>{{ 'شهري' if lang == 'ar' else 'Monthly' }}</option>
+                                    <option value="yearly" {% if org.plan_type == 'yearly' %}selected{% endif %}>{{ 'سنوي' if lang == 'ar' else 'Yearly' }}</option>
+                                    <option value="pay_per_use" {% if org.plan_type == 'pay_per_use' %}selected{% endif %}>{{ 'حسب الاستخدام' if lang == 'ar' else 'Pay Per Use' }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ 'حالة الاشتراك' if lang == 'ar' else 'Subscription Status' }}</label>
+                                <select class="form-select" name="subscription_status">
+                                    <option value="active" {% if org.subscription_status == 'active' %}selected{% endif %}>{{ 'نشط' if lang == 'ar' else 'Active' }}</option>
+                                    <option value="suspended" {% if org.subscription_status == 'suspended' %}selected{% endif %}>{{ 'معلق' if lang == 'ar' else 'Suspended' }}</option>
+                                    <option value="expired" {% if org.subscription_status == 'expired' %}selected{% endif %}>{{ 'منتهي' if lang == 'ar' else 'Expired' }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ 'حالة المؤسسة' if lang == 'ar' else 'Organization Status' }}</label>
+                                <select class="form-select" name="is_active">
+                                    <option value="1" {% if org.is_active %}selected{% endif %}>{{ 'نشط' if lang == 'ar' else 'Active' }}</option>
+                                    <option value="0" {% if not org.is_active %}selected{% endif %}>{{ 'غير نشط' if lang == 'ar' else 'Inactive' }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'حد استخدام AI الشهري' if lang == 'ar' else 'Monthly AI Usage Limit' }}</label>
+                                <input type="number" class="form-control" name="ai_usage_limit" value="{{ org.ai_usage_limit }}" min="0">
+                                <small class="text-muted">{{ 'الاستخدام الحالي:' if lang == 'ar' else 'Current usage:' }} {{ org.ai_usage_current }}</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('admin.organizations.view', org_id=org.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>{{ 'إلغاء' if lang == 'ar' else 'Cancel' }}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>{{ 'حفظ التغييرات' if lang == 'ar' else 'Save Changes' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

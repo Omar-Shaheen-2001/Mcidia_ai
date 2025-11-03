@@ -1,10 +1,242 @@
 {% extends "admin/base.html" %}
 
+{% block title %}{{ 'إدارة المؤسسات' if lang == 'ar' else 'Organizations Management' }} - Admin{% endblock %}
+
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h2>{{ module_title }}</h2>
-        <p class="text-muted">{{ 'قيد التطوير' if lang == 'ar' else 'Under Development' }}</p>
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2 class="fw-bold">
+                <i class="fas fa-building text-primary me-2"></i>
+                {{ 'إدارة المؤسسات' if lang == 'ar' else 'Organizations Management' }}
+            </h2>
+            <p class="text-muted">{{ 'إدارة شاملة للمؤسسات المشتركة في النظام' if lang == 'ar' else 'Comprehensive management of registered organizations' }}</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{{ url_for('admin.organizations.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>
+                {{ 'إضافة مؤسسة' if lang == 'ar' else 'Add Organization' }}
+            </a>
+            <a href="{{ url_for('admin.organizations.export') }}" class="btn btn-outline-success">
+                <i class="fas fa-file-excel me-2"></i>
+                {{ 'تصدير' if lang == 'ar' else 'Export' }}
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">{{ 'بحث' if lang == 'ar' else 'Search' }}</label>
+                    <input type="text" name="search" class="form-control" placeholder="{{ 'اسم، بريد، دولة...' if lang == 'ar' else 'Name, email, country...' }}" value="{{ search }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">{{ 'الحالة' if lang == 'ar' else 'Status' }}</label>
+                    <select name="status" class="form-select">
+                        <option value="">{{ 'الكل' if lang == 'ar' else 'All' }}</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>{{ 'نشط' if lang == 'ar' else 'Active' }}</option>
+                        <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>{{ 'معلق' if lang == 'ar' else 'Suspended' }}</option>
+                        <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>{{ 'منتهي' if lang == 'ar' else 'Expired' }}</option>
+                        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>{{ 'غير نشط' if lang == 'ar' else 'Inactive' }}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">{{ 'نوع الاشتراك' if lang == 'ar' else 'Plan Type' }}</label>
+                    <select name="plan" class="form-select">
+                        <option value="">{{ 'الكل' if lang == 'ar' else 'All' }}</option>
+                        <option value="free" {% if plan_filter == 'free' %}selected{% endif %}>{{ 'مجاني' if lang == 'ar' else 'Free' }}</option>
+                        <option value="monthly" {% if plan_filter == 'monthly' %}selected{% endif %}>{{ 'شهري' if lang == 'ar' else 'Monthly' }}</option>
+                        <option value="yearly" {% if plan_filter == 'yearly' %}selected{% endif %}>{{ 'سنوي' if lang == 'ar' else 'Yearly' }}</option>
+                        <option value="pay_per_use" {% if plan_filter == 'pay_per_use' %}selected{% endif %}>{{ 'حسب الاستخدام' if lang == 'ar' else 'Pay Per Use' }}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">{{ 'القطاع' if lang == 'ar' else 'Sector' }}</label>
+                    <select name="sector" class="form-select">
+                        <option value="">{{ 'الكل' if lang == 'ar' else 'All' }}</option>
+                        {% for sector in sectors %}
+                        <option value="{{ sector }}" {% if sector_filter == sector %}selected{% endif %}>{{ sector }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-2"></i>{{ 'بحث' if lang == 'ar' else 'Search' }}
+                    </button>
+                    <a href="{{ url_for('admin.organizations.index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo me-2"></i>{{ 'إعادة تعيين' if lang == 'ar' else 'Reset' }}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Organizations Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if organizations %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>{{ 'الشعار' if lang == 'ar' else 'Logo' }}</th>
+                            <th>{{ 'الاسم' if lang == 'ar' else 'Name' }}</th>
+                            <th>{{ 'القطاع' if lang == 'ar' else 'Sector' }}</th>
+                            <th>{{ 'الدولة' if lang == 'ar' else 'Country' }}</th>
+                            <th>{{ 'المستخدمين' if lang == 'ar' else 'Users' }}</th>
+                            <th>{{ 'الاشتراك' if lang == 'ar' else 'Plan' }}</th>
+                            <th>{{ 'استخدام AI' if lang == 'ar' else 'AI Usage' }}</th>
+                            <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                            <th>{{ 'تاريخ الإنشاء' if lang == 'ar' else 'Created' }}</th>
+                            <th>{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for org in organizations %}
+                        <tr>
+                            <td>
+                                {% if org.logo_url %}
+                                <img src="{{ org.logo_url }}" alt="{{ org.name }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
+                                {% else %}
+                                <div class="rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: #e9ecef;">
+                                    <i class="fas fa-building text-muted"></i>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin.organizations.view', org_id=org.id) }}" class="text-decoration-none fw-semibold">
+                                    {{ org.name }}
+                                </a>
+                                {% if org.email %}
+                                <br><small class="text-muted">{{ org.email }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if org.sector %}
+                                <span class="badge bg-info">{{ org.sector }}</span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ org.country or '-' }}</td>
+                            <td>
+                                <span class="badge bg-secondary">{{ org.users|length }}</span>
+                            </td>
+                            <td>
+                                {% if org.plan_type == 'free' %}
+                                <span class="badge bg-secondary">{{ 'مجاني' if lang == 'ar' else 'Free' }}</span>
+                                {% elif org.plan_type == 'monthly' %}
+                                <span class="badge bg-primary">{{ 'شهري' if lang == 'ar' else 'Monthly' }}</span>
+                                {% elif org.plan_type == 'yearly' %}
+                                <span class="badge bg-success">{{ 'سنوي' if lang == 'ar' else 'Yearly' }}</span>
+                                {% elif org.plan_type == 'pay_per_use' %}
+                                <span class="badge bg-warning text-dark">{{ 'حسب الاستخدام' if lang == 'ar' else 'Pay Per Use' }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar {% if org.get_ai_usage_percentage() > 80 %}bg-danger{% elif org.get_ai_usage_percentage() > 50 %}bg-warning{% else %}bg-success{% endif %}"
+                                         role="progressbar"
+                                         style="width: {{ org.get_ai_usage_percentage() }}%"
+                                         aria-valuenow="{{ org.get_ai_usage_percentage() }}"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+                                        {{ org.get_ai_usage_percentage() }}%
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ org.ai_usage_current }}/{{ org.ai_usage_limit }}</small>
+                            </td>
+                            <td>
+                                {% if org.is_active and org.subscription_status == 'active' %}
+                                <span class="badge bg-success">{{ 'نشط' if lang == 'ar' else 'Active' }}</span>
+                                {% elif org.subscription_status == 'suspended' %}
+                                <span class="badge bg-warning text-dark">{{ 'معلق' if lang == 'ar' else 'Suspended' }}</span>
+                                {% elif org.subscription_status == 'expired' %}
+                                <span class="badge bg-danger">{{ 'منتهي' if lang == 'ar' else 'Expired' }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ 'غير نشط' if lang == 'ar' else 'Inactive' }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ org.created_at.strftime('%Y-%m-%d') if org.created_at else '-' }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('admin.organizations.view', org_id=org.id) }}" class="btn btn-sm btn-outline-primary" title="{{ 'عرض' if lang == 'ar' else 'View' }}">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('admin.organizations.edit', org_id=org.id) }}" class="btn btn-sm btn-outline-warning" title="{{ 'تعديل' if lang == 'ar' else 'Edit' }}">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% if org.subscription_status == 'active' %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="suspendOrg({{ org.id }})" title="{{ 'تعليق' if lang == 'ar' else 'Suspend' }}">
+                                        <i class="fas fa-pause"></i>
+                                    </button>
+                                    {% else %}
+                                    <button type="button" class="btn btn-sm btn-outline-success" onclick="activateOrg({{ org.id }})" title="{{ 'تفعيل' if lang == 'ar' else 'Activate' }}">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                <p class="text-muted">{{ 'لا توجد مؤسسات' if lang == 'ar' else 'No organizations found' }}</p>
+                <a href="{{ url_for('admin.organizations.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>{{ 'إضافة مؤسسة' if lang == 'ar' else 'Add Organization' }}
+                </a>
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
+
+<script>
+function suspendOrg(orgId) {
+    if (confirm('{{ "هل أنت متأكد من تعليق هذه المؤسسة؟" if lang == "ar" else "Are you sure you want to suspend this organization?" }}')) {
+        fetch(`/admin/organizations/${orgId}/suspend`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+}
+
+function activateOrg(orgId) {
+    if (confirm('{{ "هل أنت متأكد من تفعيل هذه المؤسسة؟" if lang == "ar" else "Are you sure you want to activate this organization?" }}')) {
+        fetch(`/admin/organizations/${orgId}/activate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+}
+</script>
 {% endblock %}

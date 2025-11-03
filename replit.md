@@ -31,7 +31,15 @@ Preferred communication style: Simple, everyday language.
   - `users`: Complete user management (CRUD, filtering, role assignment, password reset)
   - `billing`: Transaction and payment management
   - `services_admin`: Service configuration and management
-  - `organizations`: Multi-tenant organization management
+  - `organizations`: **Comprehensive multi-tenant organization management** (Nov 2025 Enhanced)
+    - List view with search, filters (status, plan, sector), and CSV export
+    - Detailed organization profile with tabs: Overview, Users, Billing, Analytics, Settings
+    - CRUD operations for organizations
+    - User management per organization
+    - Organization-specific settings (language, timezone, AI preferences, module access)
+    - Performance analytics with Chart.js visualization (AI usage, project stats)
+    - AI usage tracking and reset functionality
+    - Suspend/activate organizations
   - `roles`: Role and permission management
   - `ai_management`: AI usage monitoring and credit management
   - `knowledge_admin`: Knowledge base content management
@@ -55,7 +63,8 @@ Preferred communication style: Simple, everyday language.
 - **Models**: 
   - **Core Models**: User, Role, SubscriptionPlan, Project, Transaction, AILog, Document
   - **Admin Models** (added Nov 2025):
-    - `Organization`: Multi-tenant organization management with settings
+    - `Organization`: Multi-tenant organization management with comprehensive fields (sector, city, website, logo_url, plan_type, subscription_status, ai_usage_limit/current)
+    - `OrganizationSettings`: Granular organization-specific settings (language, timezone, notifications, AI preferences, enabled modules)
     - `Notification`: System-wide notification tracking
     - `SupportTicket`: Customer support ticket system
     - `SystemSettings`: Platform-wide configuration key-value store

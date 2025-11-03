@@ -1,0 +1,394 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ org.name }} - {{ 'إدارة المؤسسات' if lang == 'ar' else 'Organizations' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.organizations.index') }}">{{ 'المؤسسات' if lang == 'ar' else 'Organizations' }}</a></li>
+                    <li class="breadcrumb-item active">{{ org.name }}</li>
+                </ol>
+            </nav>
+            <div class="d-flex align-items-center">
+                {% if org.logo_url %}
+                <img src="{{ org.logo_url }}" alt="{{ org.name }}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                {% endif %}
+                <div>
+                    <h2 class="fw-bold mb-1">{{ org.name }}</h2>
+                    <p class="text-muted mb-0">
+                        {% if org.sector %}<span class="badge bg-info me-2">{{ org.sector }}</span>{% endif %}
+                        {% if org.country %}{{ org.country }}{% if org.city %}, {{ org.city }}{% endif %}{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('admin.organizations.edit', org_id=org.id) }}" class="btn btn-primary me-2">
+                <i class="fas fa-edit me-2"></i>{{ 'تعديل' if lang == 'ar' else 'Edit' }}
+            </a>
+            {% if org.subscription_status == 'active' %}
+            <button class="btn btn-warning" onclick="suspendOrg({{ org.id }})">
+                <i class="fas fa-pause me-2"></i>{{ 'تعليق' if lang == 'ar' else 'Suspend' }}
+            </button>
+            {% else %}
+            <button class="btn btn-success" onclick="activateOrg({{ org.id }})">
+                <i class="fas fa-play me-2"></i>{{ 'تفعيل' if lang == 'ar' else 'Activate' }}
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Status Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                    <h3 class="fw-bold mb-1">{{ stats.total_users }}</h3>
+                    <p class="text-muted mb-0">{{ 'إجمالي المستخدمين' if lang == 'ar' else 'Total Users' }}</p>
+                    <small class="text-success">{{ stats.active_users }} {{ 'نشط' if lang == 'ar' else 'active' }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-project-diagram fa-2x text-success mb-2"></i>
+                    <h3 class="fw-bold mb-1">{{ stats.total_projects }}</h3>
+                    <p class="text-muted mb-0">{{ 'المشاريع' if lang == 'ar' else 'Projects' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-brain fa-2x text-info mb-2"></i>
+                    <h3 class="fw-bold mb-1">{{ stats.ai_usage_percentage }}%</h3>
+                    <p class="text-muted mb-0">{{ 'استخدام AI' if lang == 'ar' else 'AI Usage' }}</p>
+                    <div class="progress mt-2" style="height: 8px;">
+                        <div class="progress-bar {% if stats.ai_usage_percentage > 80 %}bg-danger{% elif stats.ai_usage_percentage > 50 %}bg-warning{% else %}bg-success{% endif %}" 
+                             style="width: {{ stats.ai_usage_percentage }}%"></div>
+                    </div>
+                    <small class="text-muted">{{ org.ai_usage_current }}/{{ org.ai_usage_limit }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-dollar-sign fa-2x text-warning mb-2"></i>
+                    <h3 class="fw-bold mb-1">${{ "%.2f"|format(stats.total_spent) }}</h3>
+                    <p class="text-muted mb-0">{{ 'إجمالي الإنفاق' if lang == 'ar' else 'Total Spent' }}</p>
+                    <small class="text-muted">{{ stats.total_transactions }} {{ 'معاملة' if lang == 'ar' else 'transactions' }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                <i class="fas fa-info-circle me-2"></i>{{ 'نظرة عامة' if lang == 'ar' else 'Overview' }}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                <i class="fas fa-users me-2"></i>{{ 'المستخدمون' if lang == 'ar' else 'Users' }}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="billing-tab" data-bs-toggle="tab" data-bs-target="#billing" type="button" role="tab">
+                <i class="fas fa-credit-card me-2"></i>{{ 'الفوترة' if lang == 'ar' else 'Billing' }}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
+                <i class="fas fa-chart-line me-2"></i>{{ 'الأداء' if lang == 'ar' else 'Analytics' }}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
+                <i class="fas fa-cog me-2"></i>{{ 'الإعدادات' if lang == 'ar' else 'Settings' }}
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">{{ 'معلومات المؤسسة' if lang == 'ar' else 'Organization Information' }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <th style="width: 30%;">{{ 'الاسم' if lang == 'ar' else 'Name' }}:</th>
+                                        <td>{{ org.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{{ 'القطاع' if lang == 'ar' else 'Sector' }}:</th>
+                                        <td>{{ org.sector or '-' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{{ 'الحجم' if lang == 'ar' else 'Size' }}:</th>
+                                        <td>
+                                            {% if org.size == 'small' %}{{ 'صغيرة' if lang == 'ar' else 'Small' }}
+                                            {% elif org.size == 'medium' %}{{ 'متوسطة' if lang == 'ar' else 'Medium' }}
+                                            {% elif org.size == 'large' %}{{ 'كبيرة' if lang == 'ar' else 'Large' }}
+                                            {% elif org.size == 'enterprise' %}{{ 'مؤسسية' if lang == 'ar' else 'Enterprise' }}
+                                            {% else %}-{% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}:</th>
+                                        <td>{{ org.email or '-' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{{ 'الهاتف' if lang == 'ar' else 'Phone' }}:</th>
+                                        <td>{{ org.phone or '-' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{{ 'الموقع الإلكتروني' if lang == 'ar' else 'Website' }}:</th>
+                                        <td>
+                                            {% if org.website %}
+                                            <a href="{{ org.website }}" target="_blank">{{ org.website }}</a>
+                                            {% else %}-{% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>{{ 'الموقع' if lang == 'ar' else 'Location' }}:</th>
+                                        <td>{{ org.country or '-' }}{% if org.city %}, {{ org.city }}{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{{ 'العنوان' if lang == 'ar' else 'Address' }}:</th>
+                                        <td>{{ org.address or '-' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{{ 'تاريخ الإنشاء' if lang == 'ar' else 'Created At' }}:</th>
+                                        <td>{{ org.created_at.strftime('%Y-%m-%d %H:%M') if org.created_at else '-' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{{ 'آخر تحديث' if lang == 'ar' else 'Updated At' }}:</th>
+                                        <td>{{ org.updated_at.strftime('%Y-%m-%d %H:%M') if org.updated_at else '-' }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">{{ 'حالة الاشتراك' if lang == 'ar' else 'Subscription Status' }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="text-muted small">{{ 'نوع الخطة' if lang == 'ar' else 'Plan Type' }}</label>
+                                <h5>
+                                    {% if org.plan_type == 'free' %}<span class="badge bg-secondary">{{ 'مجاني' if lang == 'ar' else 'Free' }}</span>
+                                    {% elif org.plan_type == 'monthly' %}<span class="badge bg-primary">{{ 'شهري' if lang == 'ar' else 'Monthly' }}</span>
+                                    {% elif org.plan_type == 'yearly' %}<span class="badge bg-success">{{ 'سنوي' if lang == 'ar' else 'Yearly' }}</span>
+                                    {% elif org.plan_type == 'pay_per_use' %}<span class="badge bg-warning text-dark">{{ 'حسب الاستخدام' if lang == 'ar' else 'Pay Per Use' }}</span>
+                                    {% endif %}
+                                </h5>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted small">{{ 'الحالة' if lang == 'ar' else 'Status' }}</label>
+                                <h5>
+                                    {% if org.subscription_status == 'active' %}<span class="badge bg-success">{{ 'نشط' if lang == 'ar' else 'Active' }}</span>
+                                    {% elif org.subscription_status == 'suspended' %}<span class="badge bg-warning text-dark">{{ 'معلق' if lang == 'ar' else 'Suspended' }}</span>
+                                    {% elif org.subscription_status == 'expired' %}<span class="badge bg-danger">{{ 'منتهي' if lang == 'ar' else 'Expired' }}</span>
+                                    {% endif %}
+                                </h5>
+                            </div>
+                            <hr>
+                            <div class="mb-3">
+                                <label class="text-muted small">{{ 'استخدام الذكاء الاصطناعي' if lang == 'ar' else 'AI Usage' }}</label>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>{{ org.ai_usage_current }}</span>
+                                    <span>{{ org.ai_usage_limit }}</span>
+                                </div>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar {% if stats.ai_usage_percentage > 80 %}bg-danger{% elif stats.ai_usage_percentage > 50 %}bg-warning{% else %}bg-success{% endif %}" 
+                                         style="width: {{ stats.ai_usage_percentage }}%">
+                                        {{ stats.ai_usage_percentage }}%
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary w-100" onclick="resetAIUsage({{ org.id }})">
+                                <i class="fas fa-redo me-2"></i>{{ 'إعادة تعيين استخدام AI' if lang == 'ar' else 'Reset AI Usage' }}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">{{ 'إجراءات سريعة' if lang == 'ar' else 'Quick Actions' }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <a href="{{ url_for('admin.organizations.users', org_id=org.id) }}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-users me-2"></i>{{ 'إدارة المستخدمين' if lang == 'ar' else 'Manage Users' }}
+                            </a>
+                            <a href="{{ url_for('admin.organizations.settings', org_id=org.id) }}" class="btn btn-outline-secondary w-100 mb-2">
+                                <i class="fas fa-cog me-2"></i>{{ 'الإعدادات' if lang == 'ar' else 'Settings' }}
+                            </a>
+                            <a href="{{ url_for('admin.organizations.analytics', org_id=org.id) }}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-chart-bar me-2"></i>{{ 'التحليلات' if lang == 'ar' else 'Analytics' }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div class="tab-pane fade" id="users" role="tabpanel">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ 'المستخدمون' if lang == 'ar' else 'Users' }}</h5>
+                    <a href="{{ url_for('admin.users.create') }}?organization_id={{ org.id }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-2"></i>{{ 'إضافة مستخدم' if lang == 'ar' else 'Add User' }}
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if org.users %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ 'الاسم' if lang == 'ar' else 'Name' }}</th>
+                                    <th>{{ 'البريد' if lang == 'ar' else 'Email' }}</th>
+                                    <th>{{ 'الدور' if lang == 'ar' else 'Role' }}</th>
+                                    <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                                    <th>{{ 'آخر دخول' if lang == 'ar' else 'Last Login' }}</th>
+                                    <th>{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in org.users %}
+                                <tr>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td><span class="badge bg-info">{{ user.role.name if user.role else '-' }}</span></td>
+                                    <td>
+                                        {% if user.is_active %}
+                                        <span class="badge bg-success">{{ 'نشط' if lang == 'ar' else 'Active' }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ 'معطل' if lang == 'ar' else 'Inactive' }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.last_login.strftime('%Y-%m-%d') if user.last_login else '-' }}</td>
+                                    <td>
+                                        <a href="{{ url_for('admin.users.detail', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">{{ 'لا يوجد مستخدمون' if lang == 'ar' else 'No users found' }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Billing Tab -->
+        <div class="tab-pane fade" id="billing" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{{ 'الفوترة والمدفوعات' if lang == 'ar' else 'Billing & Payments' }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted text-center py-4">{{ 'قيد التطوير' if lang == 'ar' else 'Under Development' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div class="tab-pane fade" id="analytics" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{{ 'تحليلات الأداء' if lang == 'ar' else 'Performance Analytics' }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted text-center py-4">{{ 'قيد التطوير' if lang == 'ar' else 'Under Development' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div class="tab-pane fade" id="settings" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{{ 'إعدادات المؤسسة' if lang == 'ar' else 'Organization Settings' }}</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('admin.organizations.settings', org_id=org.id) }}" class="btn btn-primary">
+                        <i class="fas fa-cog me-2"></i>{{ 'إدارة الإعدادات' if lang == 'ar' else 'Manage Settings' }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function suspendOrg(orgId) {
+    if (confirm('{{ "هل أنت متأكد من تعليق هذه المؤسسة؟" if lang == "ar" else "Are you sure you want to suspend this organization?" }}')) {
+        fetch(`/admin/organizations/${orgId}/suspend`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'}
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) location.reload();
+            else alert(data.message);
+        });
+    }
+}
+
+function activateOrg(orgId) {
+    if (confirm('{{ "هل أنت متأكد من تفعيل هذه المؤسسة؟" if lang == "ar" else "Are you sure you want to activate this organization?" }}')) {
+        fetch(`/admin/organizations/${orgId}/activate`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'}
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) location.reload();
+            else alert(data.message);
+        });
+    }
+}
+
+function resetAIUsage(orgId) {
+    if (confirm('{{ "هل أنت متأكد من إعادة تعيين استخدام AI؟" if lang == "ar" else "Are you sure you want to reset AI usage?" }}')) {
+        fetch(`/admin/organizations/${orgId}/reset-ai-usage`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'}
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) location.reload();
+            else alert(data.message);
+        });
+    }
+}
+</script>
+{% endblock %}
