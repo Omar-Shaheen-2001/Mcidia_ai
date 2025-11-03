@@ -287,8 +287,8 @@
             </a>
         </div>
         
-        <!-- Admin Panel (if admin) -->
-        {% if user.role == 'admin' %}
+        <!-- Admin Panel (if system_admin) -->
+        {% if user.role == 'system_admin' %}
         <div class="col-lg-3 col-md-6">
             <a href="{{ url_for('admin.index') }}" class="text-decoration-none">
                 <div class="card card--feature hover-lift h-100" style="border: 2px solid var(--color-warning);">
