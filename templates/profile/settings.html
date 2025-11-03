@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'إعدادات الملف الشخصي' if lang == 'ar' else 'Profile Settings' }} - Mcidia{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="bg-gradient-primary text-white py-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1 class="fw-bold mb-2 text-white">
+                    <i class="fas fa-user-cog me-2"></i>
+                    {{ 'إعدادات الملف الشخصي' if lang == 'ar' else 'Profile Settings' }}
+                </h1>
+                <p class="mb-0 text-white-50">
+                    {{ 'إدارة معلوماتك الشخصية وإعدادات حسابك' if lang == 'ar' else 'Manage your personal information and account settings' }}
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container my-5">
+    <div class="row g-4">
+        <!-- Main Settings Column -->
+        <div class="col-lg-8">
+            <!-- Personal Information Section -->
+            <div class="card mb-4">
+                <div class="card__header">
+                    <h5 class="card__title mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        {{ 'المعلومات الشخصية' if lang == 'ar' else 'Personal Information' }}
+                    </h5>
+                </div>
+                <div class="card__body">
+                    <form method="POST" action="{{ url_for('profile.update_personal_info') }}">
+                        {% include '_csrf_field.html' %}
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    {{ 'اسم المستخدم' if lang == 'ar' else 'Username' }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" name="username" 
+                                       value="{{ user.username }}" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    {{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="email" class="form-control" name="email" 
+                                       value="{{ user.email }}" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    {{ 'رقم الهاتف' if lang == 'ar' else 'Phone Number' }}
+                                </label>
+                                <input type="tel" class="form-control" name="phone" 
+                                       value="{{ user.phone if user.phone else '' }}" 
+                                       placeholder="{{ '+966 50 123 4567' if lang == 'ar' else '+966 50 123 4567' }}">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    {{ 'اسم الشركة' if lang == 'ar' else 'Company Name' }}
+                                </label>
+                                <input type="text" class="form-control" name="company_name" 
+                                       value="{{ user.company_name if user.company_name else '' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                {{ 'حفظ التغييرات' if lang == 'ar' else 'Save Changes' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Security & Password Section -->
+            <div class="card mb-4">
+                <div class="card__header">
+                    <h5 class="card__title mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        {{ 'الأمان وكلمة المرور' if lang == 'ar' else 'Security & Password' }}
+                    </h5>
+                </div>
+                <div class="card__body">
+                    <form method="POST" action="{{ url_for('profile.update_password') }}">
+                        {% include '_csrf_field.html' %}
+                        
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">
+                                    {{ 'كلمة المرور الحالية' if lang == 'ar' else 'Current Password' }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="password" class="form-control" name="current_password" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    {{ 'كلمة المرور الجديدة' if lang == 'ar' else 'New Password' }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="password" class="form-control" name="new_password" 
+                                       minlength="6" required>
+                                <small class="text-muted">
+                                    {{ '6 أحرف على الأقل' if lang == 'ar' else 'Minimum 6 characters' }}
+                                </small>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    {{ 'تأكيد كلمة المرور الجديدة' if lang == 'ar' else 'Confirm New Password' }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="password" class="form-control" name="confirm_password" 
+                                       minlength="6" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-key me-2"></i>
+                                {{ 'تحديث كلمة المرور' if lang == 'ar' else 'Update Password' }}
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Last Login Info -->
+                    {% if user.last_login %}
+                    <div class="alert alert-info mt-4 mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {{ 'آخر تسجيل دخول' if lang == 'ar' else 'Last login' }}: 
+                        <strong>{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'N/A' }}</strong>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Notifications & Preferences Section -->
+            <div class="card mb-4">
+                <div class="card__header">
+                    <h5 class="card__title mb-0">
+                        <i class="fas fa-bell me-2"></i>
+                        {{ 'الإشعارات والتفضيلات' if lang == 'ar' else 'Notifications & Preferences' }}
+                    </h5>
+                </div>
+                <div class="card__body">
+                    <form method="POST" action="{{ url_for('profile.update_preferences') }}">
+                        {% include '_csrf_field.html' %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                {{ 'اللغة المفضلة' if lang == 'ar' else 'Preferred Language' }}
+                            </label>
+                            <select class="form-select" name="language">
+                                <option value="ar" {% if lang == 'ar' %}selected{% endif %}>
+                                    {{ 'العربية' if lang == 'ar' else 'Arabic' }}
+                                </option>
+                                <option value="en" {% if lang == 'en' %}selected{% endif %}>
+                                    {{ 'الإنجليزية' if lang == 'ar' else 'English' }}
+                                </option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications" 
+                                   name="email_notifications" checked>
+                            <label class="form-check-label" for="emailNotifications">
+                                {{ 'إشعارات البريد الإلكتروني' if lang == 'ar' else 'Email Notifications' }}
+                            </label>
+                            <small class="text-muted d-block">
+                                {{ 'استلام التقارير والتحديثات عبر البريد' if lang == 'ar' else 'Receive reports and updates via email' }}
+                            </small>
+                        </div>
+                        
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="systemNotifications" 
+                                   name="system_notifications" checked>
+                            <label class="form-check-label" for="systemNotifications">
+                                {{ 'إشعارات النظام' if lang == 'ar' else 'System Notifications' }}
+                            </label>
+                            <small class="text-muted d-block">
+                                {{ 'إشعارات داخل النظام' if lang == 'ar' else 'In-app notifications' }}
+                            </small>
+                        </div>
+                        
+                        <div class="mt-4 text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                {{ 'حفظ التفضيلات' if lang == 'ar' else 'Save Preferences' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Account Actions Section -->
+            <div class="card border-danger">
+                <div class="card__header bg-danger bg-opacity-10">
+                    <h5 class="card__title mb-0 text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ 'خيارات الحساب' if lang == 'ar' else 'Account Actions' }}
+                    </h5>
+                </div>
+                <div class="card__body">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                        <div>
+                            <h6 class="mb-1">{{ 'تسجيل الخروج من جميع الأجهزة' if lang == 'ar' else 'Logout from all devices' }}</h6>
+                            <small class="text-muted">
+                                {{ 'إنهاء جميع الجلسات النشطة' if lang == 'ar' else 'End all active sessions' }}
+                            </small>
+                        </div>
+                        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-warning btn-sm">
+                            <i class="fas fa-sign-out-alt me-1"></i>
+                            {{ 'تسجيل الخروج' if lang == 'ar' else 'Logout' }}
+                        </a>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1 text-danger">{{ 'حذف الحساب نهائياً' if lang == 'ar' else 'Delete Account Permanently' }}</h6>
+                            <small class="text-muted">
+                                {{ 'لن تتمكن من استعادة حسابك بعد الحذف' if lang == 'ar' else 'You will not be able to recover your account after deletion' }}
+                            </small>
+                        </div>
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                            <i class="fas fa-trash-alt me-1"></i>
+                            {{ 'حذف الحساب' if lang == 'ar' else 'Delete Account' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar Column -->
+        <div class="col-lg-4">
+            <!-- Account Overview Card -->
+            <div class="card mb-4">
+                <div class="card__header">
+                    <h5 class="card__title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {{ 'نظرة عامة' if lang == 'ar' else 'Account Overview' }}
+                    </h5>
+                </div>
+                <div class="card__body">
+                    <div class="text-center mb-3">
+                        <div class="avatar-placeholder mx-auto mb-3" 
+                             style="width: 100px; height: 100px; background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user fa-3x text-white"></i>
+                        </div>
+                        <h5 class="mb-1">{{ user.username }}</h5>
+                        <p class="text-muted mb-0 small">{{ user.email }}</p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">{{ 'الدور' if lang == 'ar' else 'Role' }}:</span>
+                            <span class="badge badge--primary">{{ user.role }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">{{ 'الحالة' if lang == 'ar' else 'Status' }}:</span>
+                            <span class="badge badge--success">
+                                <i class="fas fa-check-circle me-1"></i>
+                                {{ 'نشط' if lang == 'ar' else 'Active' }}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">{{ 'تاريخ الانضمام' if lang == 'ar' else 'Member since' }}:</span>
+                            <span class="small">{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Subscription Plan Card -->
+            <div class="card">
+                <div class="card__header">
+                    <h5 class="card__title mb-0">
+                        <i class="fas fa-crown me-2"></i>
+                        {{ 'الخطة والاستهلاك' if lang == 'ar' else 'Plan & Usage' }}
+                    </h5>
+                </div>
+                <div class="card__body">
+                    <div class="text-center mb-3">
+                        <div class="icon-box icon-box--primary mb-3 mx-auto" style="width: 60px; height: 60px;">
+                            <i class="fas fa-box fa-2x"></i>
+                        </div>
+                        <h5 class="mb-1">{{ subscription_plan.name.title() if subscription_plan else 'Free' }}</h5>
+                        <p class="text-muted mb-0 small">{{ 'الباقة الحالية' if lang == 'ar' else 'Current Plan' }}</p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- AI Usage Progress -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small">{{ 'استخدام الذكاء الاصطناعي' if lang == 'ar' else 'AI Usage' }}</span>
+                            <span class="small text-muted">
+                                {{ user.ai_usage_current or 0 }} / 
+                                {{ subscription_plan.ai_credits_limit if subscription_plan and subscription_plan.ai_credits_limit else '∞' }}
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" role="progressbar" 
+                                 style="width: {{ ai_usage_percentage }}%"
+                                 aria-valuenow="{{ ai_usage_percentage }}" 
+                                 aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('billing.pricing') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-arrow-up me-1"></i>
+                            {{ 'ترقية الباقة' if lang == 'ar' else 'Upgrade Plan' }}
+                        </a>
+                        <a href="{{ url_for('billing.index') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-receipt me-1"></i>
+                            {{ 'عرض الفواتير' if lang == 'ar' else 'View Billing' }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger" id="deleteAccountModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {{ 'تأكيد حذف الحساب' if lang == 'ar' else 'Confirm Account Deletion' }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('profile.delete_account') }}">
+                {% include '_csrf_field.html' %}
+                <div class="modal-body">
+                    <div class="alert alert-danger mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {{ 'هذا الإجراء لا يمكن التراجع عنه. سيتم حذف جميع بياناتك نهائياً.' if lang == 'ar' else 'This action cannot be undone. All your data will be permanently deleted.' }}
+                    </div>
+                    
+                    <label class="form-label">
+                        {{ 'أدخل كلمة المرور للتأكيد' if lang == 'ar' else 'Enter your password to confirm' }}
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input type="password" class="form-control" name="password_confirmation" required>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        {{ 'إلغاء' if lang == 'ar' else 'Cancel' }}
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1"></i>
+                        {{ 'حذف الحساب' if lang == 'ar' else 'Delete Account' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
