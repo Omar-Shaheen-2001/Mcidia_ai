@@ -89,6 +89,27 @@
                         </div>
 
                         <hr class="my-4">
+                        <h5 class="mb-3">
+                            <i class="fas fa-user-tie me-2"></i>
+                            {{ 'بيانات مدير المؤسسة' if lang == 'ar' else 'Organization Admin Information' }}
+                        </h5>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            {{ 'سيتم إنشاء حساب تلقائي لمدير المؤسسة بكلمة مرور آمنة سيتم عرضها بعد الإنشاء' if lang == 'ar' else 'An account will be automatically created for the organization admin with a secure password that will be displayed after creation' }}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">{{ 'اسم المدير' if lang == 'ar' else 'Admin Name' }}</label>
+                                <input type="text" class="form-control" name="admin_name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">{{ 'البريد الإلكتروني للمدير' if lang == 'ar' else 'Admin Email' }}</label>
+                                <input type="email" class="form-control" name="admin_email" required>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
                         <h5 class="mb-3">{{ 'إعدادات الاشتراك' if lang == 'ar' else 'Subscription Settings' }}</h5>
 
                         <div class="row">
