@@ -51,6 +51,7 @@ class User(db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
     subscription_plan_id = db.Column(db.Integer, db.ForeignKey('subscription_plans.id'))
     organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
+    phone = db.Column(db.String(20))
     company_name = db.Column(db.String(200))
     is_active = db.Column(db.Boolean, default=True)
     last_login = db.Column(db.DateTime)
@@ -98,6 +99,7 @@ class User(db.Model):
             'id': self.id,
             'username': self.username,
             'email': self.email,
+            'phone': self.phone,
             'role': self.role,
             'company_name': self.company_name,
             'subscription_plan': self.subscription_plan,
