@@ -154,9 +154,9 @@ def create():
             if not external_role:
                 raise Exception('External user role not found')
             
-            # Create admin user
+            # Create admin user (use email as username to ensure uniqueness)
             admin_user = User(
-                username=admin_name,
+                username=admin_email,
                 email=admin_email,
                 role_id=external_role.id,
                 organization_id=org.id,
