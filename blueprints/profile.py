@@ -77,20 +77,25 @@ def update_personal_info():
                 flash('اسم المستخدم موجود بالفعل / Username already taken', 'danger')
                 return redirect(url_for('profile.settings'))
         
-        # Update fields directly
-        user.username = username
-        user.email = email
-        user.phone = phone.strip() if phone and phone.strip() else None
-        user.company_name = company_name.strip() if company_name and company_name.strip() else None
+        # Prepare values
+        phone_value = phone.strip() if phone and phone.strip() else None
+        company_name_value = company_name.strip() if company_name and company_name.strip() else None
         
-        print(f"[DEBUG] User ID: {user.id}, Phone value before commit: '{user.phone}'")
+        print(f"[DEBUG] User ID: {user.id}, Phone to save: '{phone_value}'")
         
-        # Commit changes
+        # Update using direct SQL update to ensure it persists
+        db.session.query(User).filter_by(id=user.id).update({
+            'username': username,
+            'email': email,
+            'phone': phone_value,
+            'company_name': company_name_value
+        })
+        
         db.session.commit()
         
         # Verify the update worked
         updated_user = db.session.query(User).filter_by(id=user.id).first()
-        print(f"[DEBUG] After commit - DB query shows phone: '{updated_user.phone}'")
+        print(f"[DEBUG] After commit - DB shows: username={updated_user.username}, phone={updated_user.phone}")
         
         flash('تم تحديث المعلومات الشخصية بنجاح / Personal information updated successfully', 'success')
     
