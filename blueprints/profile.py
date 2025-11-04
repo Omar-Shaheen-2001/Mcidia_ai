@@ -60,6 +60,9 @@ def update_personal_info():
         phone = request.form.get('phone')
         company_name = request.form.get('company_name')
         
+        # Debug logging
+        print(f"[DEBUG] Form data - phone: '{phone}', type: {type(phone)}")
+        
         # Check if email is already taken by another user
         if email != user.email:
             existing_user = db.session.query(User).filter_by(email=email).first()
@@ -76,10 +79,16 @@ def update_personal_info():
         
         user.username = username
         user.email = email
-        user.phone = phone if phone else None
-        user.company_name = company_name if company_name else None
+        # Handle empty string properly - keep it if provided
+        user.phone = phone.strip() if phone and phone.strip() else None
+        user.company_name = company_name.strip() if company_name and company_name.strip() else None
+        
+        print(f"[DEBUG] Before commit - user.phone: '{user.phone}'")
         
         db.session.commit()
+        
+        print(f"[DEBUG] After commit - user.phone: '{user.phone}'")
+        
         flash('تم تحديث المعلومات الشخصية بنجاح / Personal information updated successfully', 'success')
     
     except Exception as e:
