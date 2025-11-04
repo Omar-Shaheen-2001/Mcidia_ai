@@ -284,7 +284,7 @@ def users(org_id):
     ).all()
     
     # Organization membership roles (not system roles)
-    org_roles = ['owner', 'admin', 'member']
+    org_roles = ['member', 'owner', 'consultant', 'admin']
     
     return render_template(
         'admin/organizations/users.html',
@@ -309,7 +309,7 @@ def change_user_org_role(org_id, membership_id):
         return redirect(url_for('admin.organizations.users', org_id=org_id))
     
     new_role = request.form.get('membership_role')
-    if new_role not in ['owner', 'admin', 'member']:
+    if new_role not in ['member', 'owner', 'consultant', 'admin']:
         flash('دور غير صالح / Invalid role', 'danger')
         return redirect(url_for('admin.organizations.users', org_id=org_id))
     

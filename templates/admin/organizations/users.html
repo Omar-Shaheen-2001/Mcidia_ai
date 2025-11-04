@@ -120,6 +120,8 @@
                                                             {{ 'مالك' if lang == 'ar' else 'Owner' }}
                                                         {% elif role == 'admin' %}
                                                             {{ 'مدير' if lang == 'ar' else 'Admin' }}
+                                                        {% elif role == 'consultant' %}
+                                                            {{ 'مستشار' if lang == 'ar' else 'Consultant' }}
                                                         {% else %}
                                                             {{ 'عضو' if lang == 'ar' else 'Member' }}
                                                         {% endif %}
@@ -130,6 +132,7 @@
                                                     <ul class="mb-0 mt-2">
                                                         <li><strong>{{ 'مالك' if lang == 'ar' else 'Owner' }}:</strong> {{ 'إدارة كاملة للمؤسسة والمدراء والفوترة' if lang == 'ar' else 'Full management of organization, admins, and billing' }}</li>
                                                         <li><strong>{{ 'مدير' if lang == 'ar' else 'Admin' }}:</strong> {{ 'إدارة المستخدمين والإعدادات داخل المؤسسة' if lang == 'ar' else 'Manage users and settings within organization' }}</li>
+                                                        <li><strong>{{ 'مستشار' if lang == 'ar' else 'Consultant' }}:</strong> {{ 'وصول استشاري مع صلاحيات متقدمة' if lang == 'ar' else 'Consultant access with advanced permissions' }}</li>
                                                         <li><strong>{{ 'عضو' if lang == 'ar' else 'Member' }}:</strong> {{ 'الوصول القياسي للمستخدم' if lang == 'ar' else 'Standard user access' }}</li>
                                                     </ul>
                                                 </small>
