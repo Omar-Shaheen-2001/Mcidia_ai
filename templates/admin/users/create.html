@@ -32,6 +32,11 @@
                     </div>
                     
                     <div class="mb-3">
+                        <label class="form-label">{{ 'رقم الهاتف' if lang == 'ar' else 'Phone Number' }}</label>
+                        <input type="tel" class="form-control" name="phone">
+                    </div>
+                    
+                    <div class="mb-3">
                         <label class="form-label">{{ 'كلمة المرور' if lang == 'ar' else 'Password' }}</label>
                         <input type="password" class="form-control" name="password" minlength="6" required>
                         <div class="form-text">{{ 'يجب أن تكون 6 أحرف على الأقل' if lang == 'ar' else 'Must be at least 6 characters' }}</div>

@@ -110,6 +110,7 @@ def update(user_id):
     # Update fields
     user.username = request.form.get('username', user.username)
     user.email = request.form.get('email', user.email)
+    user.phone = request.form.get('phone', user.phone)
     user.company_name = request.form.get('company_name', user.company_name)
     
     # Update role
@@ -178,6 +179,7 @@ def create():
         new_user = User(
             username=request.form.get('username'),
             email=request.form.get('email'),
+            phone=request.form.get('phone'),
             company_name=request.form.get('company_name'),
             role_id=int(request.form.get('role_id')),
             subscription_plan_id=int(request.form.get('subscription_plan_id')) if request.form.get('subscription_plan_id') else None,

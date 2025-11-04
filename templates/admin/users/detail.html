@@ -54,6 +54,10 @@
                         <td>{{ user.company_name or 'N/A' }}</td>
                     </tr>
                     <tr>
+                        <th>{{ 'رقم الهاتف' if lang == 'ar' else 'Phone' }}:</th>
+                        <td>{{ user.phone or 'N/A' }}</td>
+                    </tr>
+                    <tr>
                         <th>{{ 'تاريخ التسجيل' if lang == 'ar' else 'Join Date' }}:</th>
                         <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
                     </tr>
@@ -214,6 +218,10 @@
                     <div class="mb-3">
                         <label class="form-label">{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</label>
                         <input type="email" class="form-control" name="email" value="{{ user.email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'رقم الهاتف' if lang == 'ar' else 'Phone Number' }}</label>
+                        <input type="tel" class="form-control" name="phone" value="{{ user.phone or '' }}">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">{{ 'الشركة' if lang == 'ar' else 'Company' }}</label>
