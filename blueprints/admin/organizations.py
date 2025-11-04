@@ -172,7 +172,7 @@ def create():
             membership = OrganizationMembership(
                 user_id=admin_user.id,
                 organization_id=org.id,
-                org_role='owner',
+                membership_role='owner',
                 is_active=True
             )
             db_session.session.add(membership)
