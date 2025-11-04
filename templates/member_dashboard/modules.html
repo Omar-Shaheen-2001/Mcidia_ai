@@ -1,0 +1,58 @@
+{% extends "member_dashboard/base.html" %}
+
+{% block title %}{{ 'الوحدات المتاحة' if lang == 'ar' else 'Available Modules' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="mb-3">
+            <i class="fas fa-th-large me-2"></i>
+            {{ 'الوحدات المسموح بها' if lang == 'ar' else 'Allowed Modules' }}
+        </h5>
+        <p class="text-muted">
+            {{ 'الوحدات التي يمكنك الوصول إليها واستخدامها' if lang == 'ar' else 'Modules you have access to' }}
+        </p>
+    </div>
+</div>
+
+{% if modules %}
+    <div class="row g-4">
+        {% for key, module in modules.items() %}
+        <div class="col-md-4">
+            <div class="card h-100 module-card">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas {{ module.icon }} fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">{{ module.name_ar if lang == 'ar' else module.name_en }}</h5>
+                    <a href="{{ url_for(module.url) }}" class="btn btn-primary btn-sm mt-3">
+                        <i class="fas fa-arrow-{{ 'left' if lang == 'ar' else 'right' }}"></i>
+                        {{ 'الدخول' if lang == 'ar' else 'Access' }}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-lock fa-3x text-muted mb-3"></i>
+        <p class="text-muted">{{ 'لا توجد وحدات مسموح بها' if lang == 'ar' else 'No modules available' }}</p>
+        <p class="text-muted small">{{ 'يرجى التواصل مع مدير المؤسسة' if lang == 'ar' else 'Please contact organization admin' }}</p>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<style>
+.module-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #e9ecef;
+}
+
+.module-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

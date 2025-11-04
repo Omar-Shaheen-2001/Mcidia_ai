@@ -1,0 +1,103 @@
+{% extends "member_dashboard/base.html" %}
+
+{% block title %}{{ 'البحث المعرفي' if lang == 'ar' else 'Knowledge Search' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="mb-3">
+            <i class="fas fa-search me-2"></i>
+            {{ 'البحث المعرفي بالذكاء الاصطناعي' if lang == 'ar' else 'AI-Powered Knowledge Search' }}
+        </h5>
+        <p class="text-muted">
+            {{ 'ابحث في مستندات المؤسسة باستخدام الذكاء الاصطناعي' if lang == 'ar' else 'Search organization documents using AI' }}
+        </p>
+    </div>
+</div>
+
+<!-- Search Form -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-question-circle me-2"></i>
+                            {{ 'اطرح سؤالك هنا' if lang == 'ar' else 'Ask your question here' }}
+                        </label>
+                        <textarea 
+                            name="query" 
+                            class="form-control" 
+                            rows="3" 
+                            placeholder="{{ 'مثال: ما هي سياسة الإجازات في الشركة؟' if lang == 'ar' else 'Example: What is the company vacation policy?' }}"
+                            required>{{ query if query }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                        {{ 'بحث' if lang == 'ar' else 'Search' }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Results -->
+{% if search_results %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-check-circle me-2"></i>
+                    {{ 'نتائج البحث' if lang == 'ar' else 'Search Results' }}
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>{{ 'السؤال:' if lang == 'ar' else 'Question:' }}</strong>
+                    <p class="text-muted">{{ query }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>{{ 'الإجابة:' if lang == 'ar' else 'Answer:' }}</strong>
+                    <div class="alert alert-light mt-2">
+                        {{ search_results.answer }}
+                    </div>
+                </div>
+                
+                <div class="text-muted small">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ 'تم البحث في' if lang == 'ar' else 'Searched in' }} {{ search_results.documents_searched }} {{ 'مستند' if lang == 'ar' else 'documents' }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% elif query %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    {{ 'لم يتم العثور على نتائج' if lang == 'ar' else 'No results found' }}
+</div>
+{% endif %}
+
+<!-- How it Works -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="mb-3">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    {{ 'كيف يعمل البحث المعرفي؟' if lang == 'ar' else 'How does Knowledge Search work?' }}
+                </h6>
+                <ul class="mb-0">
+                    <li>{{ 'يقوم الذكاء الاصطناعي بالبحث في جميع مستندات المؤسسة' if lang == 'ar' else 'AI searches through all organization documents' }}</li>
+                    <li>{{ 'يفهم سؤالك ويحلل المحتوى' if lang == 'ar' else 'Understands your question and analyzes content' }}</li>
+                    <li>{{ 'يقدم إجابة دقيقة بناءً على المعلومات المتاحة' if lang == 'ar' else 'Provides accurate answer based on available information' }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

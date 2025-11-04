@@ -71,8 +71,32 @@ def login():
             user.last_login = datetime.utcnow()
             db.session.commit()
             
+            # Create access token
             access_token = create_access_token(identity=str(user.id))
-            response = make_response(redirect(url_for('dashboard.index')))
+            
+            # Check user's organization membership to determine where to redirect
+            from models import OrganizationMembership
+            membership = db.session.query(OrganizationMembership).filter_by(
+                user_id=user.id,
+                is_active=True
+            ).first()
+            
+            # Determine redirect URL based on membership
+            if membership:
+                if membership.membership_role in ['owner', 'admin']:
+                    # Organization admin/owner -> go to org dashboard
+                    redirect_url = url_for('org_dashboard.index', org_id=membership.organization_id)
+                elif membership.membership_role == 'member':
+                    # Organization member -> go to member dashboard
+                    redirect_url = url_for('member_dashboard.index', org_id=membership.organization_id)
+                else:
+                    # Fallback for unknown roles
+                    redirect_url = url_for('dashboard.index')
+            else:
+                # No membership -> go to default dashboard
+                redirect_url = url_for('dashboard.index')
+            
+            response = make_response(redirect(redirect_url))
             set_access_cookies(response, access_token)
             flash(f'مرحباً {user.username}! / Welcome {user.username}!', 'success')
             return response
