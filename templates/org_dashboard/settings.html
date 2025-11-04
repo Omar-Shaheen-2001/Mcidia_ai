@@ -1,0 +1,82 @@
+{% extends "org_dashboard/base.html" %}
+
+{% block title %}{{ 'الإعدادات' if lang == 'ar' else 'Settings' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h3>{{ 'إعدادات المؤسسة' if lang == 'ar' else 'Organization Settings' }}</h3>
+    </div>
+</div>
+
+<form method="POST" action="{{ url_for('org_dashboard.settings', org_id=org.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">{{ 'المعلومات الأساسية' if lang == 'ar' else 'Basic Information' }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ 'اسم المؤسسة' if lang == 'ar' else 'Organization Name' }}</label>
+                    <input type="text" class="form-control" name="name" value="{{ org.name }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ 'القطاع' if lang == 'ar' else 'Sector' }}</label>
+                    <input type="text" class="form-control" name="sector" value="{{ org.sector or '' }}">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ 'الدولة' if lang == 'ar' else 'Country' }}</label>
+                    <input type="text" class="form-control" name="country" value="{{ org.country or '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ 'المدينة' if lang == 'ar' else 'City' }}</label>
+                    <input type="text" class="form-control" name="city" value="{{ org.city or '' }}">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ 'الموقع الإلكتروني' if lang == 'ar' else 'Website' }}</label>
+                <input type="url" class="form-control" name="website" value="{{ org.website or '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ 'العنوان' if lang == 'ar' else 'Address' }}</label>
+                <textarea class="form-control" name="address" rows="2">{{ org.address or '' }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">{{ 'التفضيلات' if lang == 'ar' else 'Preferences' }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ 'اللغة الافتراضية' if lang == 'ar' else 'Default Language' }}</label>
+                    <select class="form-select" name="default_language">
+                        <option value="ar" {% if org_settings.default_language == 'ar' %}selected{% endif %}>العربية</option>
+                        <option value="en" {% if org_settings.default_language == 'en' %}selected{% endif %}>English</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ 'المنطقة الزمنية' if lang == 'ar' else 'Timezone' }}</label>
+                    <select class="form-select" name="timezone">
+                        <option value="Asia/Riyadh" {% if org_settings.timezone == 'Asia/Riyadh' %}selected{% endif %}>Asia/Riyadh</option>
+                        <option value="UTC" {% if org_settings.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-{{ 'start' if lang == 'ar' else 'end' }}">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+            {{ 'حفظ التغييرات' if lang == 'ar' else 'Save Changes' }}
+        </button>
+    </div>
+</form>
+{% endblock %}

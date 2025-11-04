@@ -7,6 +7,8 @@ from sqlalchemy import func
 import json
 import io
 import csv
+import secrets
+import string
 
 organizations_bp = Blueprint('organizations', __name__, url_prefix='/organizations')
 
@@ -15,6 +17,19 @@ def get_db():
 
 def get_lang():
     return session.get('language', 'ar')
+
+def generate_secure_password(length=12):
+    """Generate a secure random password"""
+    alphabet = string.ascii_letters + string.digits + "!@#$%&*"
+    password = ''.join(secrets.choice(alphabet) for i in range(length))
+    # Ensure it has at least one uppercase, lowercase, digit, and special char
+    if (any(c.islower() for c in password) and
+        any(c.isupper() for c in password) and
+        any(c.isdigit() for c in password) and
+        any(c in "!@#$%&*" for c in password)):
+        return password
+    else:
+        return generate_secure_password(length)  # Regenerate if requirements not met
 
 @organizations_bp.route('/')
 @login_required
@@ -85,6 +100,25 @@ def create():
     
     if request.method == 'POST':
         try:
+            # Validate admin credentials
+            admin_name = request.form.get('admin_name', '').strip()
+            admin_email = request.form.get('admin_email', '').strip().lower()
+            
+            if not admin_name:
+                flash('اسم مدير المؤسسة مطلوب / Organization admin name is required' if lang == 'ar' else 'Organization admin name is required', 'danger')
+                return render_template('admin/organizations/create.html', lang=lang)
+            
+            if not admin_email:
+                flash('البريد الإلكتروني لمدير المؤسسة مطلوب / Organization admin email is required' if lang == 'ar' else 'Organization admin email is required', 'danger')
+                return render_template('admin/organizations/create.html', lang=lang)
+            
+            # Check if email already exists
+            existing_user = db_session.session.query(User).filter_by(email=admin_email).first()
+            if existing_user:
+                flash('البريد الإلكتروني مستخدم بالفعل / Email already exists' if lang == 'ar' else 'Email already exists', 'danger')
+                return render_template('admin/organizations/create.html', lang=lang)
+            
+            # Create organization
             org = Organization(
                 name=request.form.get('name'),
                 sector=request.form.get('sector'),
@@ -102,16 +136,52 @@ def create():
             )
             
             db_session.session.add(org)
-            db_session.session.commit()
+            db_session.session.flush()  # Get org.id
             
             # Create default settings for the organization
             settings = OrganizationSettings(
                 organization_id=org.id,
                 default_language=lang,
-                enabled_modules=json.dumps(['strategy', 'hr', 'finance'])  # Default modules
+                enabled_modules=json.dumps(['strategy', 'hr', 'finance', 'governance', 'innovation', 'marketing', 'km'])
             )
             db_session.session.add(settings)
+            
+            # Generate secure password for admin
+            generated_password = generate_secure_password(12)
+            
+            # Get external_user role
+            external_role = db_session.session.query(Role).filter_by(name='external_user').first()
+            if not external_role:
+                raise Exception('External user role not found')
+            
+            # Create admin user
+            admin_user = User(
+                username=admin_name,
+                email=admin_email,
+                role_id=external_role.id,
+                organization_id=org.id,
+                is_active=True,
+                company_name=org.name
+            )
+            admin_user.set_password(generated_password)
+            
+            db_session.session.add(admin_user)
+            db_session.session.flush()  # Get admin_user.id
+            
+            # Create organization membership with 'owner' role
+            membership = OrganizationMembership(
+                user_id=admin_user.id,
+                organization_id=org.id,
+                org_role='owner',
+                is_active=True
+            )
+            db_session.session.add(membership)
+            
             db_session.session.commit()
+            
+            # Store password in session to display it
+            session['new_org_admin_password'] = generated_password
+            session['new_org_admin_email'] = admin_email
             
             flash('تم إنشاء المؤسسة بنجاح / Organization created successfully', 'success')
             return redirect(url_for('admin.organizations.view', org_id=org.id))

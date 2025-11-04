@@ -26,6 +26,14 @@ Preferred communication style: Simple, everyday language.
 - **Module Organization**: 
   - Main blueprints for consulting domains (auth, dashboard, profile, strategy, hr, finance, etc.)
   - `profile`: User profile management with settings page (personal info, password change, preferences, plan usage, account deletion)
+  - `org_dashboard`: **Organization Admin Dashboard** (Nov 2025 - NEW)
+    - Dedicated dashboard for organization owners/admins
+    - Team management (member listing, role assignment)
+    - Knowledge center (document management - placeholder)
+    - Reports & analytics (performance metrics - placeholder)
+    - Billing management (subscription & invoices - placeholder)
+    - Organization settings (basic info, preferences)
+    - Access controlled via `organization_role_required` decorator
   - Admin package with 13 sub-blueprints for comprehensive admin panel
 - **Admin Structure**: Package-based architecture at `blueprints/admin/` with sub-blueprints:
   - `dashboard`: Main admin dashboard with charts (Chart.js) and statistics
@@ -36,6 +44,11 @@ Preferred communication style: Simple, everyday language.
     - List view with search, filters (status, plan, sector), and CSV export
     - Detailed organization profile with tabs: Overview, Users, Billing, Analytics, Settings
     - CRUD operations for organizations
+    - **Automatic Admin Account Creation** (Nov 2025 - NEW):
+      - On organization creation, automatically creates owner account with secure generated password
+      - Validates admin email uniqueness and prevents duplicate accounts
+      - Displays generated password one-time only after creation
+      - Creates OrganizationMembership with 'owner' role for full org control
     - User management per organization
     - Organization-specific settings (language, timezone, AI preferences, module access)
     - Performance analytics with Chart.js visualization (AI usage, project stats)
@@ -55,6 +68,7 @@ Preferred communication style: Simple, everyday language.
 - **URL Structure**: 
   - Public services: `/services/*`
   - Admin panel: `/admin/*` (role-restricted, redirects `/admin/` to `/admin/dashboard/`)
+  - Organization dashboard: `/org/*` (organization role-restricted)
 
 **Rationale**: Flask's lightweight nature and blueprint system allows clean separation of 12+ consulting modules. Package-based admin structure enables scalability and maintainability. JWT provides stateless authentication suitable for potential API expansion.
 

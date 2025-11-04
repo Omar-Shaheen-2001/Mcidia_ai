@@ -118,6 +118,7 @@ def create_app():
     from blueprints.admin import admin_bp
     from blueprints.main import main_bp
     from blueprints.services_bp import services_bp
+    from blueprints.org_dashboard import org_dashboard_bp
     
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -134,6 +135,7 @@ def create_app():
     app.register_blueprint(consultation_bp, url_prefix='/consultation')
     app.register_blueprint(billing_bp, url_prefix='/billing')
     app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(org_dashboard_bp)
     
     # Create tables and seed default data
     with app.app_context():

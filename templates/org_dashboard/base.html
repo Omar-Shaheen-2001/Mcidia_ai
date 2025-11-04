@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="{{ 'ar' if lang == 'ar' else 'en' }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - {{ org.name }}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    {% if lang == 'ar' %}
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    {% else %}
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {% endif %}
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    
+    <style>
+        body {
+            font-family: {{ "'Cairo', sans-serif" if lang == 'ar' else "'Poppins', sans-serif" }};
+            background-color: var(--background);
+        }
+        .org-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+        .org-logo {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Organization Header -->
+    <div class="org-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        {% if org.logo_url %}
+                        <img src="{{ org.logo_url }}" alt="{{ org.name }}" class="org-logo {{ 'ms-3' if lang == 'ar' else 'me-3' }}">
+                        {% endif %}
+                        <div>
+                            <h4 class="mb-0">{{ org.name }}</h4>
+                            <small>{{ 'لوحة تحكم المؤسسة' if lang == 'ar' else 'Organization Dashboard' }}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 text-{{ 'start' if lang == 'ar' else 'end' }}">
+                    <a href="{{ url_for('profile.settings') }}" class="btn btn-light btn-sm {{ 'ms-2' if lang == 'ar' else 'me-2' }}">
+                        <i class="fas fa-user"></i> {{ 'الملف الشخصي' if lang == 'ar' else 'Profile' }}
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-sign-out-alt"></i> {{ 'تسجيل الخروج' if lang == 'ar' else 'Logout' }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="container-fluid">
+        <ul class="nav nav-pills mb-4">
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'org_dashboard.dashboard' %}active{% endif %}" 
+                   href="{{ url_for('org_dashboard.dashboard', org_id=org.id) }}">
+                    <i class="fas fa-chart-line {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                    {{ 'لوحة التحكم' if lang == 'ar' else 'Dashboard' }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'org_dashboard.team' %}active{% endif %}" 
+                   href="{{ url_for('org_dashboard.team', org_id=org.id) }}">
+                    <i class="fas fa-users {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                    {{ 'إدارة الفريق' if lang == 'ar' else 'Team Management' }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'org_dashboard.knowledge' %}active{% endif %}" 
+                   href="{{ url_for('org_dashboard.knowledge', org_id=org.id) }}">
+                    <i class="fas fa-book {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                    {{ 'قاعدة المعرفة' if lang == 'ar' else 'Knowledge Center' }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'org_dashboard.reports' %}active{% endif %}" 
+                   href="{{ url_for('org_dashboard.reports', org_id=org.id) }}">
+                    <i class="fas fa-file-alt {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                    {{ 'التقارير والتحليلات' if lang == 'ar' else 'Reports & Analytics' }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'org_dashboard.billing' %}active{% endif %}" 
+                   href="{{ url_for('org_dashboard.billing', org_id=org.id) }}">
+                    <i class="fas fa-credit-card {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                    {{ 'الفوترة' if lang == 'ar' else 'Billing' }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'org_dashboard.settings' %}active{% endif %}" 
+                   href="{{ url_for('org_dashboard.settings', org_id=org.id) }}">
+                    <i class="fas fa-cog {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                    {{ 'الإعدادات' if lang == 'ar' else 'Settings' }}
+                </a>
+            </li>
+        </ul>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Content -->
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

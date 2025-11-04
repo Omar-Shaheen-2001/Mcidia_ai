@@ -128,13 +128,13 @@ def organization_role_required(*allowed_roles, org_id_param='id'):
                     return redirect(url_for('dashboard.index'))
                 
                 # Check if membership role is allowed
-                if membership.membership_role not in allowed_roles:
-                    print(f"[organization_role_required] User {user.username} has role '{membership.membership_role}' but needs one of {allowed_roles}")
+                if membership.org_role not in allowed_roles:
+                    print(f"[organization_role_required] User {user.username} has role '{membership.org_role}' but needs one of {allowed_roles}")
                     lang = session.get('language', 'ar')
                     flash('ليس لديك الصلاحية المطلوبة / You do not have the required permission' if lang == 'ar' else 'You do not have the required permission', 'danger')
                     return redirect(url_for('dashboard.index'))
                 
-                print(f"[organization_role_required] User {user.username} with role '{membership.membership_role}' granted access to org {org_id}")
+                print(f"[organization_role_required] User {user.username} with role '{membership.org_role}' granted access to org {org_id}")
                 
                 # Add membership to kwargs for use in the route
                 kwargs['_membership'] = membership

@@ -1,0 +1,76 @@
+{% extends "org_dashboard/base.html" %}
+
+{% block title %}{{ 'إدارة الفريق' if lang == 'ar' else 'Team Management' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h3>{{ 'إدارة الفريق' if lang == 'ar' else 'Team Management' }}</h3>
+    </div>
+    <div class="col-md-6 text-{{ 'start' if lang == 'ar' else 'end' }}">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+            <i class="fas fa-plus {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+            {{ 'إضافة عضو' if lang == 'ar' else 'Add Member' }}
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>{{ 'الاسم' if lang == 'ar' else 'Name' }}</th>
+                        <th>{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</th>
+                        <th>{{ 'الدور' if lang == 'ar' else 'Role' }}</th>
+                        <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                        <th>{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in members %}
+                    {% set member_membership = memberships|selectattr('user_id', 'equalto', member.id)|first %}
+                    <tr>
+                        <td>{{ member.username }}</td>
+                        <td>{{ member.email }}</td>
+                        <td>
+                            <span class="badge {% if member_membership.org_role == 'owner' %}bg-primary{% elif member_membership.org_role == 'admin' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ member_membership.org_role|upper if member_membership else 'MEMBER' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if member.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ 'نشط' if member.is_active else 'معطل' if lang == 'ar' else 'Active' if member.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if membership.org_role == 'owner' and member_membership.org_role != 'owner' %}
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Member Modal -->
+<div class="modal fade" id="addMemberModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ 'إضافة عضو جديد' if lang == 'ar' else 'Add New Member' }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">{{ 'قيد التطوير' if lang == 'ar' else 'Under Development' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

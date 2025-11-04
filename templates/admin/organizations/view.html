@@ -42,6 +42,36 @@
         </div>
     </div>
 
+    <!-- Admin Password Alert (shown once after creation) -->
+    {% if session.get('new_org_admin_password') and session.get('new_org_admin_email') %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <h5 class="alert-heading">
+            <i class="fas fa-key me-2"></i>
+            {{ 'بيانات مدير المؤسسة' if lang == 'ar' else 'Organization Admin Credentials' }}
+        </h5>
+        <hr>
+        <p class="mb-2">
+            <strong>{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}:</strong> 
+            <code>{{ session.get('new_org_admin_email') }}</code>
+        </p>
+        <p class="mb-2">
+            <strong>{{ 'كلمة المرور' if lang == 'ar' else 'Password' }}:</strong> 
+            <code id="adminPassword">{{ session.get('new_org_admin_password') }}</code>
+            <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyPassword()">
+                <i class="fas fa-copy"></i> {{ 'نسخ' if lang == 'ar' else 'Copy' }}
+            </button>
+        </p>
+        <hr>
+        <p class="mb-0 text-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>{{ 'مهم: احفظ هذه البيانات الآن! لن تتمكن من رؤية كلمة المرور مرة أخرى' if lang == 'ar' else 'Important: Save these credentials now! You will not be able to see the password again' }}</strong>
+        </p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% set _ = session.pop('new_org_admin_password', None) %}
+    {% set _ = session.pop('new_org_admin_email', None) %}
+    {% endif %}
+
     <!-- Status Cards -->
     <div class="row mb-4">
         <div class="col-md-3">
@@ -389,6 +419,15 @@ function resetAIUsage(orgId) {
             else alert(data.message);
         });
     }
+}
+
+function copyPassword() {
+    const password = document.getElementById('adminPassword').innerText;
+    navigator.clipboard.writeText(password).then(() => {
+        alert('{{ "تم نسخ كلمة المرور!" if lang == "ar" else "Password copied!" }}');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+    });
 }
 </script>
 {% endblock %}

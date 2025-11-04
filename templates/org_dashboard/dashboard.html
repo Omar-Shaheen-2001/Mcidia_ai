@@ -1,0 +1,94 @@
+{% extends "org_dashboard/base.html" %}
+
+{% block title %}{{ 'لوحة التحكم' if lang == 'ar' else 'Dashboard' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h3>{{ 'ملخص الأداء العام' if lang == 'ar' else 'Performance Overview' }}</h3>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                <h3 class="fw-bold mb-1">{{ stats.total_users }}</h3>
+                <p class="text-muted mb-0">{{ 'إجمالي الأعضاء' if lang == 'ar' else 'Total Members' }}</p>
+                <small class="text-success">{{ stats.active_users }} {{ 'نشط' if lang == 'ar' else 'active' }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-project-diagram fa-2x text-success mb-2"></i>
+                <h3 class="fw-bold mb-1">{{ stats.total_projects }}</h3>
+                <p class="text-muted mb-0">{{ 'المشاريع' if lang == 'ar' else 'Projects' }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-brain fa-2x text-info mb-2"></i>
+                <h3 class="fw-bold mb-1">{{ stats.ai_usage_percentage }}%</h3>
+                <p class="text-muted mb-0">{{ 'استخدام AI' if lang == 'ar' else 'AI Usage' }}</p>
+                <div class="progress mt-2" style="height: 8px;">
+                    <div class="progress-bar {% if stats.ai_usage_percentage > 80 %}bg-danger{% elif stats.ai_usage_percentage > 50 %}bg-warning{% else %}bg-success{% endif %}" 
+                         style="width: {{ stats.ai_usage_percentage }}%"></div>
+                </div>
+                <small>{{ stats.ai_usage_current }} / {{ stats.ai_usage_limit }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-dollar-sign fa-2x text-warning mb-2"></i>
+                <h3 class="fw-bold mb-1">${{ "%.2f"|format(stats.total_spent) }}</h3>
+                <p class="text-muted mb-0">{{ 'إجمالي الإنفاق' if lang == 'ar' else 'Total Spent' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Projects -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{{ 'المشاريع الأخيرة' if lang == 'ar' else 'Recent Projects' }}</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_projects %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>{{ 'المشروع' if lang == 'ar' else 'Project' }}</th>
+                                <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                                <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in recent_projects %}
+                            <tr>
+                                <td>{{ project.title }}</td>
+                                <td>{{ project.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td><span class="badge bg-success">{{ 'نشط' if lang == 'ar' else 'Active' }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-4">{{ 'لا توجد مشاريع بعد' if lang == 'ar' else 'No projects yet' }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
