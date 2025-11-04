@@ -85,9 +85,15 @@ def update_personal_info():
         
         print(f"[DEBUG] Before commit - user.phone: '{user.phone}'")
         
+        # Mark the object as modified to ensure SQLAlchemy tracks the change
+        db.session.add(user)
+        db.session.flush()
         db.session.commit()
         
-        print(f"[DEBUG] After commit - user.phone: '{user.phone}'")
+        # Refresh the user object to get the latest data from DB
+        db.session.refresh(user)
+        
+        print(f"[DEBUG] After commit and refresh - user.phone: '{user.phone}'")
         
         flash('تم تحديث المعلومات الشخصية بنجاح / Personal information updated successfully', 'success')
     
