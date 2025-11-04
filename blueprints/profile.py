@@ -77,23 +77,20 @@ def update_personal_info():
                 flash('اسم المستخدم موجود بالفعل / Username already taken', 'danger')
                 return redirect(url_for('profile.settings'))
         
+        # Update fields directly
         user.username = username
         user.email = email
-        # Handle empty string properly - keep it if provided
         user.phone = phone.strip() if phone and phone.strip() else None
         user.company_name = company_name.strip() if company_name and company_name.strip() else None
         
-        print(f"[DEBUG] Before commit - user.phone: '{user.phone}'")
+        print(f"[DEBUG] User ID: {user.id}, Phone value before commit: '{user.phone}'")
         
-        # Mark the object as modified to ensure SQLAlchemy tracks the change
-        db.session.add(user)
-        db.session.flush()
+        # Commit changes
         db.session.commit()
         
-        # Refresh the user object to get the latest data from DB
-        db.session.refresh(user)
-        
-        print(f"[DEBUG] After commit and refresh - user.phone: '{user.phone}'")
+        # Verify the update worked
+        updated_user = db.session.query(User).filter_by(id=user.id).first()
+        print(f"[DEBUG] After commit - DB query shows phone: '{updated_user.phone}'")
         
         flash('تم تحديث المعلومات الشخصية بنجاح / Personal information updated successfully', 'success')
     
