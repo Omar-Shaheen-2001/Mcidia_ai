@@ -15,7 +15,7 @@ Preferred communication style: Simple, everyday language.
 - **UI Framework**: Bootstrap 5 for responsive layouts
 - **Design System**: Custom CSS design system (`design-system.css`) implementing enterprise SaaS aesthetics
 - **Styling Approach**: CSS variables for theming, component-based styling with BEM-like naming
-- **Bilingual Support**: RTL/LTR layout switching based on session language preference (Arabic/English)
+- **Bilingual Support**: RTL/LTR layout switching based on session language preference (Arabic/English) with proper sidebar collapse animation for both directions
 - **Typography**: Cairo font for Arabic, Poppins for English
 - **Color Palette**: Primary (#0A2756), Secondary (#2C8C56), Active UI (#2767B1), with semantic colors for success/warning/error states
 
@@ -24,11 +24,12 @@ Preferred communication style: Simple, everyday language.
 ### Backend Architecture
 - **Framework**: Flask (Python) with Blueprint-based modular architecture
 - **Module Organization**: 
-  - Main blueprints for consulting domains (auth, dashboard, strategy, hr, finance, etc.)
+  - Main blueprints for consulting domains (auth, dashboard, profile, strategy, hr, finance, etc.)
+  - `profile`: User profile management with settings page (personal info, password change, preferences, plan usage, account deletion)
   - Admin package with 13 sub-blueprints for comprehensive admin panel
 - **Admin Structure**: Package-based architecture at `blueprints/admin/` with sub-blueprints:
   - `dashboard`: Main admin dashboard with charts (Chart.js) and statistics
-  - `users`: Complete user management (CRUD, filtering, role assignment, password reset)
+  - `users`: Complete user management (CRUD, filtering, role assignment, password reset, phone number management)
   - `billing`: Transaction and payment management
   - `services_admin`: Service configuration and management
   - `organizations`: **Comprehensive multi-tenant organization management** (Nov 2025 Enhanced)
@@ -79,7 +80,7 @@ Preferred communication style: Simple, everyday language.
     - Organization roles (in OrganizationMembership): owner (full org control), admin (user/settings management), member (standard access)
   - Subscription plans (free, monthly, yearly, pay_per_use) with AI credits tracking
   - User authentication with password hashing via Werkzeug
-  - User enhancements: `organization_id` (multi-tenancy), `is_active` (soft delete), `last_login` (tracking)
+  - User enhancements: `organization_id` (multi-tenancy), `is_active` (soft delete), `last_login` (tracking), `phone` (contact information)
 - **Migration**: Custom migration scripts
   - `migrate_admin_models.py`: Initial admin models
   - `migrate_organizations.py`: Organizations and settings tables

@@ -62,7 +62,7 @@
         }
         
         .admin-sidebar.collapsed {
-            transform: translateX({{ '-100%' if lang == 'ar' else '-100%' }});
+            transform: translateX({{ '100%' if lang == 'ar' else '-100%' }});
         }
         
         .sidebar-header {
@@ -191,7 +191,7 @@
         
         @media (max-width: 768px) {
             .admin-sidebar {
-                transform: translateX({{ '-100%' if lang == 'ar' else '-100%' }});
+                transform: translateX({{ '100%' if lang == 'ar' else '-100%' }});
             }
             
             .admin-sidebar.show {
