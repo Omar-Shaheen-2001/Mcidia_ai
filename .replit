@@ -1,5 +1,5 @@
 modules = ["nodejs-20", "web", "postgresql-16", "python-3.11"]
-run = ["python", "app.py"]
+run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
@@ -8,27 +8,15 @@ packages = ["cargo", "libiconv", "rustc"]
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["sh", "-c", "echo 'No build step required for Python Flask app'"]
-run = ["python", "app.py"]
+build = ["npm", "run", "build"]
+run = ["npm", "run", "start"]
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 36431
-externalPort = 3001
-
-[[ports]]
-localPort = 38927
-externalPort = 3002
-
-[[ports]]
-localPort = 43283
-externalPort = 3003
-
-[[ports]]
-localPort = 43911
+localPort = 38029
 externalPort = 3000
 
 [env]
@@ -52,7 +40,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = ["python", "app.py"]
+args = "npm run dev"
 waitForPort = 5000
 
 [agent]
