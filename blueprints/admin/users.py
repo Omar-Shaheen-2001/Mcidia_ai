@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session, jsonify
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required, role_required
-from models import User, Role, SubscriptionPlan, Project, Transaction, AILog, Organization
+from models import User, Role, SubscriptionPlan, Project, Transaction, AILog, Organization, OrganizationMembership
 from flask import current_app
 from werkzeug.security import generate_password_hash
 from datetime import datetime
@@ -176,6 +176,9 @@ def create():
     
     # POST - Create user
     try:
+        org_id = int(request.form.get('organization_id')) if request.form.get('organization_id') and request.form.get('organization_id') != 'none' else None
+        org_role = request.form.get('organization_role', 'member')
+        
         new_user = User(
             username=request.form.get('username'),
             email=request.form.get('email'),
@@ -183,12 +186,28 @@ def create():
             company_name=request.form.get('company_name'),
             role_id=int(request.form.get('role_id')),
             subscription_plan_id=int(request.form.get('subscription_plan_id')) if request.form.get('subscription_plan_id') else None,
-            organization_id=int(request.form.get('organization_id')) if request.form.get('organization_id') and request.form.get('organization_id') != 'none' else None,
+            organization_id=org_id,
             is_active=request.form.get('is_active') == 'on'
         )
         new_user.set_password(request.form.get('password'))
         
         db.session.add(new_user)
+        db.session.flush()  # Flush to get the user ID
+        
+        # If user is assigned to an organization, create organization membership
+        if org_id:
+            if org_role not in ['member', 'owner', 'consultant', 'admin']:
+                org_role = 'member'  # Default to member if invalid role
+            
+            membership = OrganizationMembership(
+                user_id=new_user.id,
+                organization_id=org_id,
+                membership_role=org_role,
+                is_active=True,
+                joined_at=datetime.utcnow()
+            )
+            db.session.add(membership)
+        
         db.session.commit()
         
         flash('تم إنشاء المستخدم بنجاح / User created successfully' if lang == 'ar' else 'User created successfully', 'success')

@@ -68,12 +68,30 @@
                     
                     <div class="mb-3">
                         <label class="form-label">{{ 'المؤسسة' if lang == 'ar' else 'Organization' }}</label>
-                        <select class="form-select" name="organization_id">
+                        <select class="form-select" name="organization_id" id="organizationSelect">
                             <option value="none">N/A</option>
                             {% for org in organizations %}
                             <option value="{{ org.id }}">{{ org.name }}</option>
                             {% endfor %}
                         </select>
+                    </div>
+                    
+                    <div class="mb-3" id="orgRoleContainer" style="display: none;">
+                        <label class="form-label">{{ 'دور المؤسسة' if lang == 'ar' else 'Organization Role' }}</label>
+                        <select class="form-select" name="organization_role">
+                            <option value="member">{{ 'عضو' if lang == 'ar' else 'Member' }}</option>
+                            <option value="owner">{{ 'مالك' if lang == 'ar' else 'Owner' }}</option>
+                            <option value="consultant">{{ 'مستشار' if lang == 'ar' else 'Consultant' }}</option>
+                            <option value="admin">{{ 'مدير' if lang == 'ar' else 'Admin' }}</option>
+                        </select>
+                        <small class="form-text text-muted">
+                            <ul class="mb-0 mt-2" style="font-size: 0.875rem;">
+                                <li><strong>{{ 'مالك' if lang == 'ar' else 'Owner' }}:</strong> {{ 'إدارة كاملة للمؤسسة' if lang == 'ar' else 'Full organization management' }}</li>
+                                <li><strong>{{ 'مدير' if lang == 'ar' else 'Admin' }}:</strong> {{ 'إدارة المستخدمين والإعدادات' if lang == 'ar' else 'Manage users and settings' }}</li>
+                                <li><strong>{{ 'مستشار' if lang == 'ar' else 'Consultant' }}:</strong> {{ 'وصول استشاري متقدم' if lang == 'ar' else 'Advanced consultant access' }}</li>
+                                <li><strong>{{ 'عضو' if lang == 'ar' else 'Member' }}:</strong> {{ 'الوصول القياسي' if lang == 'ar' else 'Standard access' }}</li>
+                            </ul>
+                        </small>
                     </div>
                     
                     <div class="form-check mb-4">
@@ -95,4 +113,19 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const orgSelect = document.getElementById('organizationSelect');
+    const orgRoleContainer = document.getElementById('orgRoleContainer');
+    
+    orgSelect.addEventListener('change', function() {
+        if (this.value && this.value !== 'none') {
+            orgRoleContainer.style.display = 'block';
+        } else {
+            orgRoleContainer.style.display = 'none';
+        }
+    });
+});
+</script>
 {% endblock %}
