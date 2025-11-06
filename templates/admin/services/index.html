@@ -4,32 +4,111 @@
 
 {% block content %}
 <div class="row mb-4">
-    <div class="col-12">
-        <h2>{{ 'إدارة الخدمات والوحدات' if lang == 'ar' else 'Services & Modules Management' }}</h2>
+    <div class="col-md-6">
+        <h4>{{ 'إدارة الخدمات الاستشارية' if lang == 'ar' else 'Consulting Services Management' }}</h4>
+        <p class="text-muted">{{ 'التحكم الكامل في الخدمات الرئيسية والخدمات الفرعية' if lang == 'ar' else 'Full control over main services and sub-services' }}</p>
+    </div>
+    <div class="col-md-6 text-{{ 'start' if lang == 'ar' else 'end' }}">
+        <a href="{{ url_for('admin.services_admin.create_service') }}" class="btn btn-primary">
+            <i class="fas fa-plus {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+            {{ 'إضافة خدمة رئيسية' if lang == 'ar' else 'Add Main Service' }}
+        </a>
     </div>
 </div>
 
-<div class="row g-3">
+<!-- Filters -->
+<div class="table-card mb-4">
+    <div class="p-3">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="search" placeholder="{{ 'بحث...' if lang == 'ar' else 'Search...' }}" value="{{ search }}">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="status">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>{{ 'الكل' if lang == 'ar' else 'All' }}</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>{{ 'نشط' if lang == 'ar' else 'Active' }}</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>{{ 'غير نشط' if lang == 'ar' else 'Inactive' }}</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100">
+                    <i class="fas fa-filter {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                    {{ 'فلترة' if lang == 'ar' else 'Filter' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Services List -->
+<div class="row">
     {% for service in services %}
-    <div class="col-md-4">
+    <div class="col-md-12 mb-4">
         <div class="table-card">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="stat-icon me-3" style="background: {{ service.color }}20; color: {{ service.color }};">
-                        <i class="{{ service.icon }}"></i>
+            <div class="table-header" style="border-{{ 'right' if lang == 'ar' else 'left' }}: 4px solid {{ service.color }};">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 {{ 'ms-3' if lang == 'ar' else 'me-3' }}" style="background-color: {{ service.color }}20;">
+                            <i class="fas {{ service.icon }} fa-2x" style="color: {{ service.color }};"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">
+                                {{ service.title_ar if lang == 'ar' else service.title_en }}
+                                {% if service.is_active %}
+                                <span class="badge bg-success">{{ 'نشط' if lang == 'ar' else 'Active' }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ 'غير نشط' if lang == 'ar' else 'Inactive' }}</span>
+                                {% endif %}
+                            </h5>
+                            <p class="text-muted mb-0">
+                                <small>
+                                    <i class="fas fa-layer-group {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                                    {{ service.offerings|length }} {{ 'خدمة فرعية' if lang == 'ar' else 'sub-services' }}
+                                    <span class="mx-2">|</span>
+                                    <i class="fas fa-sort {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                                    {{ 'الترتيب:' if lang == 'ar' else 'Order:' }} {{ service.display_order }}
+                                </small>
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h5 class="mb-0">{{ service.title_ar if lang == 'ar' else service.title_en }}</h5>
-                        <small class="text-muted">{{ service.offerings|length }} {{ 'خدمات فرعية' if lang == 'ar' else 'offerings' }}</small>
+                    <div class="btn-group">
+                        <a href="{{ url_for('admin.services_admin.offerings', service_id=service.id) }}" class="btn btn-sm btn-outline-primary" title="{{ 'الخدمات الفرعية' if lang == 'ar' else 'Sub-services' }}">
+                            <i class="fas fa-list"></i>
+                            {{ 'الخدمات الفرعية' if lang == 'ar' else 'Sub-services' }}
+                        </a>
+                        <a href="{{ url_for('admin.services_admin.edit_service', service_id=service.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ 'تعديل' if lang == 'ar' else 'Edit' }}">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('admin.services_admin.toggle_service_status', service_id=service.id) }}" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
+                            <button type="submit" class="btn btn-sm btn-outline-warning" title="{{ 'تبديل الحالة' if lang == 'ar' else 'Toggle Status' }}">
+                                <i class="fas fa-power-off"></i>
+                            </button>
+                        </form>
                     </div>
-                </div>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" {% if service.is_active %}checked{% endif %} disabled>
-                    <label class="form-check-label">{{ 'نشط' if lang == 'ar' else 'Active' }}</label>
                 </div>
             </div>
+            
+            {% if service.description_ar or service.description_en %}
+            <div class="p-3">
+                <p class="text-muted mb-0">{{ service.description_ar if lang == 'ar' else service.description_en }}</p>
+            </div>
+            {% endif %}
         </div>
     </div>
     {% endfor %}
+    
+    {% if not services %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+            <p class="text-muted">{{ 'لا توجد خدمات' if lang == 'ar' else 'No services found' }}</p>
+            <a href="{{ url_for('admin.services_admin.create_service') }}" class="btn btn-primary">
+                <i class="fas fa-plus {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                {{ 'إضافة خدمة' if lang == 'ar' else 'Add Service' }}
+            </a>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
