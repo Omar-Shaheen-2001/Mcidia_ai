@@ -93,7 +93,7 @@ def edit_service(service_id):
     db = get_db()
     lang = get_lang()
     
-    service = db.session.query(Service).get_or_404(service_id)
+    service = db.session.query(Service).filter_by(id=service_id).first_or_404()
     
     if request.method == 'GET':
         return render_template('admin/services/edit_service.html', service=service, lang=lang)
@@ -129,7 +129,7 @@ def delete_service(service_id):
     db = get_db()
     lang = get_lang()
     
-    service = db.session.query(Service).get_or_404(service_id)
+    service = db.session.query(Service).filter_by(id=service_id).first_or_404()
     
     # Soft delete by deactivating
     service.is_active = False
@@ -146,7 +146,7 @@ def toggle_service_status(service_id):
     db = get_db()
     lang = get_lang()
     
-    service = db.session.query(Service).get_or_404(service_id)
+    service = db.session.query(Service).filter_by(id=service_id).first_or_404()
     service.is_active = not service.is_active
     db.session.commit()
     
@@ -164,7 +164,7 @@ def offerings(service_id):
     db = get_db()
     lang = get_lang()
     
-    service = db.session.query(Service).get_or_404(service_id)
+    service = db.session.query(Service).filter_by(id=service_id).first_or_404()
     
     # Get filter parameters
     status_filter = request.args.get('status', 'all')
@@ -202,7 +202,7 @@ def create_offering(service_id):
     db = get_db()
     lang = get_lang()
     
-    service = db.session.query(Service).get_or_404(service_id)
+    service = db.session.query(Service).filter_by(id=service_id).first_or_404()
     
     if request.method == 'GET':
         return render_template('admin/services/create_offering.html', service=service, lang=lang)
@@ -244,8 +244,8 @@ def edit_offering(service_id, offering_id):
     db = get_db()
     lang = get_lang()
     
-    service = db.session.query(Service).get_or_404(service_id)
-    offering = db.session.query(ServiceOffering).get_or_404(offering_id)
+    service = db.session.query(Service).filter_by(id=service_id).first_or_404()
+    offering = db.session.query(ServiceOffering).filter_by(id=offering_id).first_or_404()
     
     if request.method == 'GET':
         return render_template('admin/services/edit_offering.html', service=service, offering=offering, lang=lang)
@@ -283,7 +283,7 @@ def delete_offering(service_id, offering_id):
     db = get_db()
     lang = get_lang()
     
-    offering = db.session.query(ServiceOffering).get_or_404(offering_id)
+    offering = db.session.query(ServiceOffering).filter_by(id=offering_id).first_or_404()
     
     # Soft delete by deactivating
     offering.is_active = False
@@ -300,7 +300,7 @@ def toggle_offering_status(service_id, offering_id):
     db = get_db()
     lang = get_lang()
     
-    offering = db.session.query(ServiceOffering).get_or_404(offering_id)
+    offering = db.session.query(ServiceOffering).filter_by(id=offering_id).first_or_404()
     offering.is_active = not offering.is_active
     db.session.commit()
     
