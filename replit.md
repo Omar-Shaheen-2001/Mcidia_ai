@@ -48,7 +48,16 @@ Preferred communication style: Simple, everyday language.
   - `dashboard`: Main admin dashboard with charts (Chart.js) and statistics
   - `users`: Complete user management (CRUD, filtering, role assignment, password reset, phone number management)
   - `billing`: Transaction and payment management
-  - `services_admin`: Service configuration and management
+  - `services_admin`: **Comprehensive Services & Sub-Services Management** (Nov 2025 - NEW)
+    - Full CRUD operations for main consulting services (7 categories)
+    - Complete sub-services management (25+ offerings) with AI configuration
+    - Service features: bilingual titles, slugs, icons (FontAwesome), custom colors, display order
+    - Sub-service AI settings: model selection (GPT-4/3.5/Turbo), prompt templates, credits cost, form fields (JSON)
+    - Filtering and search capabilities for both services and offerings
+    - Active/inactive status management (soft delete)
+    - 6 HTML templates: services list, create/edit service, offerings list, create/edit offering
+    - All routes protected with `@login_required` and `@role_required('system_admin')`
+    - Database queries use `db.session.query(Model).filter_by().first_or_404()` pattern for SQLAlchemy compatibility
   - `organizations`: **Comprehensive multi-tenant organization management** (Nov 2025 Enhanced)
     - List view with search, filters (status, plan, sector), and CSV export
     - Detailed organization profile with tabs: Overview, Users, Billing, Analytics, Settings
@@ -85,6 +94,11 @@ Preferred communication style: Simple, everyday language.
 ### Database & ORM
 - **ORM**: Flask-SQLAlchemy (SQLAlchemy core)
 - **Database**: PostgreSQL (via Replit's built-in Neon-backed database)
+- **Connection Pooling** (Nov 2025 - FIXED):
+  - Configured with `pool_pre_ping=True` to automatically reconnect on SSL disconnects
+  - `pool_recycle=300` to refresh connections every 5 minutes
+  - `pool_size=10` and `max_overflow=20` for optimal performance
+  - Resolves "SSL connection has been closed unexpectedly" errors
 - **Models**: 
   - **Core Models**: User, Role, SubscriptionPlan, Project, Transaction, AILog, Document
   - **Admin Models** (added Nov 2025):
