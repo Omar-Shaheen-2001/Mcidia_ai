@@ -1,0 +1,127 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'إدارة الخدمات الفرعية' if lang == 'ar' else 'Sub-services Management' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="{{ url_for('admin.services_admin.index') }}" class="btn btn-link">
+            <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+            {{ 'العودة إلى الخدمات الرئيسية' if lang == 'ar' else 'Back to Main Services' }}
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="d-flex align-items-center">
+            <div class="rounded-circle p-3 {{ 'ms-3' if lang == 'ar' else 'me-3' }}" style="background-color: {{ service.color }}20;">
+                <i class="fas {{ service.icon }} fa-2x" style="color: {{ service.color }};"></i>
+            </div>
+            <div>
+                <h4 class="mb-0">{{ service.title_ar if lang == 'ar' else service.title_en }}</h4>
+                <p class="text-muted mb-0">{{ 'إدارة الخدمات الفرعية' if lang == 'ar' else 'Manage Sub-services' }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 text-{{ 'start' if lang == 'ar' else 'end' }}">
+        <a href="{{ url_for('admin.services_admin.create_offering', service_id=service.id) }}" class="btn btn-primary">
+            <i class="fas fa-plus {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+            {{ 'إضافة خدمة فرعية' if lang == 'ar' else 'Add Sub-service' }}
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="table-card mb-4">
+    <div class="p-3">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="search" placeholder="{{ 'بحث...' if lang == 'ar' else 'Search...' }}" value="{{ search }}">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="status">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>{{ 'الكل' if lang == 'ar' else 'All' }}</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>{{ 'نشط' if lang == 'ar' else 'Active' }}</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>{{ 'غير نشط' if lang == 'ar' else 'Inactive' }}</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100">
+                    <i class="fas fa-filter {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                    {{ 'فلترة' if lang == 'ar' else 'Filter' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Offerings Table -->
+<div class="table-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>{{ 'الأيقونة' if lang == 'ar' else 'Icon' }}</th>
+                    <th>{{ 'العنوان' if lang == 'ar' else 'Title' }}</th>
+                    <th>{{ 'الترتيب' if lang == 'ar' else 'Order' }}</th>
+                    <th>{{ 'AI Model' if lang == 'ar' else 'AI Model' }}</th>
+                    <th>{{ 'التكلفة (Credits)' if lang == 'ar' else 'Cost (Credits)' }}</th>
+                    <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                    <th>{{ 'إجراءات' if lang == 'ar' else 'Actions' }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for offering in offerings %}
+                <tr>
+                    <td>
+                        <i class="fas {{ offering.icon }}" style="color: {{ service.color }};"></i>
+                    </td>
+                    <td>
+                        <strong>{{ offering.title_ar if lang == 'ar' else offering.title_en }}</strong>
+                        <br>
+                        <small class="text-muted">{{ offering.slug }}</small>
+                    </td>
+                    <td>{{ offering.display_order }}</td>
+                    <td><span class="badge bg-info">{{ offering.ai_model }}</span></td>
+                    <td><span class="badge bg-warning text-dark">{{ offering.ai_credits_cost }}</span></td>
+                    <td>
+                        {% if offering.is_active %}
+                        <span class="badge bg-success">{{ 'نشط' if lang == 'ar' else 'Active' }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ 'غير نشط' if lang == 'ar' else 'Inactive' }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="{{ url_for('admin.services_admin.edit_offering', service_id=service.id, offering_id=offering.id) }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('admin.services_admin.toggle_offering_status', service_id=service.id, offering_id=offering.id) }}" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    <i class="fas fa-power-off"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                
+                {% if not offerings %}
+                <tr>
+                    <td colspan="7" class="text-center py-5">
+                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">{{ 'لا توجد خدمات فرعية' if lang == 'ar' else 'No sub-services found' }}</p>
+                        <a href="{{ url_for('admin.services_admin.create_offering', service_id=service.id) }}" class="btn btn-primary">
+                            <i class="fas fa-plus {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {{ 'إضافة خدمة فرعية' if lang == 'ar' else 'Add Sub-service' }}
+                        </a>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

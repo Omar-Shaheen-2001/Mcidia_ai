@@ -1,0 +1,94 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'تعديل خدمة' if lang == 'ar' else 'Edit Service' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="{{ url_for('admin.services_admin.index') }}" class="btn btn-link">
+            <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+            {{ 'العودة إلى القائمة' if lang == 'ar' else 'Back to List' }}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="table-card">
+            <div class="table-header">
+                <h5 class="mb-0">{{ 'تعديل الخدمة' if lang == 'ar' else 'Edit Service' }}: {{ service.title_ar if lang == 'ar' else service.title_en }}</h5>
+            </div>
+            <div class="p-4">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ 'العنوان بالعربية' if lang == 'ar' else 'Arabic Title' }}</label>
+                            <input type="text" class="form-control" name="title_ar" value="{{ service.title_ar }}" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ 'العنوان بالإنجليزية' if lang == 'ar' else 'English Title' }}</label>
+                            <input type="text" class="form-control" name="title_en" value="{{ service.title_en }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ 'المعرف (Slug)' if lang == 'ar' else 'Slug' }}</label>
+                            <input type="text" class="form-control" name="slug" value="{{ service.slug }}" pattern="[a-z0-9-]+" required>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">{{ 'الأيقونة' if lang == 'ar' else 'Icon' }}</label>
+                            <input type="text" class="form-control" name="icon" value="{{ service.icon }}">
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">{{ 'اللون' if lang == 'ar' else 'Color' }}</label>
+                            <input type="color" class="form-control form-control-color" name="color" value="{{ service.color }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'الوصف بالعربية' if lang == 'ar' else 'Arabic Description' }}</label>
+                        <textarea class="form-control" name="description_ar" rows="3">{{ service.description_ar }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'الوصف بالإنجليزية' if lang == 'ar' else 'English Description' }}</label>
+                        <textarea class="form-control" name="description_en" rows="3">{{ service.description_en }}</textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ 'ترتيب العرض' if lang == 'ar' else 'Display Order' }}</label>
+                            <input type="number" class="form-control" name="display_order" value="{{ service.display_order }}" min="0">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check form-switch mt-4">
+                                <input class="form-check-input" type="checkbox" name="is_active" {% if service.is_active %}checked{% endif %}>
+                                <label class="form-check-label">{{ 'نشط' if lang == 'ar' else 'Active' }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {{ 'حفظ التعديلات' if lang == 'ar' else 'Save Changes' }}
+                        </button>
+                        <a href="{{ url_for('admin.services_admin.index') }}" class="btn btn-outline-secondary">
+                            {{ 'إلغاء' if lang == 'ar' else 'Cancel' }}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'إضافة خدمة فرعية' if lang == 'ar' else 'Add Sub-service' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="{{ url_for('admin.services_admin.offerings', service_id=service.id) }}" class="btn btn-link">
+            <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+            {{ 'العودة إلى الخدمات الفرعية' if lang == 'ar' else 'Back to Sub-services' }}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="table-card">
+            <div class="table-header">
+                <h5 class="mb-0">{{ 'إضافة خدمة فرعية جديدة' if lang == 'ar' else 'Add New Sub-service' }}</h5>
+                <p class="text-muted mb-0">{{ service.title_ar if lang == 'ar' else service.title_en }}</p>
+            </div>
+            <div class="p-4">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
+                    
+                    <h6 class="mb-3">{{ 'المعلومات الأساسية' if lang == 'ar' else 'Basic Information' }}</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ 'العنوان بالعربية' if lang == 'ar' else 'Arabic Title' }}</label>
+                            <input type="text" class="form-control" name="title_ar" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ 'العنوان بالإنجليزية' if lang == 'ar' else 'English Title' }}</label>
+                            <input type="text" class="form-control" name="title_en" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ 'المعرف (Slug)' if lang == 'ar' else 'Slug' }}</label>
+                            <input type="text" class="form-control" name="slug" pattern="[a-z0-9-]+" placeholder="strategic-planning-kpis" required>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">{{ 'الأيقونة' if lang == 'ar' else 'Icon' }}</label>
+                            <input type="text" class="form-control" name="icon" value="fa-check-circle">
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">{{ 'ترتيب العرض' if lang == 'ar' else 'Display Order' }}</label>
+                            <input type="number" class="form-control" name="display_order" value="0" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'الوصف بالعربية' if lang == 'ar' else 'Arabic Description' }}</label>
+                        <textarea class="form-control" name="description_ar" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'الوصف بالإنجليزية' if lang == 'ar' else 'English Description' }}</label>
+                        <textarea class="form-control" name="description_en" rows="3"></textarea>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h6 class="mb-3">{{ 'إعدادات الذكاء الاصطناعي' if lang == 'ar' else 'AI Configuration' }}</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ 'نموذج الذكاء الاصطناعي' if lang == 'ar' else 'AI Model' }}</label>
+                            <select class="form-select" name="ai_model">
+                                <option value="gpt-4">GPT-4</option>
+                                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                                <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ 'تكلفة الاستخدام (Credits)' if lang == 'ar' else 'Usage Cost (Credits)' }}</label>
+                            <input type="number" class="form-control" name="ai_credits_cost" value="1" min="1">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'قالب التعليمات للذكاء الاصطناعي' if lang == 'ar' else 'AI Prompt Template' }}</label>
+                        <textarea class="form-control font-monospace" name="ai_prompt_template" rows="5" placeholder="أنت مستشار متخصص في...&#10;&#10;المعلومات المقدمة من المستخدم:&#10;{user_input}"></textarea>
+                        <div class="form-text">{{ 'استخدم {user_input} للإشارة إلى البيانات المدخلة' if lang == 'ar' else 'Use {user_input} to reference user input data' }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'حقول النموذج (JSON)' if lang == 'ar' else 'Form Fields (JSON)' }}</label>
+                        <textarea class="form-control font-monospace" name="form_fields" rows="4" placeholder='[{"name": "company_name", "type": "text", "label_ar": "اسم الشركة", "label_en": "Company Name"}]'></textarea>
+                        <div class="form-text">{{ 'اختياري - تعريف حقول النموذج بصيغة JSON' if lang == 'ar' else 'Optional - Define form fields in JSON format' }}</div>
+                    </div>
+                    
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" name="is_active" checked>
+                        <label class="form-check-label">{{ 'نشط' if lang == 'ar' else 'Active' }}</label>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {{ 'حفظ الخدمة الفرعية' if lang == 'ar' else 'Save Sub-service' }}
+                        </button>
+                        <a href="{{ url_for('admin.services_admin.offerings', service_id=service.id) }}" class="btn btn-outline-secondary">
+                            {{ 'إلغاء' if lang == 'ar' else 'Cancel' }}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

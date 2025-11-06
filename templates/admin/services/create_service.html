@@ -1,0 +1,99 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'إضافة خدمة رئيسية' if lang == 'ar' else 'Add Main Service' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="{{ url_for('admin.services_admin.index') }}" class="btn btn-link">
+            <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+            {{ 'العودة إلى القائمة' if lang == 'ar' else 'Back to List' }}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="table-card">
+            <div class="table-header">
+                <h5 class="mb-0">{{ 'إضافة خدمة رئيسية جديدة' if lang == 'ar' else 'Add New Main Service' }}</h5>
+            </div>
+            <div class="p-4">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ 'العنوان بالعربية' if lang == 'ar' else 'Arabic Title' }}</label>
+                            <input type="text" class="form-control" name="title_ar" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ 'العنوان بالإنجليزية' if lang == 'ar' else 'English Title' }}</label>
+                            <input type="text" class="form-control" name="title_en" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ 'المعرف (Slug)' if lang == 'ar' else 'Slug' }}</label>
+                            <input type="text" class="form-control" name="slug" pattern="[a-z0-9-]+" placeholder="organizational-building" required>
+                            <div class="form-text">{{ 'استخدم أحرف إنجليزية صغيرة وشرطات فقط' if lang == 'ar' else 'Use lowercase letters and hyphens only' }}</div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">{{ 'الأيقونة' if lang == 'ar' else 'Icon' }}</label>
+                            <input type="text" class="form-control" name="icon" value="fa-briefcase" placeholder="fa-briefcase">
+                            <div class="form-text">
+                                <a href="https://fontawesome.com/icons" target="_blank">{{ 'أيقونات FontAwesome' if lang == 'ar' else 'FontAwesome Icons' }}</a>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">{{ 'اللون' if lang == 'ar' else 'Color' }}</label>
+                            <input type="color" class="form-control form-control-color" name="color" value="#0A2756">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'الوصف بالعربية' if lang == 'ar' else 'Arabic Description' }}</label>
+                        <textarea class="form-control" name="description_ar" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'الوصف بالإنجليزية' if lang == 'ar' else 'English Description' }}</label>
+                        <textarea class="form-control" name="description_en" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ 'ترتيب العرض' if lang == 'ar' else 'Display Order' }}</label>
+                            <input type="number" class="form-control" name="display_order" value="0" min="0">
+                            <div class="form-text">{{ 'الأقل يظهر أولاً' if lang == 'ar' else 'Lower numbers appear first' }}</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check form-switch mt-4">
+                                <input class="form-check-input" type="checkbox" name="is_active" checked>
+                                <label class="form-check-label">{{ 'نشط' if lang == 'ar' else 'Active' }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {{ 'حفظ الخدمة' if lang == 'ar' else 'Save Service' }}
+                        </button>
+                        <a href="{{ url_for('admin.services_admin.index') }}" class="btn btn-outline-secondary">
+                            {{ 'إلغاء' if lang == 'ar' else 'Cancel' }}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
