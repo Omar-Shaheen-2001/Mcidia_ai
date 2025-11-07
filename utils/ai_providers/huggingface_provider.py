@@ -75,7 +75,6 @@ class HuggingFaceProvider(AIProvider):
             "parameters": {
                 "temperature": temperature,
                 "max_new_tokens": max_tokens,
-                "return_full_text": False,
                 "do_sample": True,
                 "top_p": 0.9,
             }
