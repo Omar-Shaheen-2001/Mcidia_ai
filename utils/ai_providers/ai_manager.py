@@ -40,12 +40,15 @@ class AIManager:
         Returns:
             Configured AIProvider instance
         """
+        # Get config (now returns a copy, safe to mutate)
         config = AIConfig.get_use_case_config(use_case)
         config.update(override_config)
         
-        provider_name = config.pop('provider')
-        model = config.pop('model', None)
+        # Extract provider and model
+        provider_name = config.pop('provider', 'huggingface')
+        model = config.pop('model', 'llama3')
         
+        # Remaining config (temperature, max_tokens) passed to provider
         return cls.create(
             provider_name,
             api_key=api_key,

@@ -26,6 +26,8 @@ class HuggingFaceProvider(AIProvider):
         api_key: Optional[str] = None,
         model: str = 'llama3',
         api_url: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 4000,
         **kwargs
     ):
         super().__init__(api_key, **kwargs)
@@ -46,17 +48,25 @@ class HuggingFaceProvider(AIProvider):
             "Authorization": f"Bearer {self.api_key}" if self.api_key else "",
             "Content-Type": "application/json"
         }
+        
+        # Store defaults from config
+        self.default_temperature = temperature
+        self.default_max_tokens = max_tokens
     
     def chat(
         self,
         prompt: str,
         system_prompt: Optional[str] = None,
-        temperature: float = 0.7,
-        max_tokens: int = 4000,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
         response_format: Optional[str] = None,
         **kwargs
     ) -> str:
         """Send chat completion to HuggingFace Inference API"""
+        
+        # Use config defaults if not provided
+        temperature = temperature if temperature is not None else self.default_temperature
+        max_tokens = max_tokens if max_tokens is not None else self.default_max_tokens
         
         full_prompt = self._build_prompt(prompt, system_prompt)
         

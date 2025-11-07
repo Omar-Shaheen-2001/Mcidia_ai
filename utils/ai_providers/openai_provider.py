@@ -17,6 +17,8 @@ class OpenAIProvider(AIProvider):
         self,
         api_key: Optional[str] = None,
         model: str = "gpt-4",
+        temperature: float = 0.7,
+        max_tokens: int = 4000,
         **kwargs
     ):
         super().__init__(api_key, **kwargs)
@@ -27,17 +29,25 @@ class OpenAIProvider(AIProvider):
         
         self.model = model
         self.client = OpenAI(api_key=self.api_key)
+        
+        # Store defaults from config
+        self.default_temperature = temperature
+        self.default_max_tokens = max_tokens
     
     def chat(
         self,
         prompt: str,
         system_prompt: Optional[str] = None,
-        temperature: float = 0.7,
-        max_tokens: int = 4000,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
         response_format: Optional[str] = None,
         **kwargs
     ) -> str:
         """Send chat completion to OpenAI API"""
+        
+        # Use config defaults if not provided
+        temperature = temperature if temperature is not None else self.default_temperature
+        max_tokens = max_tokens if max_tokens is not None else self.default_max_tokens
         
         messages = []
         
