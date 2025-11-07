@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}{{ plan.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">{{ plan.title }}</h2>
+                <p class="text-muted">{{ plan.planning_period }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('strategic_planning_ai.export_pdf', plan_id=plan.id) }}" class="btn btn-outline-primary">
+                    <i class="fas fa-file-pdf me-2"></i>
+                    {{ 'تصدير PDF' if lang == 'ar' else 'Export PDF' }}
+                </a>
+                <a href="{{ url_for('strategic_planning_ai.index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>
+                    {{ 'رجوع' if lang == 'ar' else 'Back' }}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vision & Mission -->
+    {% if plan.vision_statement or plan.mission_statement %}
+    <div class="row mb-4">
+        {% if plan.vision_statement %}
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">
+                        <i class="fas fa-eye me-2"></i>
+                        {{ 'الرؤية' if lang == 'ar' else 'Vision' }}
+                    </h5>
+                    <p class="lead">{{ plan.vision_statement }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if plan.mission_statement %}
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">
+                        <i class="fas fa-bullseye me-2"></i>
+                        {{ 'الرسالة' if lang == 'ar' else 'Mission' }}
+                    </h5>
+                    <p>{{ plan.mission_statement }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Strategic Goals -->
+    {% if goals %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trophy me-2"></i>
+                        {{ 'الأهداف الاستراتيجية' if lang == 'ar' else 'Strategic Goals' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for goal in goals %}
+                        <div class="col-md-6 mb-3">
+                            <div class="border-{{ 'start' if lang == 'ar' else 'start' }} border-primary border-4 ps-3">
+                                <h6 class="text-primary">{{ goal.goal }}</h6>
+                                <p class="text-muted mb-1">{{ goal.description }}</p>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i> {{ goal.timeframe }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- KPIs Summary -->
+    {% if kpis %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        {{ 'مؤشرات الأداء الرئيسية' if lang == 'ar' else 'Key Performance Indicators' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ 'المؤشر' if lang == 'ar' else 'KPI' }}</th>
+                                    <th>{{ 'الفئة' if lang == 'ar' else 'Category' }}</th>
+                                    <th>{{ 'القيمة الحالية' if lang == 'ar' else 'Current' }}</th>
+                                    <th>{{ 'المستهدف' if lang == 'ar' else 'Target' }}</th>
+                                    <th>{{ 'التقدم' if lang == 'ar' else 'Progress' }}</th>
+                                    <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for kpi in kpis %}
+                                <tr>
+                                    <td>{{ kpi.name }}</td>
+                                    <td><span class="badge bg-secondary">{{ kpi.category }}</span></td>
+                                    <td>{{ kpi.current_value }} {{ kpi.measurement_unit }}</td>
+                                    <td>{{ kpi.target_value }} {{ kpi.measurement_unit }}</td>
+                                    <td>
+                                        {% set progress = ((kpi.current_value / kpi.target_value) * 100) if kpi.target_value > 0 else 0 %}
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-{{ 'success' if progress >= 80 else 'warning' if progress >= 50 else 'danger' }}" 
+                                                 style="width: {{ progress }}%">
+                                                {{ "%.0f"|format(progress) }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if kpi.status == 'active' else 'secondary' }}">
+                                            {{ kpi.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- SWOT Analysis Summary -->
+    {% if swot %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-area me-2"></i>
+                        {{ 'تحليل SWOT' if lang == 'ar' else 'SWOT Analysis' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <h6 class="text-success">{{ 'نقاط القوة' if lang == 'ar' else 'Strengths' }}</h6>
+                            <ul class="small">
+                                {% for s in swot.strengths[:3] %}
+                                <li>{{ s }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-warning">{{ 'نقاط الضعف' if lang == 'ar' else 'Weaknesses' }}</h6>
+                            <ul class="small">
+                                {% for w in swot.weaknesses[:3] %}
+                                <li>{{ w }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-info">{{ 'الفرص' if lang == 'ar' else 'Opportunities' }}</h6>
+                            <ul class="small">
+                                {% for o in swot.opportunities[:3] %}
+                                <li>{{ o }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-danger">{{ 'التهديدات' if lang == 'ar' else 'Threats' }}</h6>
+                            <ul class="small">
+                                {% for t in swot.threats[:3] %}
+                                <li>{{ t }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

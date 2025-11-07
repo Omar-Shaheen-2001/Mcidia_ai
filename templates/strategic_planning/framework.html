@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'الهيكل الاستراتيجي' if lang == 'ar' else 'Strategic Framework' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-1">
+                <i class="fas fa-sitemap text-primary me-2"></i>
+                {{ 'الهيكل الاستراتيجي' if lang == 'ar' else 'Strategic Framework' }}
+            </h2>
+            <p class="text-muted">{{ plan.title }}</p>
+        </div>
+    </div>
+
+    {% if not plan.vision_statement %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm text-center py-5">
+                <div class="card-body">
+                    <i class="fas fa-robot fa-4x text-primary mb-4"></i>
+                    <h4>{{ 'قم بتوليد الهيكل الاستراتيجي بواسطة الذكاء الاصطناعي' if lang == 'ar' else 'Generate Strategic Framework with AI' }}</h4>
+                    <p class="text-muted mb-4">
+                        {{ 'سيقوم الذكاء الاصطناعي بتوليد الرؤية، الرسالة، القيم، والأهداف الاستراتيجية' if lang == 'ar' else 'AI will generate vision, mission, values, and strategic goals' }}
+                    </p>
+                    <button id="generateFrameworkBtn" class="btn btn-primary btn-lg">
+                        <i class="fas fa-magic me-2"></i>
+                        {{ 'توليد الهيكل' if lang == 'ar' else 'Generate Framework' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <!-- Vision & Mission -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-eye me-2"></i>
+                        {{ 'الرؤية' if lang == 'ar' else 'Vision' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="lead">{{ plan.vision_statement }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100 border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bullseye me-2"></i>
+                        {{ 'الرسالة' if lang == 'ar' else 'Mission' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ plan.mission_statement }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Strategic Goals -->
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trophy me-2"></i>
+                        {{ 'الأهداف الاستراتيجية' if lang == 'ar' else 'Strategic Goals' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if plan.strategic_goals %}
+                    {% set goals = plan.strategic_goals|fromjson %}
+                    <div class="row">
+                        {% for goal in goals %}
+                        <div class="col-md-6 mb-3">
+                            <div class="border-start border-primary border-4 ps-3">
+                                <h6 class="text-primary">{{ goal.goal }}</h6>
+                                <p class="text-muted mb-1">{{ goal.description }}</p>
+                                <div class="d-flex gap-3 small">
+                                    <span><i class="fas fa-layer-group me-1"></i> {{ goal.focus_area }}</span>
+                                    <span><i class="fas fa-clock me-1"></i> {{ goal.timeframe }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('strategic_planning_ai.analyze_pestel', plan_id=plan.id) }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>
+                    {{ 'رجوع' if lang == 'ar' else 'Back' }}
+                </a>
+                <a href="{{ url_for('strategic_planning_ai.manage_kpis', plan_id=plan.id) }}" class="btn btn-primary">
+                    {{ 'التالي: مؤشرات الأداء' if lang == 'ar' else 'Next: KPIs' }}
+                    <i class="fas fa-arrow-{{ 'left' if lang == 'ar' else 'right' }} ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.getElementById('generateFrameworkBtn')?.addEventListener('click', async function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ "جاري التوليد..." if lang == "ar" else "Generating..." }}';
+    
+    try {
+        const response = await fetch('{{ url_for("strategic_planning_ai.ai_generate_framework", plan_id=plan.id) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('{{ "خطأ: " if lang == "ar" else "Error: " }}' + data.error);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    } catch (error) {
+        alert('{{ "حدث خطأ في الاتصال" if lang == "ar" else "Connection error" }}');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+</script>
+{% endblock %}

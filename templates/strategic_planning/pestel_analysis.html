@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'تحليل PESTEL' if lang == 'ar' else 'PESTEL Analysis' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-1">
+                <i class="fas fa-globe text-primary me-2"></i>
+                {{ 'تحليل PESTEL' if lang == 'ar' else 'PESTEL Analysis' }}
+            </h2>
+            <p class="text-muted">{{ plan.title }}</p>
+        </div>
+    </div>
+
+    {% if not pestel_data %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm text-center py-5">
+                <div class="card-body">
+                    <i class="fas fa-robot fa-4x text-primary mb-4"></i>
+                    <h4>{{ 'قم بتوليد تحليل PESTEL بواسطة الذكاء الاصطناعي' if lang == 'ar' else 'Generate PESTEL Analysis with AI' }}</h4>
+                    <p class="text-muted mb-4">
+                        {{ 'سيقوم الذكاء الاصطناعي بتحليل العوامل الخارجية المؤثرة على المؤسسة' if lang == 'ar' else 'AI will analyze external factors affecting the organization' }}
+                    </p>
+                    <button id="generatePestelBtn" class="btn btn-primary btn-lg">
+                        <i class="fas fa-magic me-2"></i>
+                        {{ 'توليد التحليل' if lang == 'ar' else 'Generate Analysis' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <!-- Political -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-landmark me-2"></i>
+                        {{ 'سياسي (Political)' if lang == 'ar' else 'Political' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        {% for item in pestel_data.political %}
+                        <li class="mb-2">
+                            <i class="fas fa-arrow-right text-primary me-2"></i>
+                            {{ item }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Economic -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100 border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-dollar-sign me-2"></i>
+                        {{ 'اقتصادي (Economic)' if lang == 'ar' else 'Economic' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        {% for item in pestel_data.economic %}
+                        <li class="mb-2">
+                            <i class="fas fa-arrow-right text-success me-2"></i>
+                            {{ item }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100 border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users me-2"></i>
+                        {{ 'اجتماعي (Social)' if lang == 'ar' else 'Social' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        {% for item in pestel_data.social %}
+                        <li class="mb-2">
+                            <i class="fas fa-arrow-right text-info me-2"></i>
+                            {{ item }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technological -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100 border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-microchip me-2"></i>
+                        {{ 'تقني (Technological)' if lang == 'ar' else 'Technological' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        {% for item in pestel_data.technological %}
+                        <li class="mb-2">
+                            <i class="fas fa-arrow-right text-warning me-2"></i>
+                            {{ item }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Environmental -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100 border-success">
+                <div class="card-header" style="background-color: #28a745; color: white;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-leaf me-2"></i>
+                        {{ 'بيئي (Environmental)' if lang == 'ar' else 'Environmental' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        {% for item in pestel_data.environmental %}
+                        <li class="mb-2">
+                            <i class="fas fa-arrow-right text-success me-2"></i>
+                            {{ item }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legal -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-gavel me-2"></i>
+                        {{ 'قانوني (Legal)' if lang == 'ar' else 'Legal' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        {% for item in pestel_data.legal %}
+                        <li class="mb-2">
+                            <i class="fas fa-arrow-right text-danger me-2"></i>
+                            {{ item }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('strategic_planning_ai.analyze_swot', plan_id=plan.id) }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>
+                    {{ 'رجوع' if lang == 'ar' else 'Back' }}
+                </a>
+                <a href="{{ url_for('strategic_planning_ai.generate_framework', plan_id=plan.id) }}" class="btn btn-primary">
+                    {{ 'التالي: الهيكل الاستراتيجي' if lang == 'ar' else 'Next: Strategic Framework' }}
+                    <i class="fas fa-arrow-{{ 'left' if lang == 'ar' else 'right' }} ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.getElementById('generatePestelBtn')?.addEventListener('click', async function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ "جاري التوليد..." if lang == "ar" else "Generating..." }}';
+    
+    try {
+        const response = await fetch('{{ url_for("strategic_planning_ai.generate_pestel", plan_id=plan.id) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('{{ "خطأ: " if lang == "ar" else "Error: " }}' + data.error);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    } catch (error) {
+        alert('{{ "حدث خطأ في الاتصال" if lang == "ar" else "Connection error" }}');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+</script>
+{% endblock %}

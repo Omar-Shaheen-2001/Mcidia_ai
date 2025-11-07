@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'الخطط الاستراتيجية' if lang == 'ar' else 'Strategic Plans' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-chess text-primary me-2"></i>
+                    {{ 'التخطيط الاستراتيجي ومؤشرات الأداء' if lang == 'ar' else 'Strategic Planning & KPIs' }}
+                </h2>
+                <p class="text-muted">{{ 'قم ببناء خطتك الاستراتيجية باستخدام الذكاء الاصطناعي' if lang == 'ar' else 'Build your strategic plan with AI assistance' }}</p>
+            </div>
+            <a href="{{ url_for('strategic_planning_ai.create_plan') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>
+                {{ 'خطة جديدة' if lang == 'ar' else 'New Plan' }}
+            </a>
+        </div>
+    </div>
+
+    {% if plans %}
+    <div class="row">
+        {% for plan in plans %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm hover-elevate">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-file-alt text-primary me-2"></i>
+                            {{ plan.title }}
+                        </h5>
+                        <span class="badge bg-{{ 'success' if plan.status == 'published' else 'warning' if plan.status == 'draft' else 'secondary' }}">
+                            {{ plan.status }}
+                        </span>
+                    </div>
+                    
+                    <p class="text-muted small mb-3">
+                        <i class="fas fa-calendar me-1"></i>
+                        {{ plan.planning_period }}
+                    </p>
+
+                    {% if plan.organization_description %}
+                    <p class="card-text text-truncate">
+                        {{ plan.organization_description[:150] }}...
+                    </p>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                        <div class="d-flex gap-2">
+                            {% if plan.swot_analysis %}
+                            <i class="fas fa-check-circle text-success" title="SWOT Analysis"></i>
+                            {% endif %}
+                            {% if plan.vision_statement %}
+                            <i class="fas fa-eye text-info" title="Vision"></i>
+                            {% endif %}
+                        </div>
+                        <a href="{{ url_for('strategic_planning_ai.plan_dashboard', plan_id=plan.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-arrow-{{ 'left' if lang == 'ar' else 'right' }}"></i>
+                            {{ 'عرض' if lang == 'ar' else 'View' }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm text-center py-5">
+                <div class="card-body">
+                    <i class="fas fa-chess fa-4x text-muted mb-4"></i>
+                    <h4 class="text-muted">{{ 'لا توجد خطط استراتيجية حتى الآن' if lang == 'ar' else 'No strategic plans yet' }}</h4>
+                    <p class="text-muted">{{ 'ابدأ بإنشاء خطتك الاستراتيجية الأولى بمساعدة الذكاء الاصطناعي' if lang == 'ar' else 'Start by creating your first strategic plan with AI assistance' }}</p>
+                    <a href="{{ url_for('strategic_planning_ai.create_plan') }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-plus me-2"></i>
+                        {{ 'إنشاء خطة جديدة' if lang == 'ar' else 'Create New Plan' }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

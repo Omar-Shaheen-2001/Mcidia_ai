@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'إنشاء خطة استراتيجية جديدة' if lang == 'ar' else 'Create New Strategic Plan' }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chess me-2"></i>
+                        {{ 'إنشاء خطة استراتيجية جديدة' if lang == 'ar' else 'Create New Strategic Plan' }}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {{ csrf_token|safe }}
+                        
+                        <div class="mb-4">
+                            <h5 class="text-primary border-bottom pb-2">
+                                {{ 'معلومات المؤسسة' if lang == 'ar' else 'Organization Information' }}
+                            </h5>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="organization_name" class="form-label required">
+                                {{ 'اسم المؤسسة' if lang == 'ar' else 'Organization Name' }}
+                            </label>
+                            <input type="text" class="form-control" id="organization_name" name="organization_name" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="industry_sector" class="form-label required">
+                                    {{ 'القطاع' if lang == 'ar' else 'Industry Sector' }}
+                                </label>
+                                <select class="form-select" id="industry_sector" name="industry_sector" required>
+                                    <option value="">{{ 'اختر القطاع' if lang == 'ar' else 'Select Sector' }}</option>
+                                    <option value="تعليم">{{ 'تعليم' if lang == 'ar' else 'Education' }}</option>
+                                    <option value="صحة">{{ 'صحة' if lang == 'ar' else 'Healthcare' }}</option>
+                                    <option value="تقنية">{{ 'تقنية' if lang == 'ar' else 'Technology' }}</option>
+                                    <option value="تجارة">{{ 'تجارة' if lang == 'ar' else 'Retail' }}</option>
+                                    <option value="صناعة">{{ 'صناعة' if lang == 'ar' else 'Manufacturing' }}</option>
+                                    <option value="خدمات">{{ 'خدمات' if lang == 'ar' else 'Services' }}</option>
+                                    <option value="مالي">{{ 'مالي' if lang == 'ar' else 'Finance' }}</option>
+                                    <option value="أخرى">{{ 'أخرى' if lang == 'ar' else 'Other' }}</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="employee_count" class="form-label required">
+                                    {{ 'عدد الموظفين' if lang == 'ar' else 'Employee Count' }}
+                                </label>
+                                <input type="number" class="form-control" id="employee_count" name="employee_count" min="1" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="planning_period" class="form-label required">
+                                {{ 'مدة الخطة (بالسنوات)' if lang == 'ar' else 'Planning Period (Years)' }}
+                            </label>
+                            <select class="form-select" id="planning_period" name="planning_period" required>
+                                <option value="3">3 {{ 'سنوات' if lang == 'ar' else 'years' }}</option>
+                                <option value="5" selected>5 {{ 'سنوات' if lang == 'ar' else 'years' }}</option>
+                                <option value="7">7 {{ 'سنوات' if lang == 'ar' else 'years' }}</option>
+                                <option value="10">10 {{ 'سنوات' if lang == 'ar' else 'years' }}</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="organization_description" class="form-label required">
+                                {{ 'وصف المؤسسة وأنشطتها' if lang == 'ar' else 'Organization Description' }}
+                            </label>
+                            <textarea class="form-control" id="organization_description" name="organization_description" rows="4" required 
+                                placeholder="{{ 'اشرح طبيعة عمل المؤسسة، الخدمات أو المنتجات، والسوق المستهدف...' if lang == 'ar' else 'Describe the organization activities, services/products, and target market...' }}"></textarea>
+                            <small class="form-text text-muted">
+                                {{ 'سيتم استخدام هذا الوصف لتوليد التحليل الاستراتيجي بواسطة الذكاء الاصطناعي' if lang == 'ar' else 'This description will be used by AI to generate strategic analysis' }}
+                            </small>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5 class="text-primary border-bottom pb-2 mt-4">
+                                {{ 'الوضع الحالي' if lang == 'ar' else 'Current Situation' }}
+                            </h5>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="current_challenges" class="form-label required">
+                                {{ 'التحديات والعقبات الحالية' if lang == 'ar' else 'Current Challenges' }}
+                            </label>
+                            <textarea class="form-control" id="current_challenges" name="current_challenges" rows="4" required 
+                                placeholder="{{ 'اذكر كل تحدٍ في سطر منفصل...' if lang == 'ar' else 'List each challenge on a separate line...' }}"></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="opportunities" class="form-label required">
+                                {{ 'الفرص المتاحة' if lang == 'ar' else 'Available Opportunities' }}
+                            </label>
+                            <textarea class="form-control" id="opportunities" name="opportunities" rows="4" required 
+                                placeholder="{{ 'اذكر كل فرصة في سطر منفصل...' if lang == 'ar' else 'List each opportunity on a separate line...' }}"></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('strategic_planning_ai.index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>
+                                {{ 'إلغاء' if lang == 'ar' else 'Cancel' }}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                {{ 'التالي: تحليل SWOT' if lang == 'ar' else 'Next: SWOT Analysis' }}
+                                <i class="fas fa-arrow-{{ 'left' if lang == 'ar' else 'right' }} ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

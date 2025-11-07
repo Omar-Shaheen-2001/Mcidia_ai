@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'مؤشرات الأداء الرئيسية' if lang == 'ar' else 'Key Performance Indicators' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-chart-line text-primary me-2"></i>
+                    {{ 'مؤشرات الأداء الرئيسية (KPIs)' if lang == 'ar' else 'Key Performance Indicators' }}
+                </h2>
+                <p class="text-muted">{{ plan.title }}</p>
+            </div>
+            {% if not kpis %}
+            <button id="generateKpisBtn" class="btn btn-primary">
+                <i class="fas fa-magic me-2"></i>
+                {{ 'توليد المؤشرات' if lang == 'ar' else 'Generate KPIs' }}
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if not kpis %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm text-center py-5">
+                <div class="card-body">
+                    <i class="fas fa-robot fa-4x text-primary mb-4"></i>
+                    <h4>{{ 'قم بتوليد مؤشرات الأداء بواسطة الذكاء الاصطناعي' if lang == 'ar' else 'Generate KPIs with AI' }}</h4>
+                    <p class="text-muted mb-4">
+                        {{ 'سيقوم الذكاء الاصطناعي بتوليد مؤشرات SMART لكل هدف استراتيجي' if lang == 'ar' else 'AI will generate SMART KPIs for each strategic goal' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{{ 'اسم المؤشر' if lang == 'ar' else 'KPI Name' }}</th>
+                                    <th>{{ 'الفئة' if lang == 'ar' else 'Category' }}</th>
+                                    <th>{{ 'القيمة الأساسية' if lang == 'ar' else 'Baseline' }}</th>
+                                    <th>{{ 'القيمة الحالية' if lang == 'ar' else 'Current' }}</th>
+                                    <th>{{ 'القيمة المستهدفة' if lang == 'ar' else 'Target' }}</th>
+                                    <th>{{ 'التقدم' if lang == 'ar' else 'Progress' }}</th>
+                                    <th>{{ 'المسؤول' if lang == 'ar' else 'Owner' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for kpi in kpis %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ kpi.name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ kpi.description }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ kpi.category }}</span>
+                                    </td>
+                                    <td>{{ kpi.baseline_value }} {{ kpi.measurement_unit }}</td>
+                                    <td>{{ kpi.current_value }} {{ kpi.measurement_unit }}</td>
+                                    <td>{{ kpi.target_value }} {{ kpi.measurement_unit }}</td>
+                                    <td>
+                                        {% set progress = ((kpi.current_value / kpi.target_value) * 100) if kpi.target_value > 0 else 0 %}
+                                        <div class="progress" style="height: 25px;">
+                                            <div class="progress-bar bg-{{ 'success' if progress >= 80 else 'warning' if progress >= 50 else 'danger' }}" 
+                                                 style="width: {{ progress }}%">
+                                                {{ "%.0f"|format(progress) }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small>{{ kpi.responsible_party }}</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('strategic_planning_ai.generate_framework', plan_id=plan.id) }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>
+                    {{ 'رجوع' if lang == 'ar' else 'Back' }}
+                </a>
+                <a href="{{ url_for('strategic_planning_ai.plan_dashboard', plan_id=plan.id) }}" class="btn btn-success">
+                    {{ 'إنهاء وعرض الخطة' if lang == 'ar' else 'Finish & View Plan' }}
+                    <i class="fas fa-check ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.getElementById('generateKpisBtn')?.addEventListener('click', async function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ "جاري التوليد..." if lang == "ar" else "Generating..." }}';
+    
+    try {
+        const response = await fetch('{{ url_for("strategic_planning_ai.generate_kpis", plan_id=plan.id) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('{{ "خطأ: " if lang == "ar" else "Error: " }}' + data.error);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    } catch (error) {
+        alert('{{ "حدث خطأ في الاتصال" if lang == "ar" else "Connection error" }}');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+</script>
+{% endblock %}
