@@ -6,7 +6,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
 from models import StrategicPlan, StrategicKPI, StrategicInitiative, ServiceOffering, User
-from utils.ai_client import llm_chat
+from utils.ai_providers.ai_manager import AIManager
 import json
 from datetime import datetime
 
@@ -165,15 +165,16 @@ def generate_swot(plan_id):
   "threats": ["تهديد 1", "تهديد 2", ...]
 }}"""
         
-        # Call AI
+        # Call AI using HuggingFace (FREE!)
+        ai = AIManager.for_use_case('swot_analysis')
         system_prompt = "أنت مستشار استراتيجي خبير متخصص في تحليل SWOT للمؤسسات. قدّم تحليلاً شاملاً ودقيقاً بصيغة JSON."
-        response = llm_chat(
+        response = ai.chat(
+            prompt=prompt,
             system_prompt=system_prompt,
-            user_message=prompt,
             response_format='json'
         )
         
-        # Parse response (llm_chat returns string directly)
+        # Parse response
         swot_data = json.loads(response)
         
         # Save to database
@@ -248,15 +249,16 @@ def generate_pestel(plan_id):
   "legal": ["عامل قانوني 1", ...]
 }}"""
         
-        # Call AI
+        # Call AI using HuggingFace (FREE!)
+        ai = AIManager.for_use_case('pestel_analysis')
         system_prompt = "أنت مستشار استراتيجي خبير متخصص في تحليل PESTEL للبيئة الخارجية للمؤسسات. قدّم تحليلاً شاملاً ودقيقاً بصيغة JSON."
-        response = llm_chat(
+        response = ai.chat(
+            prompt=prompt,
             system_prompt=system_prompt,
-            user_message=prompt,
             response_format='json'
         )
         
-        # Parse response (llm_chat returns string directly)
+        # Parse response
         pestel_data = json.loads(response)
         
         # Save to database
@@ -342,15 +344,16 @@ def ai_generate_framework(plan_id):
   ]
 }}"""
         
-        # Call AI
+        # Call AI using HuggingFace (FREE!)
+        ai = AIManager.for_use_case('vision_mission')
         system_prompt = "أنت مستشار استراتيجي خبير متخصص في بناء الأطر الاستراتيجية للمؤسسات (الرؤية، الرسالة، القيم، الأهداف). قدّم إطاراً استراتيجياً ملهماً وقابلاً للتطبيق بصيغة JSON."
-        response = llm_chat(
+        response = ai.chat(
+            prompt=prompt,
             system_prompt=system_prompt,
-            user_message=prompt,
             response_format='json'
         )
         
-        # Parse response (llm_chat returns string directly)
+        # Parse response
         framework_data = json.loads(response)
         
         # Save to database
@@ -440,15 +443,16 @@ def generate_kpis(plan_id):
   ]
 }}"""
         
-        # Call AI
+        # Call AI using HuggingFace (FREE!)
+        ai = AIManager.for_use_case('kpi_generation')
         system_prompt = "أنت مستشار استراتيجي خبير متخصص في تطوير مؤشرات الأداء الرئيسية (KPIs) بمعايير SMART. قدّم مؤشرات أداء قابلة للقياس والتطبيق بصيغة JSON."
-        response = llm_chat(
+        response = ai.chat(
+            prompt=prompt,
             system_prompt=system_prompt,
-            user_message=prompt,
             response_format='json'
         )
         
-        # Parse response (llm_chat returns string directly)
+        # Parse response
         kpis_data = json.loads(response)
         
         # Create KPI records
