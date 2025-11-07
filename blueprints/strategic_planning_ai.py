@@ -3,6 +3,7 @@ Strategic Planning & KPIs Development Module
 AI-powered strategic planning with SWOT, PESTEL, Vision/Mission, Goals, and KPIs generation
 """
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app
+from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
 from models import StrategicPlan, StrategicKPI, StrategicInitiative, ServiceOffering, User
 from utils.ai_client import llm_chat
@@ -27,7 +28,7 @@ def index():
     """Strategic Planning dashboard - list all plans"""
     db = get_db()
     lang = get_lang()
-    user_id = session.get('user_id')
+    user_id = int(get_jwt_identity())
     
     # Get all plans for current user
     plans = db.session.query(StrategicPlan).filter_by(user_id=user_id).order_by(StrategicPlan.updated_at.desc()).all()
@@ -44,7 +45,7 @@ def create_plan():
     """Create new strategic plan - step 1: organization information"""
     db = get_db()
     lang = get_lang()
-    user_id = session.get('user_id')
+    user_id = int(get_jwt_identity())
     
     if request.method == 'GET':
         # Get offering details for form configuration
@@ -101,7 +102,7 @@ def analyze_swot(plan_id):
     """Display SWOT analysis page"""
     db = get_db()
     lang = get_lang()
-    user_id = session.get('user_id')
+    user_id = int(get_jwt_identity())
     
     # Authorization: Verify ownership
     plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
@@ -123,7 +124,7 @@ def generate_swot(plan_id):
     """Generate SWOT analysis using AI"""
     db = get_db()
     lang = get_lang()
-    user_id = session.get('user_id')
+    user_id = int(get_jwt_identity())
     
     # Authorization: Verify ownership
     plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
@@ -192,7 +193,7 @@ def analyze_pestel(plan_id):
     """Display PESTEL analysis page"""
     db = get_db()
     lang = get_lang()
-    user_id = session.get('user_id')
+    user_id = int(get_jwt_identity())
     
     # Authorization: Verify ownership
     plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
@@ -214,7 +215,7 @@ def generate_pestel(plan_id):
     """Generate PESTEL analysis using AI"""
     db = get_db()
     lang = get_lang()
-    user_id = session.get('user_id')
+    user_id = int(get_jwt_identity())
     
     # Authorization: Verify ownership
     plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
@@ -274,7 +275,7 @@ def generate_framework(plan_id):
     """Generate Vision, Mission, Values, and Goals using AI"""
     db = get_db()
     lang = get_lang()
-    user_id = session.get('user_id')
+    user_id = int(get_jwt_identity())
     
     # Authorization: Verify ownership
     plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
@@ -291,7 +292,7 @@ def generate_framework(plan_id):
 def ai_generate_framework(plan_id):
     """AI generates vision, mission, values, and strategic goals"""
     db = get_db()
-    user_id = session.get('user_id')
+    user_id = int(get_jwt_identity())
     
     # Authorization: Verify ownership
     plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
@@ -370,7 +371,7 @@ def manage_kpis(plan_id):
     """Manage KPIs for the strategic plan"""
     db = get_db()
     lang = get_lang()
-    user_id = session.get('user_id')
+    user_id = int(get_jwt_identity())
     
     # Authorization: Verify ownership
     plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
@@ -390,7 +391,7 @@ def manage_kpis(plan_id):
 def generate_kpis(plan_id):
     """AI generates SMART KPIs for each strategic goal"""
     db = get_db()
-    user_id = session.get('user_id')
+    user_id = int(get_jwt_identity())
     
     # Authorization: Verify ownership
     plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
@@ -480,7 +481,7 @@ def plan_dashboard(plan_id):
     """Complete strategic plan dashboard with all components"""
     db = get_db()
     lang = get_lang()
-    user_id = session.get('user_id')
+    user_id = int(get_jwt_identity())
     
     # Authorization: Verify ownership
     plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
@@ -514,7 +515,7 @@ def plan_dashboard(plan_id):
 def export_pdf(plan_id):
     """Export strategic plan as PDF report"""
     db = get_db()
-    user_id = session.get('user_id')
+    user_id = int(get_jwt_identity())
     
     # Authorization: Verify ownership
     plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
