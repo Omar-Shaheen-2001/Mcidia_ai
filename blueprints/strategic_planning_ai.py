@@ -103,7 +103,11 @@ def analyze_swot(plan_id):
     lang = get_lang()
     user_id = session.get('user_id')
     
-    plan = db.session.query(StrategicPlan).filter_by(id=plan_id, user_id=user_id).first_or_404()
+    # Authorization: Verify ownership
+    plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
+    if plan.user_id != user_id:
+        flash('غير مصرح لك بالوصول لهذه الخطة / Unauthorized access' if lang == 'ar' else 'Unauthorized access', 'danger')
+        return redirect(url_for('strategic_planning_ai.index')), 403
     
     # Parse existing SWOT if available
     swot_data = json.loads(plan.swot_analysis) if plan.swot_analysis else None
@@ -121,7 +125,10 @@ def generate_swot(plan_id):
     lang = get_lang()
     user_id = session.get('user_id')
     
-    plan = db.session.query(StrategicPlan).filter_by(id=plan_id, user_id=user_id).first_or_404()
+    # Authorization: Verify ownership
+    plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
+    if plan.user_id != user_id:
+        return jsonify({'success': False, 'error': 'Unauthorized access'}), 403
     
     try:
         # Prepare context for AI
@@ -187,7 +194,11 @@ def analyze_pestel(plan_id):
     lang = get_lang()
     user_id = session.get('user_id')
     
-    plan = db.session.query(StrategicPlan).filter_by(id=plan_id, user_id=user_id).first_or_404()
+    # Authorization: Verify ownership
+    plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
+    if plan.user_id != user_id:
+        flash('غير مصرح لك بالوصول لهذه الخطة / Unauthorized access' if lang == 'ar' else 'Unauthorized access', 'danger')
+        return redirect(url_for('strategic_planning_ai.index')), 403
     
     # Parse existing PESTEL if available
     pestel_data = json.loads(plan.pestel_analysis) if plan.pestel_analysis else None
@@ -205,7 +216,10 @@ def generate_pestel(plan_id):
     lang = get_lang()
     user_id = session.get('user_id')
     
-    plan = db.session.query(StrategicPlan).filter_by(id=plan_id, user_id=user_id).first_or_404()
+    # Authorization: Verify ownership
+    plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
+    if plan.user_id != user_id:
+        return jsonify({'success': False, 'error': 'Unauthorized access'}), 403
     
     try:
         prompt = f"""قم بإجراء تحليل PESTEL شامل للمؤسسة التالية:
@@ -262,7 +276,11 @@ def generate_framework(plan_id):
     lang = get_lang()
     user_id = session.get('user_id')
     
-    plan = db.session.query(StrategicPlan).filter_by(id=plan_id, user_id=user_id).first_or_404()
+    # Authorization: Verify ownership
+    plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
+    if plan.user_id != user_id:
+        flash('غير مصرح لك بالوصول لهذه الخطة / Unauthorized access' if lang == 'ar' else 'Unauthorized access', 'danger')
+        return redirect(url_for('strategic_planning_ai.index')), 403
     
     return render_template('strategic_planning/framework.html',
                          plan=plan,
@@ -275,7 +293,10 @@ def ai_generate_framework(plan_id):
     db = get_db()
     user_id = session.get('user_id')
     
-    plan = db.session.query(StrategicPlan).filter_by(id=plan_id, user_id=user_id).first_or_404()
+    # Authorization: Verify ownership
+    plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
+    if plan.user_id != user_id:
+        return jsonify({'success': False, 'error': 'Unauthorized access'}), 403
     
     try:
         # Get SWOT data
@@ -351,7 +372,12 @@ def manage_kpis(plan_id):
     lang = get_lang()
     user_id = session.get('user_id')
     
-    plan = db.session.query(StrategicPlan).filter_by(id=plan_id, user_id=user_id).first_or_404()
+    # Authorization: Verify ownership
+    plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
+    if plan.user_id != user_id:
+        flash('غير مصرح لك بالوصول لهذه الخطة / Unauthorized access' if lang == 'ar' else 'Unauthorized access', 'danger')
+        return redirect(url_for('strategic_planning_ai.index')), 403
+    
     kpis = db.session.query(StrategicKPI).filter_by(plan_id=plan_id).all()
     
     return render_template('strategic_planning/kpis.html',
@@ -366,7 +392,10 @@ def generate_kpis(plan_id):
     db = get_db()
     user_id = session.get('user_id')
     
-    plan = db.session.query(StrategicPlan).filter_by(id=plan_id, user_id=user_id).first_or_404()
+    # Authorization: Verify ownership
+    plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
+    if plan.user_id != user_id:
+        return jsonify({'success': False, 'error': 'Unauthorized access'}), 403
     
     try:
         strategic_goals = json.loads(plan.strategic_goals) if plan.strategic_goals else []
@@ -453,7 +482,12 @@ def plan_dashboard(plan_id):
     lang = get_lang()
     user_id = session.get('user_id')
     
-    plan = db.session.query(StrategicPlan).filter_by(id=plan_id, user_id=user_id).first_or_404()
+    # Authorization: Verify ownership
+    plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
+    if plan.user_id != user_id:
+        flash('غير مصرح لك بالوصول لهذه الخطة / Unauthorized access' if lang == 'ar' else 'Unauthorized access', 'danger')
+        return redirect(url_for('strategic_planning_ai.index')), 403
+    
     kpis = db.session.query(StrategicKPI).filter_by(plan_id=plan_id).all()
     initiatives = db.session.query(StrategicInitiative).filter_by(plan_id=plan_id).all()
     
@@ -479,6 +513,15 @@ def plan_dashboard(plan_id):
 @login_required
 def export_pdf(plan_id):
     """Export strategic plan as PDF report"""
+    db = get_db()
+    user_id = session.get('user_id')
+    
+    # Authorization: Verify ownership
+    plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
+    if plan.user_id != user_id:
+        flash('غير مصرح لك بالوصول لهذه الخطة / Unauthorized access', 'danger')
+        return redirect(url_for('strategic_planning_ai.index')), 403
+    
     # TODO: Implement PDF generation using ReportLab or WeasyPrint
     flash('قريباً: تصدير PDF / Coming soon: PDF export', 'info')
     return redirect(url_for('strategic_planning_ai.plan_dashboard', plan_id=plan_id))
