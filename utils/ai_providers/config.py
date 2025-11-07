@@ -15,12 +15,14 @@ class AIConfig:
             'name': 'HuggingFace',
             'free': True,
             'models': {
+                'deepseek': 'deepseek-ai/DeepSeek-V3',
+                'llama3-405b': 'meta-llama/Llama-3.1-405B-Instruct',
                 'llama3': 'meta-llama/Meta-Llama-3.1-8B-Instruct',
                 'mistral': 'mistralai/Mistral-7B-Instruct-v0.3',
-                'mixtral': 'mistralai/Mixtral-8x7B-Instruct-v0.1',
+                'codellama': 'codellama/CodeLlama-70b-Instruct',
             },
             'default_model': 'llama3',
-            'requires_api_key': False,
+            'requires_api_key': True,
         },
         'openai': {
             'name': 'OpenAI',
@@ -108,7 +110,7 @@ class AIConfig:
         if provider.lower() == 'openai':
             return bool(os.getenv('OPENAI_API_KEY'))
         elif provider.lower() == 'huggingface':
-            return True
+            return bool(os.getenv('HUGGINGFACE_TOKEN') or os.getenv('HUGGINGFACE_API_KEY'))
         return False
     
     @classmethod

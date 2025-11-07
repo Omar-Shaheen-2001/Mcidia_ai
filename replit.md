@@ -30,13 +30,19 @@ A hierarchical role system is enforced using custom Flask decorators (`@login_re
 ## External Dependencies
 
 ### Third-Party Services
--   **HuggingFace Inference API**: Primary AI provider for consultation features (FREE!)
-    - **Models** (Nov 2025 Updated):
-      - meta-llama/Meta-Llama-3.1-8B-Instruct (Latest Llama 3.1)
-      - mistralai/Mistral-7B-Instruct-v0.3 (Latest with function calling)
-      - mistralai/Mixtral-8x7B-Instruct-v0.1
-    - Optional API key via `HUGGINGFACE_API_KEY` (not required for free tier)
-    - Free tier with auto-loading models (20-30s initial wake-up)
+-   **HuggingFace Inference Providers**: Primary AI provider for consultation features (FREE with account!)
+    - **Architecture** (Jan 2025 Update):
+      - Uses new OpenAI-compatible API endpoint: `https://router.huggingface.co/v1/chat/completions`
+      - Multi-provider routing system (SambaNova, Together AI, fal, Replicate, etc.)
+      - Free tier includes monthly credits for all HuggingFace users
+    - **Models** (2025 Supported):
+      - `deepseek-ai/DeepSeek-V3` (Best reasoning, trending 2025)
+      - `meta-llama/Llama-3.1-405B-Instruct` (Large context, most capable open model)
+      - `meta-llama/Llama-3.1-8B-Instruct` (Fast, efficient, default)
+      - `mistralai/Mistral-7B-Instruct-v0.3` (Good balance)
+      - `codellama/CodeLlama-70b-Instruct` (Code generation specialist)
+    - **Authentication**: Requires `HUGGINGFACE_TOKEN` (free to obtain at https://huggingface.co/settings/tokens)
+    - **Note**: Old endpoint (api-inference.huggingface.co) deprecated in 2025, returns 410 Gone
 -   **OpenAI API**: Optional fallback AI provider (GPT-4, GPT-3.5-Turbo).
 -   **Stripe**: Payment processing and subscription management.
 
