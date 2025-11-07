@@ -15,8 +15,8 @@ class AIConfig:
             'name': 'HuggingFace',
             'free': True,
             'models': {
-                'llama3': 'meta-llama/Meta-Llama-3-8B-Instruct',
-                'mistral': 'mistralai/Mistral-7B-Instruct-v0.2',
+                'llama3': 'meta-llama/Meta-Llama-3.1-8B-Instruct',
+                'mistral': 'mistralai/Mistral-7B-Instruct-v0.3',
                 'mixtral': 'mistralai/Mixtral-8x7B-Instruct-v0.1',
             },
             'default_model': 'llama3',

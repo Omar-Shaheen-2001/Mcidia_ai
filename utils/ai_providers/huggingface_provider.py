@@ -10,14 +10,14 @@ class HuggingFaceProvider(AIProvider):
     HuggingFace Inference API Provider (100% FREE!)
     
     Supports models like:
-    - meta-llama/Meta-Llama-3-8B-Instruct
-    - mistralai/Mistral-7B-Instruct-v0.2
+    - meta-llama/Meta-Llama-3.1-8B-Instruct (Latest Llama 3.1)
+    - mistralai/Mistral-7B-Instruct-v0.3 (Latest with function calling)
     - mistralai/Mixtral-8x7B-Instruct-v0.1
     """
     
     DEFAULT_MODELS = {
-        'llama3': 'meta-llama/Meta-Llama-3-8B-Instruct',
-        'mistral': 'mistralai/Mistral-7B-Instruct-v0.2',
+        'llama3': 'meta-llama/Meta-Llama-3.1-8B-Instruct',
+        'mistral': 'mistralai/Mistral-7B-Instruct-v0.3',
         'mixtral': 'mistralai/Mixtral-8x7B-Instruct-v0.1',
     }
     
