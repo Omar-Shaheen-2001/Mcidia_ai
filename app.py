@@ -134,7 +134,7 @@ def create_app():
     app.register_blueprint(profile_bp)
     app.register_blueprint(services_bp)
     app.register_blueprint(strategy_bp, url_prefix='/strategy')
-    app.register_blueprint(strategic_planning_bp, url_prefix='/strategic-planning')
+    app.register_blueprint(strategic_planning_bp, url_prefix='/services/organizational-building/strategic-planning-kpis')
     app.register_blueprint(hr_bp, url_prefix='/hr')
     app.register_blueprint(finance_bp, url_prefix='/finance')
     app.register_blueprint(marketing_bp, url_prefix='/marketing')
