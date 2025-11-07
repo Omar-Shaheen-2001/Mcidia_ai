@@ -173,11 +173,11 @@ def generate_swot(plan_id):
             response_format='json'
         )
         
-        swot_data = json.loads(response['content'])
+        # Parse response (llm_chat returns string directly)
+        swot_data = json.loads(response)
         
         # Save to database
         plan.swot_analysis = json.dumps(swot_data, ensure_ascii=False)
-        plan.ai_tokens_used += response.get('tokens_used', 0)
         db.session.commit()
         
         return jsonify({'success': True, 'data': swot_data})
@@ -256,11 +256,11 @@ def generate_pestel(plan_id):
             response_format='json'
         )
         
-        pestel_data = json.loads(response['content'])
+        # Parse response (llm_chat returns string directly)
+        pestel_data = json.loads(response)
         
         # Save to database
         plan.pestel_analysis = json.dumps(pestel_data, ensure_ascii=False)
-        plan.ai_tokens_used += response.get('tokens_used', 0)
         db.session.commit()
         
         return jsonify({'success': True, 'data': pestel_data})
@@ -350,14 +350,14 @@ def ai_generate_framework(plan_id):
             response_format='json'
         )
         
-        framework_data = json.loads(response['content'])
+        # Parse response (llm_chat returns string directly)
+        framework_data = json.loads(response)
         
         # Save to database
         plan.vision_statement = framework_data.get('vision')
         plan.mission_statement = framework_data.get('mission')
         plan.core_values = json.dumps(framework_data.get('values', []), ensure_ascii=False)
         plan.strategic_goals = json.dumps(framework_data.get('strategic_goals', []), ensure_ascii=False)
-        plan.ai_tokens_used += response.get('tokens_used', 0)
         db.session.commit()
         
         return jsonify({'success': True, 'data': framework_data})
@@ -448,7 +448,8 @@ def generate_kpis(plan_id):
             response_format='json'
         )
         
-        kpis_data = json.loads(response['content'])
+        # Parse response (llm_chat returns string directly)
+        kpis_data = json.loads(response)
         
         # Create KPI records
         for kpi_data in kpis_data.get('kpis', []):
@@ -467,8 +468,6 @@ def generate_kpis(plan_id):
                 status='active'
             )
             db.session.add(kpi)
-        
-        plan.ai_tokens_used += response.get('tokens_used', 0)
         db.session.commit()
         
         return jsonify({'success': True, 'kpis_count': len(kpis_data.get('kpis', []))})
