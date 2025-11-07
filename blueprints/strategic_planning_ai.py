@@ -166,9 +166,10 @@ def generate_swot(plan_id):
 }}"""
         
         # Call AI
+        system_prompt = "أنت مستشار استراتيجي خبير متخصص في تحليل SWOT للمؤسسات. قدّم تحليلاً شاملاً ودقيقاً بصيغة JSON."
         response = llm_chat(
-            prompt=prompt,
-            model='gpt-4',
+            system_prompt=system_prompt,
+            user_message=prompt,
             response_format='json'
         )
         
@@ -248,9 +249,10 @@ def generate_pestel(plan_id):
 }}"""
         
         # Call AI
+        system_prompt = "أنت مستشار استراتيجي خبير متخصص في تحليل PESTEL للبيئة الخارجية للمؤسسات. قدّم تحليلاً شاملاً ودقيقاً بصيغة JSON."
         response = llm_chat(
-            prompt=prompt,
-            model='gpt-4',
+            system_prompt=system_prompt,
+            user_message=prompt,
             response_format='json'
         )
         
@@ -341,9 +343,10 @@ def ai_generate_framework(plan_id):
 }}"""
         
         # Call AI
+        system_prompt = "أنت مستشار استراتيجي خبير متخصص في بناء الأطر الاستراتيجية للمؤسسات (الرؤية، الرسالة، القيم، الأهداف). قدّم إطاراً استراتيجياً ملهماً وقابلاً للتطبيق بصيغة JSON."
         response = llm_chat(
-            prompt=prompt,
-            model='gpt-4',
+            system_prompt=system_prompt,
+            user_message=prompt,
             response_format='json'
         )
         
@@ -438,9 +441,10 @@ def generate_kpis(plan_id):
 }}"""
         
         # Call AI
+        system_prompt = "أنت مستشار استراتيجي خبير متخصص في تطوير مؤشرات الأداء الرئيسية (KPIs) بمعايير SMART. قدّم مؤشرات أداء قابلة للقياس والتطبيق بصيغة JSON."
         response = llm_chat(
-            prompt=prompt,
-            model='gpt-4',
+            system_prompt=system_prompt,
+            user_message=prompt,
             response_format='json'
         )
         
