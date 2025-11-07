@@ -548,3 +548,167 @@ class AuditLog(db.Model):
             'status': self.status,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+
+# ==================== STRATEGIC PLANNING MODULE MODELS ====================
+
+class StrategicPlan(db.Model):
+    """Strategic Plan for organizations - comprehensive strategic planning"""
+    __tablename__ = 'strategic_plans'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
+    
+    # Basic Information
+    title = db.Column(db.String(200), nullable=False)
+    planning_period = db.Column(db.String(50))  # e.g., "2024-2027"
+    start_year = db.Column(db.Integer)
+    end_year = db.Column(db.Integer)
+    
+    # Organization Context (AI-analyzed)
+    industry_sector = db.Column(db.String(100))
+    employee_count = db.Column(db.Integer)
+    organization_description = db.Column(db.Text)
+    current_challenges = db.Column(db.Text)  # JSON array
+    opportunities = db.Column(db.Text)  # JSON array
+    
+    # Strategic Framework (AI-generated)
+    vision_statement = db.Column(db.Text)
+    mission_statement = db.Column(db.Text)
+    core_values = db.Column(db.Text)  # JSON array
+    strategic_goals = db.Column(db.Text)  # JSON array of goals
+    
+    # Analysis Results (stored as JSON)
+    swot_analysis = db.Column(db.Text)  # JSON: {strengths:[], weaknesses:[], opportunities:[], threats:[]}
+    pestel_analysis = db.Column(db.Text)  # JSON: {political:[], economic:[], social:[], technological:[], environmental:[], legal:[]}
+    stakeholder_analysis = db.Column(db.Text)  # JSON array of stakeholders
+    
+    # Status & Metadata
+    status = db.Column(db.String(50), default='draft')  # draft, active, completed, archived
+    completion_percentage = db.Column(db.Integer, default=0)
+    ai_tokens_used = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    kpis = db.relationship('StrategicKPI', backref='plan', lazy=True, cascade='all, delete-orphan')
+    initiatives = db.relationship('StrategicInitiative', backref='plan', lazy=True, cascade='all, delete-orphan')
+    
+    def to_dict(self):
+        import json
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'organization_id': self.organization_id,
+            'title': self.title,
+            'planning_period': self.planning_period,
+            'vision_statement': self.vision_statement,
+            'mission_statement': self.mission_statement,
+            'core_values': json.loads(self.core_values) if self.core_values else [],
+            'strategic_goals': json.loads(self.strategic_goals) if self.strategic_goals else [],
+            'status': self.status,
+            'completion_percentage': self.completion_percentage,
+            'kpis_count': len(self.kpis) if self.kpis else 0,
+            'initiatives_count': len(self.initiatives) if self.initiatives else 0,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class StrategicKPI(db.Model):
+    """Key Performance Indicators - SMART KPIs for strategic goals"""
+    __tablename__ = 'strategic_kpis'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    plan_id = db.Column(db.Integer, db.ForeignKey('strategic_plans.id'), nullable=False)
+    
+    # KPI Details
+    name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    category = db.Column(db.String(100))  # Financial, Customer, Internal, Learning & Growth
+    
+    # SMART Criteria
+    measurement_unit = db.Column(db.String(50))  # %, number, currency, etc.
+    baseline_value = db.Column(db.Float)
+    target_value = db.Column(db.Float)
+    current_value = db.Column(db.Float)
+    
+    # Tracking
+    measurement_frequency = db.Column(db.String(50))  # monthly, quarterly, yearly
+    responsible_party = db.Column(db.String(100))
+    data_source = db.Column(db.String(200))
+    
+    # Status
+    status = db.Column(db.String(50), default='active')  # active, achieved, paused, cancelled
+    progress_percentage = db.Column(db.Integer, default=0)
+    
+    # Metadata
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'plan_id': self.plan_id,
+            'name': self.name,
+            'description': self.description,
+            'category': self.category,
+            'measurement_unit': self.measurement_unit,
+            'baseline_value': self.baseline_value,
+            'target_value': self.target_value,
+            'current_value': self.current_value,
+            'measurement_frequency': self.measurement_frequency,
+            'responsible_party': self.responsible_party,
+            'status': self.status,
+            'progress_percentage': self.progress_percentage
+        }
+
+class StrategicInitiative(db.Model):
+    """Strategic Initiatives - Action plans to achieve strategic goals"""
+    __tablename__ = 'strategic_initiatives'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    plan_id = db.Column(db.Integer, db.ForeignKey('strategic_plans.id'), nullable=False)
+    
+    # Initiative Details
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    strategic_goal = db.Column(db.String(200))  # Which goal this supports
+    
+    # Planning
+    start_date = db.Column(db.Date)
+    end_date = db.Column(db.Date)
+    budget = db.Column(db.Float)
+    responsible_department = db.Column(db.String(100))
+    team_members = db.Column(db.Text)  # JSON array of team member names/IDs
+    
+    # Execution
+    deliverables = db.Column(db.Text)  # JSON array of expected deliverables
+    milestones = db.Column(db.Text)  # JSON array of milestones with dates
+    risks = db.Column(db.Text)  # JSON array of potential risks
+    
+    # Status
+    status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed, on_hold, cancelled
+    completion_percentage = db.Column(db.Integer, default=0)
+    
+    # Metadata
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        import json
+        return {
+            'id': self.id,
+            'plan_id': self.plan_id,
+            'title': self.title,
+            'description': self.description,
+            'strategic_goal': self.strategic_goal,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'end_date': self.end_date.isoformat() if self.end_date else None,
+            'budget': self.budget,
+            'responsible_department': self.responsible_department,
+            'team_members': json.loads(self.team_members) if self.team_members else [],
+            'deliverables': json.loads(self.deliverables) if self.deliverables else [],
+            'status': self.status,
+            'completion_percentage': self.completion_percentage,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
