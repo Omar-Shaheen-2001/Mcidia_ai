@@ -4,6 +4,13 @@
 
 Mcidia is a comprehensive AI-powered B2B consulting platform designed for organizational excellence. It provides 12+ specialized consulting modules covering strategic planning, human resources, governance, innovation, finance, marketing, and knowledge management. The platform features bilingual support (Arabic/English with RTL/LTR), AI-driven consultation tools, subscription management with Stripe integration, and role-based access control for admins, consultants, company users, and clients.
 
+### Latest Updates (November 2025)
+- **✅ Strategic Planning & KPIs Module (COMPLETE)**: Full AI-powered strategic planning module with SWOT/PESTEL analysis, vision/mission generation, KPI development, and comprehensive dashboard
+  - URL: `/strategic-planning/`
+  - Features: Organization data collection, AI-driven SWOT/PESTEL analysis, strategic framework generation (Vision/Mission/Goals), SMART KPI generation, interactive dashboard
+  - AI Models: GPT-4 for strategic analysis
+  - Database: StrategicPlan, StrategicKPI, StrategicInitiative tables
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
