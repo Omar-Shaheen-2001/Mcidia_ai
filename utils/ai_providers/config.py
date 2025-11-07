@@ -1,4 +1,5 @@
 import os
+import copy
 from typing import Optional, Dict, Any
 
 
@@ -84,7 +85,7 @@ class AIConfig:
     
     @classmethod
     def get_use_case_config(cls, use_case: str) -> Dict[str, Any]:
-        """Get AI configuration for a specific use case (returns defensive copy)"""
+        """Get AI configuration for a specific use case (returns deep copy)"""
         default_config = {
             'provider': cls.get_default_provider(),
             'model': 'llama3',
@@ -92,8 +93,8 @@ class AIConfig:
             'max_tokens': 2000,
         }
         
-        # Get config and create defensive copy to prevent mutation
-        config = cls.USE_CASES.get(use_case, default_config).copy()
+        # Get config and create DEEP COPY to prevent mutation of nested dicts
+        config = copy.deepcopy(cls.USE_CASES.get(use_case, default_config))
         
         provider_override = os.getenv(f'AI_PROVIDER_{use_case.upper()}')
         if provider_override:
