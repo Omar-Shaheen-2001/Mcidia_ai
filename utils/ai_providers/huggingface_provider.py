@@ -12,20 +12,22 @@ class HuggingFaceProvider(AIProvider):
     Uses HuggingFace's 2025 OpenAI-compatible API with multi-provider routing.
     Free tier includes monthly credits for all users.
     
-    Supported models (Auto-routed to best available provider):
-    - deepseek-ai/DeepSeek-V3 (Best reasoning, trending 2025)
-    - meta-llama/Llama-3.1-405B-Instruct (Large context, most capable)
-    - meta-llama/Llama-3.1-8B-Instruct (Fast, efficient)
-    - mistralai/Mistral-7B-Instruct-v0.3 (Good balance)
-    - codellama/CodeLlama-70b-Instruct (Code generation)
+    Supported chat-compatible models (Auto-routed to best available provider):
+    - deepseek-ai/DeepSeek-V3 (Best for complex reasoning)
+    - deepseek-ai/DeepSeek-R1 (Math, logic, coding with chain-of-thought)
+    - meta-llama/Llama-3.3-70B-Instruct (Powerful instruction-following)
+    - meta-llama/Llama-3.1-8B-Instruct (Fast, efficient, default)
+    - Qwen/Qwen2.5-72B-Instruct (Multilingual, strong performance)
+    - Qwen/Qwen2.5-Coder-32B-Instruct (Specialized for code generation)
     """
     
     DEFAULT_MODELS = {
         'deepseek': 'deepseek-ai/DeepSeek-V3',
-        'llama3-405b': 'meta-llama/Llama-3.1-405B-Instruct',
+        'deepseek-r1': 'deepseek-ai/DeepSeek-R1',
+        'llama3-70b': 'meta-llama/Llama-3.3-70B-Instruct',
         'llama3': 'meta-llama/Llama-3.1-8B-Instruct',
-        'mistral': 'mistralai/Mistral-7B-Instruct-v0.3',
-        'codellama': 'codellama/CodeLlama-70b-Instruct',
+        'qwen-72b': 'Qwen/Qwen2.5-72B-Instruct',
+        'qwen-coder': 'Qwen/Qwen2.5-Coder-32B-Instruct',
     }
     
     def __init__(

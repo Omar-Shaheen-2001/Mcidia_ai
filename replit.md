@@ -35,12 +35,13 @@ A hierarchical role system is enforced using custom Flask decorators (`@login_re
       - Uses new OpenAI-compatible API endpoint: `https://router.huggingface.co/v1/chat/completions`
       - Multi-provider routing system (SambaNova, Together AI, fal, Replicate, etc.)
       - Free tier includes monthly credits for all HuggingFace users
-    - **Models** (2025 Supported):
-      - `deepseek-ai/DeepSeek-V3` (Best reasoning, trending 2025)
-      - `meta-llama/Llama-3.1-405B-Instruct` (Large context, most capable open model)
+    - **Models** (2025 Chat-Compatible):
+      - `deepseek-ai/DeepSeek-V3` (Best for complex reasoning)
+      - `deepseek-ai/DeepSeek-R1` (Math, logic, coding with chain-of-thought)
+      - `meta-llama/Llama-3.3-70B-Instruct` (Powerful instruction-following)
       - `meta-llama/Llama-3.1-8B-Instruct` (Fast, efficient, default)
-      - `mistralai/Mistral-7B-Instruct-v0.3` (Good balance)
-      - `codellama/CodeLlama-70b-Instruct` (Code generation specialist)
+      - `Qwen/Qwen2.5-72B-Instruct` (Multilingual, strong performance)
+      - `Qwen/Qwen2.5-Coder-32B-Instruct` (Specialized for code generation)
     - **Authentication**: Requires `HUGGINGFACE_TOKEN` (free to obtain at https://huggingface.co/settings/tokens)
     - **Note**: Old endpoint (api-inference.huggingface.co) deprecated in 2025, returns 410 Gone
 -   **OpenAI API**: Optional fallback AI provider (GPT-4, GPT-3.5-Turbo).
