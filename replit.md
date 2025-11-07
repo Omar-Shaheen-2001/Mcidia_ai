@@ -30,7 +30,13 @@ A hierarchical role system is enforced using custom Flask decorators (`@login_re
 ## External Dependencies
 
 ### Third-Party Services
--   **HuggingFace Inference API**: Primary AI provider for consultation features (llama3, mistral, mixtral models).
+-   **HuggingFace Inference API**: Primary AI provider for consultation features (FREE!)
+    - **Models** (Nov 2025 Updated):
+      - meta-llama/Meta-Llama-3.1-8B-Instruct (Latest Llama 3.1)
+      - mistralai/Mistral-7B-Instruct-v0.3 (Latest with function calling)
+      - mistralai/Mixtral-8x7B-Instruct-v0.1
+    - Optional API key via `HUGGINGFACE_API_KEY` (not required for free tier)
+    - Free tier with auto-loading models (20-30s initial wake-up)
 -   **OpenAI API**: Optional fallback AI provider (GPT-4, GPT-3.5-Turbo).
 -   **Stripe**: Payment processing and subscription management.
 
