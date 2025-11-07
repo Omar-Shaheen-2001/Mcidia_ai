@@ -140,8 +140,10 @@ class HuggingFaceProvider(AIProvider):
                 if response.status_code == 200:
                     result = response.json()
                     if isinstance(result, list) and len(result) > 0:
-                        return result[0].get('generated_text', '').strip()
-                    return result.get('generated_text', '').strip()
+                        if isinstance(result[0], dict):
+                            return result[0].get('generated_text', '').strip()
+                    elif isinstance(result, dict):
+                        return result.get('generated_text', '').strip()
                     
             except Exception:
                 continue

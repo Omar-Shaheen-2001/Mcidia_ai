@@ -78,8 +78,8 @@ def create_plan():
             industry_sector=industry_sector,
             employee_count=employee_count,
             organization_description=organization_description,
-            current_challenges=json.dumps([c.strip() for c in current_challenges.split('\n') if c.strip()]),
-            opportunities=json.dumps([o.strip() for o in opportunities.split('\n') if o.strip()]),
+            current_challenges=json.dumps([c.strip() for c in (current_challenges or '').split('\n') if c.strip()]),
+            opportunities=json.dumps([o.strip() for o in (opportunities or '').split('\n') if o.strip()]),
             status='draft'
         )
         
