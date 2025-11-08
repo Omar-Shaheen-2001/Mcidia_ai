@@ -366,7 +366,11 @@ def export_pdf(project_id):
     if values:
         elements.append(Paragraph(prep_text("القيم المؤسسية:"), heading_style))
         for value in values:
-            val_text = f"• {value.get('value', '')} - {value.get('description', '')}"
+            # Handle both dict and string formats
+            if isinstance(value, dict):
+                val_text = f"• {value.get('value', '')} - {value.get('description', '')}"
+            else:
+                val_text = f"• {str(value)}"
             elements.append(Paragraph(prep_text(val_text), rtl_style))
         elements.append(Spacer(1, 0.5*cm))
     
@@ -374,7 +378,11 @@ def export_pdf(project_id):
     if themes:
         elements.append(Paragraph(prep_text("المجالات الاستراتيجية:"), heading_style))
         for theme in themes:
-            theme_text = f"• {theme.get('theme', '')} - {theme.get('description', '')}"
+            # Handle both dict and string formats
+            if isinstance(theme, dict):
+                theme_text = f"• {theme.get('theme', '')} - {theme.get('description', '')}"
+            else:
+                theme_text = f"• {str(theme)}"
             elements.append(Paragraph(prep_text(theme_text), rtl_style))
         elements.append(Spacer(1, 0.5*cm))
     
@@ -682,8 +690,13 @@ def export_excel(project_id):
         
         row = 4
         for value in values:
-            ws_values[f'A{row}'] = value.get('value', '')
-            ws_values[f'B{row}'] = value.get('description', '')
+            # Handle both dict and string formats
+            if isinstance(value, dict):
+                ws_values[f'A{row}'] = value.get('value', '')
+                ws_values[f'B{row}'] = value.get('description', '')
+            else:
+                ws_values[f'A{row}'] = str(value)
+                ws_values[f'B{row}'] = ''
             row += 1
         
         ws_values.column_dimensions['A'].width = 20
@@ -706,8 +719,13 @@ def export_excel(project_id):
         
         row = 4
         for theme in themes:
-            ws_themes[f'A{row}'] = theme.get('theme', '')
-            ws_themes[f'B{row}'] = theme.get('description', '')
+            # Handle both dict and string formats
+            if isinstance(theme, dict):
+                ws_themes[f'A{row}'] = theme.get('theme', '')
+                ws_themes[f'B{row}'] = theme.get('description', '')
+            else:
+                ws_themes[f'A{row}'] = str(theme)
+                ws_themes[f'B{row}'] = ''
             row += 1
         
         ws_themes.column_dimensions['A'].width = 25
