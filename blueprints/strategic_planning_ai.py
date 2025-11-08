@@ -2,13 +2,17 @@
 Strategic Planning & KPIs Development Module
 AI-powered strategic planning with SWOT, PESTEL, Vision/Mission, Goals, and KPIs generation
 """
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app, make_response
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
 from models import StrategicPlan, StrategicKPI, StrategicInitiative, ServiceOffering, User
 from utils.ai_providers.ai_manager import AIManager
 import json
 from datetime import datetime
+from io import BytesIO
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
 strategic_planning_bp = Blueprint('strategic_planning_ai', __name__)
 
@@ -703,6 +707,437 @@ def export_pdf(plan_id):
     except Exception as e:
         current_app.logger.error(f"PDF generation error: {str(e)}")
         flash(f'خطأ في إنشاء PDF / Error generating PDF: {str(e)}', 'danger')
+        return redirect(url_for('strategic_planning_ai.plan_dashboard', plan_id=plan_id))
+
+@strategic_planning_bp.route('/plan/<int:plan_id>/export-excel')
+@login_required
+def export_excel(plan_id):
+    """Export strategic plan as comprehensive Excel report with Arabic support"""
+    db = get_db()
+    lang = get_lang()
+    user_id = int(get_jwt_identity())
+    
+    # Authorization check
+    plan = db.session.query(StrategicPlan).filter_by(id=plan_id).first_or_404()
+    if plan.user_id != user_id:
+        flash('غير مصرح لك بالوصول لهذه الخطة / Unauthorized access', 'danger')
+        return redirect(url_for('strategic_planning_ai.index')), 403
+    
+    try:
+        # Create workbook
+        wb = Workbook()
+        wb.remove(wb.active)  # Remove default sheet
+        
+        # Define styles
+        header_fill = PatternFill(start_color="1e3a8a", end_color="1e3a8a", fill_type="solid")
+        header_font = Font(name='Arial', size=12, bold=True, color="FFFFFF")
+        subheader_fill = PatternFill(start_color="3b82f6", end_color="3b82f6", fill_type="solid")
+        subheader_font = Font(name='Arial', size=11, bold=True, color="FFFFFF")
+        section_fill = PatternFill(start_color="e0e7ff", end_color="e0e7ff", fill_type="solid")
+        section_font = Font(name='Arial', size=10, bold=True)
+        normal_font = Font(name='Arial', size=10)
+        
+        border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        
+        # RTL alignment for Arabic
+        rtl_alignment = Alignment(horizontal='right', vertical='top', wrap_text=True, reading_order=2)
+        ltr_alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
+        center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        
+        # ===== Sheet 1: Overview (نظرة عامة) =====
+        ws_overview = wb.create_sheet(title="نظرة عامة - Overview" if lang == 'ar' else "Overview")
+        ws_overview.sheet_view.rightToLeft = (lang == 'ar')
+        
+        # Title
+        ws_overview['A1'] = plan.title
+        ws_overview['A1'].font = Font(name='Arial', size=16, bold=True)
+        ws_overview['A1'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+        ws_overview.merge_cells('A1:D1')
+        
+        # Planning Period
+        row = 3
+        ws_overview[f'A{row}'] = "فترة التخطيط:" if lang == 'ar' else "Planning Period:"
+        ws_overview[f'A{row}'].font = section_font
+        ws_overview[f'B{row}'] = plan.planning_period
+        ws_overview[f'B{row}'].font = normal_font
+        
+        # Status
+        row += 1
+        ws_overview[f'A{row}'] = "الحالة:" if lang == 'ar' else "Status:"
+        ws_overview[f'A{row}'].font = section_font
+        ws_overview[f'B{row}'] = plan.status
+        ws_overview[f'B{row}'].font = normal_font
+        
+        # Organization Info
+        row += 2
+        ws_overview[f'A{row}'] = "معلومات المنظمة - Organization Information" if lang == 'ar' else "Organization Information"
+        ws_overview[f'A{row}'].font = subheader_font
+        ws_overview[f'A{row}'].fill = subheader_fill
+        ws_overview[f'A{row}'].alignment = center_alignment
+        ws_overview.merge_cells(f'A{row}:D{row}')
+        
+        row += 1
+        ws_overview[f'A{row}'] = "اسم المنظمة:" if lang == 'ar' else "Organization Name:"
+        ws_overview[f'A{row}'].font = section_font
+        ws_overview[f'B{row}'] = plan.organization_name or ""
+        ws_overview[f'B{row}'].font = normal_font
+        ws_overview[f'B{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+        
+        row += 1
+        ws_overview[f'A{row}'] = "القطاع:" if lang == 'ar' else "Industry Sector:"
+        ws_overview[f'A{row}'].font = section_font
+        ws_overview[f'B{row}'] = plan.industry_sector or ""
+        ws_overview[f'B{row}'].font = normal_font
+        ws_overview[f'B{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+        
+        row += 1
+        ws_overview[f'A{row}'] = "عدد الموظفين:" if lang == 'ar' else "Employee Count:"
+        ws_overview[f'A{row}'].font = section_font
+        ws_overview[f'B{row}'] = plan.employee_count or ""
+        ws_overview[f'B{row}'].font = normal_font
+        
+        # Vision & Mission
+        row += 2
+        if plan.vision_statement:
+            ws_overview[f'A{row}'] = "الرؤية - Vision" if lang == 'ar' else "Vision"
+            ws_overview[f'A{row}'].font = subheader_font
+            ws_overview[f'A{row}'].fill = subheader_fill
+            ws_overview[f'A{row}'].alignment = center_alignment
+            ws_overview.merge_cells(f'A{row}:D{row}')
+            
+            row += 1
+            ws_overview[f'A{row}'] = plan.vision_statement
+            ws_overview[f'A{row}'].font = normal_font
+            ws_overview[f'A{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+            ws_overview.merge_cells(f'A{row}:D{row}')
+            ws_overview.row_dimensions[row].height = 50
+            row += 2
+        
+        if plan.mission_statement:
+            ws_overview[f'A{row}'] = "الرسالة - Mission" if lang == 'ar' else "Mission"
+            ws_overview[f'A{row}'].font = subheader_font
+            ws_overview[f'A{row}'].fill = subheader_fill
+            ws_overview[f'A{row}'].alignment = center_alignment
+            ws_overview.merge_cells(f'A{row}:D{row}')
+            
+            row += 1
+            ws_overview[f'A{row}'] = plan.mission_statement
+            ws_overview[f'A{row}'].font = normal_font
+            ws_overview[f'A{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+            ws_overview.merge_cells(f'A{row}:D{row}')
+            ws_overview.row_dimensions[row].height = 50
+        
+        # Set column widths
+        ws_overview.column_dimensions['A'].width = 25
+        ws_overview.column_dimensions['B'].width = 40
+        ws_overview.column_dimensions['C'].width = 40
+        ws_overview.column_dimensions['D'].width = 40
+        
+        # ===== Sheet 2: Core Values (القيم الجوهرية) =====
+        core_values = json.loads(plan.core_values) if plan.core_values else []
+        if core_values:
+            ws_values = wb.create_sheet(title="القيم الجوهرية - Core Values" if lang == 'ar' else "Core Values")
+            ws_values.sheet_view.rightToLeft = (lang == 'ar')
+            
+            # Header
+            ws_values['A1'] = "القيم الجوهرية - Core Values" if lang == 'ar' else "Core Values"
+            ws_values['A1'].font = header_font
+            ws_values['A1'].fill = header_fill
+            ws_values['A1'].alignment = center_alignment
+            ws_values.merge_cells('A1:C1')
+            
+            # Column headers
+            ws_values['A3'] = "#"
+            ws_values['B3'] = "القيمة - Value" if lang == 'ar' else "Value"
+            ws_values['C3'] = "الوصف - Description" if lang == 'ar' else "Description"
+            
+            for col in ['A', 'B', 'C']:
+                ws_values[f'{col}3'].font = section_font
+                ws_values[f'{col}3'].fill = section_fill
+                ws_values[f'{col}3'].alignment = center_alignment
+                ws_values[f'{col}3'].border = border
+            
+            # Data
+            row = 4
+            for idx, value in enumerate(core_values, 1):
+                ws_values[f'A{row}'] = idx
+                ws_values[f'B{row}'] = value.get('value', '')
+                ws_values[f'C{row}'] = value.get('description', '')
+                
+                for col in ['A', 'B', 'C']:
+                    ws_values[f'{col}{row}'].font = normal_font
+                    ws_values[f'{col}{row}'].alignment = rtl_alignment if lang == 'ar' and col != 'A' else center_alignment if col == 'A' else ltr_alignment
+                    ws_values[f'{col}{row}'].border = border
+                
+                ws_values.row_dimensions[row].height = 40
+                row += 1
+            
+            ws_values.column_dimensions['A'].width = 8
+            ws_values.column_dimensions['B'].width = 30
+            ws_values.column_dimensions['C'].width = 60
+        
+        # ===== Sheet 3: Strategic Goals (الأهداف الاستراتيجية) =====
+        goals = json.loads(plan.strategic_goals) if plan.strategic_goals else []
+        if goals:
+            ws_goals = wb.create_sheet(title="الأهداف - Strategic Goals" if lang == 'ar' else "Strategic Goals")
+            ws_goals.sheet_view.rightToLeft = (lang == 'ar')
+            
+            # Header
+            ws_goals['A1'] = "الأهداف الاستراتيجية - Strategic Goals" if lang == 'ar' else "Strategic Goals"
+            ws_goals['A1'].font = header_font
+            ws_goals['A1'].fill = header_fill
+            ws_goals['A1'].alignment = center_alignment
+            ws_goals.merge_cells('A1:D1')
+            
+            # Column headers
+            ws_goals['A3'] = "#"
+            ws_goals['B3'] = "الهدف - Goal" if lang == 'ar' else "Goal"
+            ws_goals['C3'] = "الوصف - Description" if lang == 'ar' else "Description"
+            ws_goals['D3'] = "الإطار الزمني - Timeline" if lang == 'ar' else "Timeline"
+            
+            for col in ['A', 'B', 'C', 'D']:
+                ws_goals[f'{col}3'].font = section_font
+                ws_goals[f'{col}3'].fill = section_fill
+                ws_goals[f'{col}3'].alignment = center_alignment
+                ws_goals[f'{col}3'].border = border
+            
+            # Data
+            row = 4
+            for idx, goal in enumerate(goals, 1):
+                ws_goals[f'A{row}'] = idx
+                ws_goals[f'B{row}'] = goal.get('goal', '')
+                ws_goals[f'C{row}'] = goal.get('description', '')
+                ws_goals[f'D{row}'] = goal.get('timeline', '')
+                
+                for col in ['A', 'B', 'C', 'D']:
+                    ws_goals[f'{col}{row}'].font = normal_font
+                    ws_goals[f'{col}{row}'].alignment = rtl_alignment if lang == 'ar' and col != 'A' else center_alignment if col == 'A' else ltr_alignment
+                    ws_goals[f'{col}{row}'].border = border
+                
+                ws_goals.row_dimensions[row].height = 40
+                row += 1
+            
+            ws_goals.column_dimensions['A'].width = 8
+            ws_goals.column_dimensions['B'].width = 35
+            ws_goals.column_dimensions['C'].width = 50
+            ws_goals.column_dimensions['D'].width = 20
+        
+        # ===== Sheet 4: SWOT Analysis =====
+        swot = json.loads(plan.swot_analysis) if plan.swot_analysis else {}
+        if swot:
+            ws_swot = wb.create_sheet(title="تحليل SWOT" if lang == 'ar' else "SWOT Analysis")
+            ws_swot.sheet_view.rightToLeft = (lang == 'ar')
+            
+            # Header
+            ws_swot['A1'] = "تحليل SWOT" if lang == 'ar' else "SWOT Analysis"
+            ws_swot['A1'].font = header_font
+            ws_swot['A1'].fill = header_fill
+            ws_swot['A1'].alignment = center_alignment
+            ws_swot.merge_cells('A1:B1')
+            
+            # Strengths
+            row = 3
+            ws_swot[f'A{row}'] = "نقاط القوة - Strengths" if lang == 'ar' else "Strengths"
+            ws_swot[f'A{row}'].font = subheader_font
+            ws_swot[f'A{row}'].fill = subheader_fill
+            ws_swot[f'A{row}'].alignment = center_alignment
+            ws_swot.merge_cells(f'A{row}:B{row}')
+            
+            for idx, item in enumerate(swot.get('strengths', []), 1):
+                row += 1
+                ws_swot[f'A{row}'] = idx
+                ws_swot[f'B{row}'] = item
+                ws_swot[f'A{row}'].alignment = center_alignment
+                ws_swot[f'B{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+                ws_swot[f'B{row}'].font = normal_font
+            
+            # Weaknesses
+            row += 2
+            ws_swot[f'A{row}'] = "نقاط الضعف - Weaknesses" if lang == 'ar' else "Weaknesses"
+            ws_swot[f'A{row}'].font = subheader_font
+            ws_swot[f'A{row}'].fill = subheader_fill
+            ws_swot[f'A{row}'].alignment = center_alignment
+            ws_swot.merge_cells(f'A{row}:B{row}')
+            
+            for idx, item in enumerate(swot.get('weaknesses', []), 1):
+                row += 1
+                ws_swot[f'A{row}'] = idx
+                ws_swot[f'B{row}'] = item
+                ws_swot[f'A{row}'].alignment = center_alignment
+                ws_swot[f'B{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+                ws_swot[f'B{row}'].font = normal_font
+            
+            # Opportunities
+            row += 2
+            ws_swot[f'A{row}'] = "الفرص - Opportunities" if lang == 'ar' else "Opportunities"
+            ws_swot[f'A{row}'].font = subheader_font
+            ws_swot[f'A{row}'].fill = subheader_fill
+            ws_swot[f'A{row}'].alignment = center_alignment
+            ws_swot.merge_cells(f'A{row}:B{row}')
+            
+            for idx, item in enumerate(swot.get('opportunities', []), 1):
+                row += 1
+                ws_swot[f'A{row}'] = idx
+                ws_swot[f'B{row}'] = item
+                ws_swot[f'A{row}'].alignment = center_alignment
+                ws_swot[f'B{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+                ws_swot[f'B{row}'].font = normal_font
+            
+            # Threats
+            row += 2
+            ws_swot[f'A{row}'] = "التهديدات - Threats" if lang == 'ar' else "Threats"
+            ws_swot[f'A{row}'].font = subheader_font
+            ws_swot[f'A{row}'].fill = subheader_fill
+            ws_swot[f'A{row}'].alignment = center_alignment
+            ws_swot.merge_cells(f'A{row}:B{row}')
+            
+            for idx, item in enumerate(swot.get('threats', []), 1):
+                row += 1
+                ws_swot[f'A{row}'] = idx
+                ws_swot[f'B{row}'] = item
+                ws_swot[f'A{row}'].alignment = center_alignment
+                ws_swot[f'B{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+                ws_swot[f'B{row}'].font = normal_font
+            
+            ws_swot.column_dimensions['A'].width = 8
+            ws_swot.column_dimensions['B'].width = 80
+        
+        # ===== Sheet 5: PESTEL Analysis =====
+        pestel = json.loads(plan.pestel_analysis) if plan.pestel_analysis else {}
+        if pestel:
+            ws_pestel = wb.create_sheet(title="تحليل PESTEL" if lang == 'ar' else "PESTEL Analysis")
+            ws_pestel.sheet_view.rightToLeft = (lang == 'ar')
+            
+            # Header
+            ws_pestel['A1'] = "تحليل PESTEL" if lang == 'ar' else "PESTEL Analysis"
+            ws_pestel['A1'].font = header_font
+            ws_pestel['A1'].fill = header_fill
+            ws_pestel['A1'].alignment = center_alignment
+            ws_pestel.merge_cells('A1:B1')
+            
+            categories = [
+                ("سياسية - Political" if lang == 'ar' else "Political", pestel.get('political', [])),
+                ("اقتصادية - Economic" if lang == 'ar' else "Economic", pestel.get('economic', [])),
+                ("اجتماعية - Social" if lang == 'ar' else "Social", pestel.get('social', [])),
+                ("تقنية - Technological" if lang == 'ar' else "Technological", pestel.get('technological', [])),
+                ("بيئية - Environmental" if lang == 'ar' else "Environmental", pestel.get('environmental', [])),
+                ("قانونية - Legal" if lang == 'ar' else "Legal", pestel.get('legal', []))
+            ]
+            
+            row = 3
+            for category, items in categories:
+                ws_pestel[f'A{row}'] = category
+                ws_pestel[f'A{row}'].font = subheader_font
+                ws_pestel[f'A{row}'].fill = subheader_fill
+                ws_pestel[f'A{row}'].alignment = center_alignment
+                ws_pestel.merge_cells(f'A{row}:B{row}')
+                
+                for idx, item in enumerate(items, 1):
+                    row += 1
+                    ws_pestel[f'A{row}'] = idx
+                    ws_pestel[f'B{row}'] = item
+                    ws_pestel[f'A{row}'].alignment = center_alignment
+                    ws_pestel[f'B{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+                    ws_pestel[f'B{row}'].font = normal_font
+                
+                row += 2
+            
+            ws_pestel.column_dimensions['A'].width = 8
+            ws_pestel.column_dimensions['B'].width = 80
+        
+        # ===== Sheet 6: KPIs =====
+        kpis = db.session.query(StrategicKPI).filter_by(plan_id=plan_id).all()
+        if kpis:
+            ws_kpis = wb.create_sheet(title="مؤشرات الأداء - KPIs" if lang == 'ar' else "KPIs")
+            ws_kpis.sheet_view.rightToLeft = (lang == 'ar')
+            
+            # Header
+            ws_kpis['A1'] = "مؤشرات الأداء الرئيسية - KPIs" if lang == 'ar' else "Key Performance Indicators"
+            ws_kpis['A1'].font = header_font
+            ws_kpis['A1'].fill = header_fill
+            ws_kpis['A1'].alignment = center_alignment
+            ws_kpis.merge_cells('A1:H1')
+            
+            # Column headers
+            headers = [
+                "#",
+                "اسم المؤشر - KPI Name" if lang == 'ar' else "KPI Name",
+                "الفئة - Category" if lang == 'ar' else "Category",
+                "القيمة الحالية - Current" if lang == 'ar' else "Current Value",
+                "القيمة المستهدفة - Target" if lang == 'ar' else "Target Value",
+                "وحدة القياس - Unit" if lang == 'ar' else "Unit",
+                "الحالة - Status" if lang == 'ar' else "Status",
+                "التقدم % - Progress %" if lang == 'ar' else "Progress %"
+            ]
+            
+            for idx, header in enumerate(headers, 1):
+                col_letter = get_column_letter(idx)
+                ws_kpis[f'{col_letter}3'] = header
+                ws_kpis[f'{col_letter}3'].font = section_font
+                ws_kpis[f'{col_letter}3'].fill = section_fill
+                ws_kpis[f'{col_letter}3'].alignment = center_alignment
+                ws_kpis[f'{col_letter}3'].border = border
+            
+            # Data
+            row = 4
+            for idx, kpi in enumerate(kpis, 1):
+                progress = 0
+                if kpi.target_value and kpi.target_value != 0:
+                    progress = round((kpi.current_value / kpi.target_value) * 100, 1)
+                
+                ws_kpis[f'A{row}'] = idx
+                ws_kpis[f'B{row}'] = kpi.name
+                ws_kpis[f'C{row}'] = kpi.category or ""
+                ws_kpis[f'D{row}'] = kpi.current_value
+                ws_kpis[f'E{row}'] = kpi.target_value
+                ws_kpis[f'F{row}'] = kpi.measurement_unit
+                ws_kpis[f'G{row}'] = kpi.status
+                ws_kpis[f'H{row}'] = f"{progress}%"
+                
+                for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']:
+                    ws_kpis[f'{col}{row}'].font = normal_font
+                    ws_kpis[f'{col}{row}'].alignment = rtl_alignment if lang == 'ar' and col in ['B', 'C', 'F', 'G'] else center_alignment
+                    ws_kpis[f'{col}{row}'].border = border
+                
+                # Color code progress
+                if progress >= 80:
+                    ws_kpis[f'H{row}'].fill = PatternFill(start_color="22c55e", end_color="22c55e", fill_type="solid")
+                elif progress >= 50:
+                    ws_kpis[f'H{row}'].fill = PatternFill(start_color="eab308", end_color="eab308", fill_type="solid")
+                else:
+                    ws_kpis[f'H{row}'].fill = PatternFill(start_color="ef4444", end_color="ef4444", fill_type="solid")
+                
+                row += 1
+            
+            ws_kpis.column_dimensions['A'].width = 6
+            ws_kpis.column_dimensions['B'].width = 35
+            ws_kpis.column_dimensions['C'].width = 20
+            ws_kpis.column_dimensions['D'].width = 15
+            ws_kpis.column_dimensions['E'].width = 15
+            ws_kpis.column_dimensions['F'].width = 15
+            ws_kpis.column_dimensions['G'].width = 15
+            ws_kpis.column_dimensions['H'].width = 12
+        
+        # Save to BytesIO
+        excel_buffer = BytesIO()
+        wb.save(excel_buffer)
+        excel_buffer.seek(0)
+        
+        # Prepare response
+        response = make_response(excel_buffer.getvalue())
+        response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        response.headers['Content-Disposition'] = f'attachment; filename="strategic_plan_{plan_id}.xlsx"'
+        
+        return response
+        
+    except Exception as e:
+        current_app.logger.error(f"Excel generation error: {str(e)}")
+        flash(f'خطأ في إنشاء ملف Excel / Error generating Excel: {str(e)}', 'danger')
         return redirect(url_for('strategic_planning_ai.plan_dashboard', plan_id=plan_id))
 
 @strategic_planning_bp.route('/plan/<int:plan_id>/delete', methods=['POST'])
