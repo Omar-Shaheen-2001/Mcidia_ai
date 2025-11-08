@@ -1,10 +1,10 @@
-modules = ["nodejs-20", "web", "postgresql-16", "python-3.11"]
+modules = ["nodejs-20", "web", "postgresql-16", "python-3.11", "python3"]
 run = ["python", "app.py"]
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["cargo", "freetype", "glibcLocales", "libiconv", "rustc"]
+packages = ["cargo", "fontconfig", "freetype", "ghostscript", "glib", "glibcLocales", "harfbuzz", "libiconv", "pango", "rustc"]
 
 [deployment]
 deploymentTarget = "autoscale"

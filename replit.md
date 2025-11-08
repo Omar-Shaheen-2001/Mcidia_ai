@@ -55,20 +55,23 @@ A hierarchical role system is enforced using custom Flask decorators (`@login_re
 -   **Flask Ecosystem**: Flask, Flask-SQLAlchemy, Flask-JWT-Extended, Flask-CORS, Flask-WTF.
 -   **Security**: Werkzeug, python-dotenv.
 -   **AI**: OpenAI Python client, LangChain, LangChain-Community, Requests.
--   **PDF Export**: ReportLab for PDF generation, arabic-reshaper and python-bidi for RTL text support.
+-   **PDF Export**: WeasyPrint for HTML-to-PDF conversion (replaced ReportLab for better Arabic support).
 -   **Excel Export**: OpenPyXL for Excel file generation.
 
 ### Frontend Libraries (CDN)
 -   **Bootstrap 5**: UI framework.
 -   **FontAwesome 6**: Icon library.
--   **Google Fonts**: Cairo and Poppins for web interface.
+-   **Google Fonts**: Cairo and Poppins for web interface and PDF exports.
 -   **Chart.js**: For interactive data visualization.
 
-### PDF Export System
--   **Arabic Font**: Amiri (Regular & Bold) - Professional Arabic font optimized for PDF rendering.
--   **RTL Support**: Full right-to-left text support using arabic-reshaper and python-bidi.
--   **Professional Formatting**: Color-coded headers, alternating row colors, proper spacing and padding.
--   **Exported Components**: Vision, Mission, Core Values, SWOT Analysis, PESTEL Analysis, Strategic Objectives, KPIs, and Implementation Initiatives.
+### PDF Export System (WeasyPrint)
+-   **Implementation**: HTML/CSS templates converted to PDF using WeasyPrint (Nov 2025).
+-   **Arabic Font**: Google Fonts Cairo loaded via CDN for reliable Arabic rendering.
+-   **RTL Support**: Native CSS `direction: rtl` for proper right-to-left text layout.
+-   **Professional Formatting**: Gradient headers, color-coded tables, responsive layouts, page breaks.
+-   **Exported Components**: Vision, Mission, Core Values, SWOT Analysis, Strategic Objectives, and Implementation Initiatives.
+-   **Module**: `blueprints/pdf_export_weasy.py` - Dedicated WeasyPrint export module.
+-   **Note**: Previous ReportLab implementation replaced due to Arabic text rendering issues with TTF fonts.
 
 ### Environment Configuration
 -   Uses a `.env` file for sensitive credentials (API keys, database URLs, secret keys).
