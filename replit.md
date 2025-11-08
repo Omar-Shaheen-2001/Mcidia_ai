@@ -55,12 +55,20 @@ A hierarchical role system is enforced using custom Flask decorators (`@login_re
 -   **Flask Ecosystem**: Flask, Flask-SQLAlchemy, Flask-JWT-Extended, Flask-CORS, Flask-WTF.
 -   **Security**: Werkzeug, python-dotenv.
 -   **AI**: OpenAI Python client, LangChain, LangChain-Community, Requests.
+-   **PDF Export**: ReportLab for PDF generation, arabic-reshaper and python-bidi for RTL text support.
+-   **Excel Export**: OpenPyXL for Excel file generation.
 
 ### Frontend Libraries (CDN)
 -   **Bootstrap 5**: UI framework.
 -   **FontAwesome 6**: Icon library.
--   **Google Fonts**: Cairo and Poppins.
+-   **Google Fonts**: Cairo and Poppins for web interface.
 -   **Chart.js**: For interactive data visualization.
+
+### PDF Export System
+-   **Arabic Font**: Amiri (Regular & Bold) - Professional Arabic font optimized for PDF rendering.
+-   **RTL Support**: Full right-to-left text support using arabic-reshaper and python-bidi.
+-   **Professional Formatting**: Color-coded headers, alternating row colors, proper spacing and padding.
+-   **Exported Components**: Vision, Mission, Core Values, SWOT Analysis, PESTEL Analysis, Strategic Objectives, KPIs, and Implementation Initiatives.
 
 ### Environment Configuration
 -   Uses a `.env` file for sensitive credentials (API keys, database URLs, secret keys).

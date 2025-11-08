@@ -399,19 +399,20 @@ def export_pdf(project_id):
     kpis = db.session.query(IdentityKPI).filter_by(project_id=project_id).all()
     initiatives = db.session.query(IdentityInitiative).filter_by(project_id=project_id).all()
     
-    # Register Arabic fonts
+    # Register Arabic fonts (Amiri - designed for Arabic text)
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
     import os
     
     font_dir = os.path.join(os.path.dirname(__file__), '..', 'static', 'fonts')
     try:
-        pdfmetrics.registerFont(TTFont('Cairo', os.path.join(font_dir, 'Cairo-Regular.ttf')))
-        pdfmetrics.registerFont(TTFont('Cairo-Bold', os.path.join(font_dir, 'Cairo-Bold.ttf')))
-        arabic_font = 'Cairo'
-        arabic_font_bold = 'Cairo-Bold'
+        pdfmetrics.registerFont(TTFont('Amiri', os.path.join(font_dir, 'Amiri-Regular.ttf')))
+        pdfmetrics.registerFont(TTFont('Amiri-Bold', os.path.join(font_dir, 'Amiri-Bold.ttf')))
+        arabic_font = 'Amiri'
+        arabic_font_bold = 'Amiri-Bold'
+        current_app.logger.info("Arabic fonts (Amiri) loaded successfully")
     except Exception as e:
-        current_app.logger.warning(f"Could not load Arabic fonts: {e}")
+        current_app.logger.error(f"Could not load Arabic fonts: {e}")
         # Fallback to Helvetica if font registration fails
         arabic_font = 'Helvetica'
         arabic_font_bold = 'Helvetica-Bold'
