@@ -745,7 +745,7 @@ def export_excel(plan_id):
         )
         
         # RTL alignment for Arabic
-        rtl_alignment = Alignment(horizontal='right', vertical='top', wrap_text=True, reading_order=2)
+        rtl_alignment = Alignment(horizontal='right', vertical='top', wrap_text=True, readingOrder=2)
         ltr_alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
         center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
         
