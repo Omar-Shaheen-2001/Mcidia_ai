@@ -133,7 +133,8 @@ def generate_analysis(project_id):
                              lang=lang)
     
     try:
-        ai_manager = AIManager()
+        # Create AI provider for strategic analysis
+        ai = AIManager.for_use_case('strategic_analysis')
         
         # Build context for AI
         context = f"""
@@ -161,9 +162,9 @@ def generate_analysis(project_id):
 
 قدم على الأقل 5 نقاط لكل عنصر."""
 
-        swot_response = ai_manager.generate(
+        swot_response = ai.chat(
             prompt=swot_prompt,
-            use_case='strategic_analysis',
+            temperature=0.7,
             max_tokens=2000
         )
         
@@ -189,9 +190,9 @@ def generate_analysis(project_id):
     "strategic_themes": ["مجال 1", "مجال 2", ...]
 }}"""
 
-        identity_response = ai_manager.generate(
+        identity_response = ai.chat(
             prompt=identity_prompt,
-            use_case='strategic_analysis',
+            temperature=0.7,
             max_tokens=2000
         )
         
