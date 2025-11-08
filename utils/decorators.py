@@ -8,11 +8,45 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         try:
-            verify_jwt_in_request(optional=False)
+            # Try to verify JWT in cookies
+            verify_jwt_in_request(optional=False, locations=['cookies'])
+            identity = get_jwt_identity()
+            
+            # Ensure identity is valid
+            if not identity:
+                raise Exception("No JWT identity found")
+            
             return f(*args, **kwargs)
+        except AttributeError as ae:
+            # Handle the specific 'str' object has no attribute 'get' error
+            print(f"JWT AttributeError: {str(ae)}")
+            import traceback
+            traceback.print_exc()
+            
+            # Try to get user from cookies manually
+            try:
+                from flask import current_app
+                from flask_jwt_extended import decode_token
+                access_token = request.cookies.get('access_token_cookie')
+                
+                if access_token:
+                    # Decode token manually
+                    decoded = decode_token(access_token)
+                    print(f"Decoded token: {decoded}")
+                    # If we got here, token is valid, continue
+                    return f(*args, **kwargs)
+            except Exception as inner_e:
+                print(f"Manual token decode failed: {str(inner_e)}")
+            
+            lang = session.get('language', 'ar')
+            flash('يرجى تسجيل الدخول مرة أخرى / Please login again', 'warning')
+            return redirect(url_for('auth.login'))
+            
         except Exception as e:
             # Debug: print the error
             print(f"JWT Verification Error: {type(e).__name__}: {str(e)}")
+            import traceback
+            traceback.print_exc()
             lang = session.get('language', 'ar')
             flash('يرجى تسجيل الدخول للوصول إلى هذه الصفحة / Please login to access this page' if lang == 'ar' else 'Please login to access this page', 'warning')
             return redirect(url_for('auth.login'))
