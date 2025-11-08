@@ -73,9 +73,23 @@ A hierarchical role system is enforced using custom Flask decorators (`@login_re
     - `blueprints/pdf_export_weasy.py` - Strategic Identity module PDF export
     - `blueprints/pdf_export_strategic_planning.py` - Strategic Planning & KPIs module PDF export
 -   **Exported Components**:
-    - **Strategic Identity**: Vision, Mission, Core Values, SWOT Analysis, Strategic Objectives, Implementation Initiatives
+    - **Strategic Identity**: Vision, Mission, Core Values, SWOT Analysis, Strategic Objectives, **KPIs (NEW)**, Implementation Initiatives
     - **Strategic Planning**: Vision, Mission, Values, Strategic Goals, SWOT Analysis, PESTEL Analysis, KPIs, Strategic Initiatives
 -   **Note**: Previous ReportLab implementation replaced due to Arabic text rendering issues with TTF fonts.
+
+### KPI Generation System (NEW - Nov 2025)
+-   **AI-Powered KPI Generator**: Automatically generates Key Performance Indicators (KPIs) for Strategic Identity projects based on strategic objectives
+-   **Features**:
+    - Generates 3-5 KPIs per strategic objective using AI
+    - Each KPI includes: name, type (quantitative/qualitative), measurement unit, target value, current value, measurement frequency, responsible department
+    - Linked to specific strategic objectives for traceability
+    - Full CRUD operations (Create via AI, Read, Delete)
+-   **Implementation**:
+    - Route: `/project/<id>/generate-kpis` (POST) - AI-powered KPI generation
+    - Route: `/project/<id>/kpis/<kpi_id>` (DELETE) - KPI deletion
+    - Database: `identity_kpis` table with foreign keys to projects and objectives
+    - UI: Interactive dashboard section with generation button and KPI display table
+-   **Use Case Config**: `kpi_generation` in AIManager using HuggingFace Llama3 model (temperature: 0.6)
 
 ### Environment Configuration
 -   Uses a `.env` file for sensitive credentials (API keys, database URLs, secret keys).

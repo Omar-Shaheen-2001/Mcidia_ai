@@ -28,6 +28,29 @@ def get_lang():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def clean_and_parse_json(response_text):
+    """Clean and parse JSON from AI response"""
+    import re
+    
+    # Remove markdown code blocks if present
+    text = response_text.strip()
+    if text.startswith('```'):
+        # Extract JSON from markdown code block
+        match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', text, re.DOTALL)
+        if match:
+            text = match.group(1)
+        else:
+            # Try to find JSON object
+            match = re.search(r'\{.*\}', text, re.DOTALL)
+            if match:
+                text = match.group(0)
+    
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as e:
+        current_app.logger.error(f"JSON parse error: {e}, Text: {text[:200]}")
+        return None
+
 # ==================== DASHBOARD ====================
 
 @strategic_identity_bp.route('/')
@@ -708,3 +731,150 @@ def export_excel(project_id):
     response.headers['Content-Disposition'] = f'attachment; filename=strategic_identity_{project_id}.xlsx'
     
     return response
+
+# ==================== KPI GENERATION (AI-POWERED) ====================
+
+@strategic_identity_bp.route('/project/<int:project_id>/generate-kpis', methods=['POST'])
+@login_required
+def generate_kpis(project_id):
+    """Generate KPIs using AI for strategic objectives"""
+    db = get_db()
+    lang = get_lang()
+    user_id = int(get_jwt_identity())
+    
+    # Authorization check
+    project = db.session.query(StrategicIdentityProject).filter_by(id=project_id).first_or_404()
+    if project.user_id != user_id:
+        return jsonify({'success': False, 'error': 'غير مصرح / Unauthorized'}), 403
+    
+    try:
+        # Get strategic objectives
+        objectives = db.session.query(StrategicObjective).filter_by(project_id=project_id).all()
+        
+        if not objectives:
+            return jsonify({
+                'success': False,
+                'error': 'لا توجد أهداف استراتيجية. يرجى إنشاء الأهداف أولاً / No strategic objectives found. Please create objectives first.'
+            }), 400
+        
+        # Prepare context for AI
+        objectives_text = "\n".join([
+            f"- {obj.title}: {obj.description or 'لا يوجد وصف'}"
+            for obj in objectives
+        ])
+        
+        # AI Prompt for KPI generation
+        prompt = f"""أنت مستشار استراتيجي متخصص في تطوير مؤشرات الأداء الرئيسية (KPIs).
+
+المنظمة: {project.organization_name}
+القطاع: {project.sector or 'غير محدد'}
+
+الأهداف الاستراتيجية:
+{objectives_text}
+
+مهمتك: توليد 3-5 مؤشرات أداء رئيسية (KPIs) لكل هدف استراتيجي.
+
+لكل مؤشر، يجب تحديد:
+1. اسم المؤشر (واضح وقابل للقياس)
+2. نوع المؤشر (quantitative أو qualitative)
+3. وحدة القياس (مثل: نسبة مئوية، عدد، ر.س، ساعة، وحدة)
+4. القيمة المستهدفة (رقم محدد)
+5. القيمة الحالية (يمكن تركها 0 أو null إذا غير معروفة)
+6. دورية القياس (daily, weekly, monthly, quarterly, yearly)
+7. القسم أو الجهة المسؤولة عن قياس المؤشر
+
+**مهم جداً**: يجب أن تكون المؤشرات:
+- قابلة للقياس (SMART)
+- مرتبطة مباشرة بالهدف الاستراتيجي
+- واقعية وقابلة للتحقيق
+- متنوعة (مالية، تشغيلية، رضا عملاء، جودة، إلخ)
+
+أرجع النتيجة بصيغة JSON فقط على الشكل التالي:
+```json
+{
+  "kpis": [
+    {
+      "objective_id": رقم_معرف_الهدف,
+      "name": "اسم المؤشر",
+      "kpi_type": "quantitative",
+      "measurement_unit": "%",
+      "target_value": 90,
+      "current_value": 0,
+      "measurement_frequency": "monthly",
+      "responsible_department": "اسم القسم المسؤول"
+    }
+  ]
+}
+```
+
+تأكد من تغطية جميع الأهداف الاستراتيجية المذكورة أعلاه."""
+
+        # Call AI
+        ai_manager = AIManager.for_use_case('kpi_generation')
+        response = ai_manager.chat(prompt)
+        
+        # Parse AI response
+        kpis_data = clean_and_parse_json(response)
+        
+        if not kpis_data or 'kpis' not in kpis_data:
+            return jsonify({
+                'success': False,
+                'error': 'فشل في معالجة استجابة الذكاء الاصطناعي / Failed to parse AI response'
+            }), 500
+        
+        # Create objective_id mapping
+        obj_mapping = {obj.id: obj for obj in objectives}
+        
+        # Save KPIs to database
+        created_kpis = []
+        for kpi_data in kpis_data['kpis']:
+            # Validate objective_id exists
+            obj_id = kpi_data.get('objective_id')
+            if obj_id and obj_id in obj_mapping:
+                kpi = IdentityKPI(
+                    project_id=project_id,
+                    objective_id=obj_id,
+                    name=kpi_data.get('name', ''),
+                    kpi_type=kpi_data.get('kpi_type', 'quantitative'),
+                    measurement_unit=kpi_data.get('measurement_unit', ''),
+                    target_value=float(kpi_data.get('target_value', 0)) if kpi_data.get('target_value') else None,
+                    current_value=float(kpi_data.get('current_value', 0)) if kpi_data.get('current_value') else None,
+                    measurement_frequency=kpi_data.get('measurement_frequency', 'monthly'),
+                    responsible_department=kpi_data.get('responsible_department', '')
+                )
+                db.session.add(kpi)
+                created_kpis.append(kpi_data)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'تم توليد {len(created_kpis)} مؤشر أداء بنجاح / Generated {len(created_kpis)} KPIs successfully',
+            'kpis': created_kpis
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"KPI generation error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'خطأ في توليد المؤشرات / Error: {str(e)}'
+        }), 500
+
+@strategic_identity_bp.route('/project/<int:project_id>/kpis/<int:kpi_id>', methods=['DELETE'])
+@login_required
+def delete_kpi(project_id, kpi_id):
+    """Delete a KPI"""
+    db = get_db()
+    user_id = int(get_jwt_identity())
+    
+    # Authorization check
+    project = db.session.query(StrategicIdentityProject).filter_by(id=project_id).first_or_404()
+    if project.user_id != user_id:
+        return jsonify({'success': False, 'error': 'غير مصرح / Unauthorized'}), 403
+    
+    kpi = db.session.query(IdentityKPI).filter_by(id=kpi_id, project_id=project_id).first_or_404()
+    db.session.delete(kpi)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'تم حذف المؤشر بنجاح / KPI deleted successfully'})
