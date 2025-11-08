@@ -296,14 +296,20 @@ def export_pdf(project_id):
     
     # Parse JSON data
     swot = json.loads(project.swot_analysis) if project.swot_analysis else {}
+    pestel = json.loads(project.pestel_analysis) if project.pestel_analysis else {}
     values = json.loads(project.core_values) if project.core_values else []
     themes = json.loads(project.strategic_themes) if project.strategic_themes else []
+    
+    # Get related data
+    objectives = db.session.query(StrategicObjective).filter_by(project_id=project_id).all()
+    kpis = db.session.query(IdentityKPI).filter_by(project_id=project_id).all()
+    initiatives = db.session.query(IdentityInitiative).filter_by(project_id=project_id).all()
     
     def prep_text(text):
         """Prepare Arabic text for PDF"""
         if not text:
             return ""
-        reshaped = arabic_reshaper.reshape(text)
+        reshaped = arabic_reshaper.reshape(str(text))
         return get_display(reshaped)
     
     # Create PDF
@@ -330,6 +336,15 @@ def export_pdf(project_id):
         leading=22
     )
     
+    heading_style = ParagraphStyle(
+        'RTLHeading',
+        parent=styles['Heading2'],
+        alignment=TA_RIGHT,
+        fontSize=14,
+        leading=18,
+        spaceAfter=10
+    )
+    
     # Title
     title_text = prep_text(f"الهوية الاستراتيجية - {project.organization_name}")
     elements.append(Paragraph(title_text, title_style))
@@ -337,27 +352,37 @@ def export_pdf(project_id):
     
     # Vision
     if project.vision_statement:
-        elements.append(Paragraph(prep_text("الرؤية:"), rtl_style))
+        elements.append(Paragraph(prep_text("الرؤية:"), heading_style))
         elements.append(Paragraph(prep_text(project.vision_statement), rtl_style))
         elements.append(Spacer(1, 0.3*cm))
     
     # Mission
     if project.mission_statement:
-        elements.append(Paragraph(prep_text("الرسالة:"), rtl_style))
+        elements.append(Paragraph(prep_text("الرسالة:"), heading_style))
         elements.append(Paragraph(prep_text(project.mission_statement), rtl_style))
         elements.append(Spacer(1, 0.5*cm))
     
     # Core Values
     if values:
-        elements.append(Paragraph(prep_text("القيم المؤسسية:"), rtl_style))
+        elements.append(Paragraph(prep_text("القيم المؤسسية:"), heading_style))
         for value in values:
             val_text = f"• {value.get('value', '')} - {value.get('description', '')}"
             elements.append(Paragraph(prep_text(val_text), rtl_style))
         elements.append(Spacer(1, 0.5*cm))
     
+    # Strategic Themes
+    if themes:
+        elements.append(Paragraph(prep_text("المجالات الاستراتيجية:"), heading_style))
+        for theme in themes:
+            theme_text = f"• {theme.get('theme', '')} - {theme.get('description', '')}"
+            elements.append(Paragraph(prep_text(theme_text), rtl_style))
+        elements.append(Spacer(1, 0.5*cm))
+    
+    elements.append(PageBreak())
+    
     # SWOT Analysis
     if swot:
-        elements.append(Paragraph(prep_text("تحليل SWOT:"), rtl_style))
+        elements.append(Paragraph(prep_text("تحليل SWOT:"), heading_style))
         elements.append(Spacer(1, 0.2*cm))
         
         swot_data = []
@@ -383,6 +408,133 @@ def export_pdf(project_id):
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
         elements.append(swot_table)
+        elements.append(Spacer(1, 0.5*cm))
+        
+        # Opportunities and Threats
+        swot_data2 = []
+        swot_data2.append([prep_text("الفرص"), prep_text("التهديدات")])
+        
+        opportunities = swot.get('opportunities', [])
+        threats = swot.get('threats', [])
+        max_len2 = max(len(opportunities), len(threats))
+        
+        for i in range(max_len2):
+            o = prep_text(opportunities[i]) if i < len(opportunities) else ""
+            t = prep_text(threats[i]) if i < len(threats) else ""
+            swot_data2.append([o, t])
+        
+        swot_table2 = Table(swot_data2, colWidths=[8*cm, 8*cm])
+        swot_table2.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(swot_table2)
+    
+    # PESTEL Analysis
+    if pestel:
+        elements.append(PageBreak())
+        elements.append(Paragraph(prep_text("تحليل PESTEL:"), heading_style))
+        elements.append(Spacer(1, 0.2*cm))
+        
+        pestel_categories = [
+            ('political', 'العوامل السياسية'),
+            ('economic', 'العوامل الاقتصادية'),
+            ('social', 'العوامل الاجتماعية'),
+            ('technological', 'العوامل التقنية'),
+            ('environmental', 'العوامل البيئية'),
+            ('legal', 'العوامل القانونية')
+        ]
+        
+        for key, label in pestel_categories:
+            if key in pestel and pestel[key]:
+                elements.append(Paragraph(prep_text(f"{label}:"), rtl_style))
+                for item in pestel[key]:
+                    elements.append(Paragraph(prep_text(f"• {item}"), rtl_style))
+                elements.append(Spacer(1, 0.3*cm))
+    
+    # Strategic Objectives
+    if objectives:
+        elements.append(PageBreak())
+        elements.append(Paragraph(prep_text("الأهداف الاستراتيجية:"), heading_style))
+        elements.append(Spacer(1, 0.2*cm))
+        
+        obj_data = [[prep_text("الهدف"), prep_text("الوصف"), prep_text("الإطار الزمني")]]
+        for obj in objectives:
+            obj_data.append([
+                prep_text(obj.objective_name),
+                prep_text(obj.description or ''),
+                prep_text(obj.timeframe or '')
+            ])
+        
+        obj_table = Table(obj_data, colWidths=[5*cm, 7*cm, 4*cm])
+        obj_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(obj_table)
+    
+    # KPIs
+    if kpis:
+        elements.append(PageBreak())
+        elements.append(Paragraph(prep_text("مؤشرات الأداء الرئيسية:"), heading_style))
+        elements.append(Spacer(1, 0.2*cm))
+        
+        kpi_data = [[prep_text("المؤشر"), prep_text("القيمة المستهدفة"), prep_text("الوحدة")]]
+        for kpi in kpis:
+            kpi_data.append([
+                prep_text(kpi.kpi_name),
+                prep_text(str(kpi.target_value)),
+                prep_text(kpi.measurement_unit or '')
+            ])
+        
+        kpi_table = Table(kpi_data, colWidths=[8*cm, 4*cm, 4*cm])
+        kpi_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(kpi_table)
+    
+    # Initiatives
+    if initiatives:
+        elements.append(PageBreak())
+        elements.append(Paragraph(prep_text("المبادرات الاستراتيجية:"), heading_style))
+        elements.append(Spacer(1, 0.2*cm))
+        
+        init_data = [[prep_text("المبادرة"), prep_text("الوصف"), prep_text("الميزانية")]]
+        for init in initiatives:
+            budget = f"{init.budget or 0} ر.س" if init.budget else ""
+            init_data.append([
+                prep_text(init.initiative_name),
+                prep_text(init.description or ''),
+                prep_text(budget)
+            ])
+        
+        init_table = Table(init_data, colWidths=[5*cm, 7*cm, 4*cm])
+        init_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(init_table)
     
     doc.build(elements)
     
@@ -415,8 +567,14 @@ def export_excel(project_id):
     
     # Parse JSON data
     swot = json.loads(project.swot_analysis) if project.swot_analysis else {}
+    pestel = json.loads(project.pestel_analysis) if project.pestel_analysis else {}
     values = json.loads(project.core_values) if project.core_values else []
     themes = json.loads(project.strategic_themes) if project.strategic_themes else []
+    
+    # Get related data
+    objectives = db.session.query(StrategicObjective).filter_by(project_id=project_id).all()
+    kpis = db.session.query(IdentityKPI).filter_by(project_id=project_id).all()
+    initiatives = db.session.query(IdentityInitiative).filter_by(project_id=project_id).all()
     
     # Create workbook
     wb = Workbook()
@@ -428,6 +586,7 @@ def export_excel(project_id):
     
     header_fill = PatternFill(start_color="0066CC", end_color="0066CC", fill_type="solid")
     header_font = Font(bold=True, color="FFFFFF", size=14)
+    subheader_font = Font(bold=True, size=12)
     
     ws_overview['A1'] = "الهوية الاستراتيجية"
     ws_overview['A1'].font = header_font
@@ -529,6 +688,152 @@ def export_excel(project_id):
         
         ws_values.column_dimensions['A'].width = 20
         ws_values.column_dimensions['B'].width = 50
+    
+    # Strategic Themes Sheet
+    if themes:
+        ws_themes = wb.create_sheet("Strategic Themes")
+        ws_themes.sheet_view.rightToLeft = True
+        
+        ws_themes['A1'] = "المجالات الاستراتيجية"
+        ws_themes['A1'].font = header_font
+        ws_themes['A1'].fill = header_fill
+        ws_themes.merge_cells('A1:B1')
+        
+        ws_themes['A3'] = "المجال"
+        ws_themes['B3'] = "الوصف"
+        ws_themes['A3'].font = Font(bold=True)
+        ws_themes['B3'].font = Font(bold=True)
+        
+        row = 4
+        for theme in themes:
+            ws_themes[f'A{row}'] = theme.get('theme', '')
+            ws_themes[f'B{row}'] = theme.get('description', '')
+            row += 1
+        
+        ws_themes.column_dimensions['A'].width = 25
+        ws_themes.column_dimensions['B'].width = 50
+    
+    # PESTEL Analysis Sheet
+    if pestel:
+        ws_pestel = wb.create_sheet("PESTEL Analysis")
+        ws_pestel.sheet_view.rightToLeft = True
+        
+        ws_pestel['A1'] = "تحليل PESTEL"
+        ws_pestel['A1'].font = header_font
+        ws_pestel['A1'].fill = header_fill
+        ws_pestel.merge_cells('A1:B1')
+        
+        row = 3
+        pestel_categories = [
+            ('political', 'العوامل السياسية'),
+            ('economic', 'العوامل الاقتصادية'),
+            ('social', 'العوامل الاجتماعية'),
+            ('technological', 'العوامل التقنية'),
+            ('environmental', 'العوامل البيئية'),
+            ('legal', 'العوامل القانونية')
+        ]
+        
+        for key, label in pestel_categories:
+            if key in pestel and pestel[key]:
+                ws_pestel[f'A{row}'] = label
+                ws_pestel[f'A{row}'].font = subheader_font
+                row += 1
+                for item in pestel[key]:
+                    ws_pestel[f'A{row}'] = item
+                    row += 1
+                row += 1
+        
+        ws_pestel.column_dimensions['A'].width = 60
+    
+    # Strategic Objectives Sheet
+    if objectives:
+        ws_obj = wb.create_sheet("Strategic Objectives")
+        ws_obj.sheet_view.rightToLeft = True
+        
+        ws_obj['A1'] = "الأهداف الاستراتيجية"
+        ws_obj['A1'].font = header_font
+        ws_obj['A1'].fill = header_fill
+        ws_obj.merge_cells('A1:C1')
+        
+        ws_obj['A3'] = "الهدف"
+        ws_obj['B3'] = "الوصف"
+        ws_obj['C3'] = "الإطار الزمني"
+        for cell in ['A3', 'B3', 'C3']:
+            ws_obj[cell].font = Font(bold=True)
+            ws_obj[cell].fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+        
+        row = 4
+        for obj in objectives:
+            ws_obj[f'A{row}'] = obj.objective_name
+            ws_obj[f'B{row}'] = obj.description or ''
+            ws_obj[f'C{row}'] = obj.timeframe or ''
+            row += 1
+        
+        ws_obj.column_dimensions['A'].width = 25
+        ws_obj.column_dimensions['B'].width = 40
+        ws_obj.column_dimensions['C'].width = 20
+    
+    # KPIs Sheet
+    if kpis:
+        ws_kpi = wb.create_sheet("KPIs")
+        ws_kpi.sheet_view.rightToLeft = True
+        
+        ws_kpi['A1'] = "مؤشرات الأداء الرئيسية"
+        ws_kpi['A1'].font = header_font
+        ws_kpi['A1'].fill = header_fill
+        ws_kpi.merge_cells('A1:D1')
+        
+        ws_kpi['A3'] = "المؤشر"
+        ws_kpi['B3'] = "القيمة المستهدفة"
+        ws_kpi['C3'] = "الوحدة"
+        ws_kpi['D3'] = "التكرار"
+        for cell in ['A3', 'B3', 'C3', 'D3']:
+            ws_kpi[cell].font = Font(bold=True)
+            ws_kpi[cell].fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+        
+        row = 4
+        for kpi in kpis:
+            ws_kpi[f'A{row}'] = kpi.kpi_name
+            ws_kpi[f'B{row}'] = kpi.target_value
+            ws_kpi[f'C{row}'] = kpi.measurement_unit or ''
+            ws_kpi[f'D{row}'] = kpi.frequency or ''
+            row += 1
+        
+        ws_kpi.column_dimensions['A'].width = 30
+        ws_kpi.column_dimensions['B'].width = 15
+        ws_kpi.column_dimensions['C'].width = 15
+        ws_kpi.column_dimensions['D'].width = 15
+    
+    # Initiatives Sheet
+    if initiatives:
+        ws_init = wb.create_sheet("Initiatives")
+        ws_init.sheet_view.rightToLeft = True
+        
+        ws_init['A1'] = "المبادرات الاستراتيجية"
+        ws_init['A1'].font = header_font
+        ws_init['A1'].fill = header_fill
+        ws_init.merge_cells('A1:D1')
+        
+        ws_init['A3'] = "المبادرة"
+        ws_init['B3'] = "الوصف"
+        ws_init['C3'] = "الميزانية"
+        ws_init['D3'] = "المسؤول"
+        for cell in ['A3', 'B3', 'C3', 'D3']:
+            ws_init[cell].font = Font(bold=True)
+            ws_init[cell].fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+        
+        row = 4
+        for init in initiatives:
+            ws_init[f'A{row}'] = init.initiative_name
+            ws_init[f'B{row}'] = init.description or ''
+            ws_init[f'C{row}'] = f"{init.budget or 0} ر.س" if init.budget else ""
+            ws_init[f'D{row}'] = init.responsible_party or ''
+            row += 1
+        
+        ws_init.column_dimensions['A'].width = 25
+        ws_init.column_dimensions['B'].width = 40
+        ws_init.column_dimensions['C'].width = 15
+        ws_init.column_dimensions['D'].width = 20
     
     # Save to buffer
     buffer = BytesIO()
