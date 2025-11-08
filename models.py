@@ -662,6 +662,141 @@ class StrategicKPI(db.Model):
             'progress_percentage': self.progress_percentage
         }
 
+class StrategicIdentityProject(db.Model):
+    """Strategic Identity Project - comprehensive organizational identity development"""
+    __tablename__ = 'strategic_identity_projects'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    
+    # Organization Information
+    organization_name = db.Column(db.String(200), nullable=False)
+    sector = db.Column(db.String(100))  # القطاع
+    employee_count = db.Column(db.Integer)
+    location = db.Column(db.String(200))  # الموقع الجغرافي
+    description = db.Column(db.Text)  # وصف مختصر للمؤسسة
+    
+    # File uploads for analysis
+    uploaded_files = db.Column(db.Text)  # JSON array of file paths
+    
+    # Current state inputs
+    current_objectives = db.Column(db.Text)  # الأهداف الحالية أو المقترحة
+    ongoing_initiatives = db.Column(db.Text)  # المبادرات أو المشاريع الجارية
+    
+    # AI-Generated Strategic Analysis (Output 1)
+    swot_analysis = db.Column(db.Text)  # JSON: strengths, weaknesses, opportunities, threats
+    pestel_analysis = db.Column(db.Text)  # JSON: political, economic, social, technological, environmental, legal
+    stakeholders_analysis = db.Column(db.Text)  # JSON: list of stakeholders with influence/interest
+    current_state_summary = db.Column(db.Text)  # ملخص الوضع الحالي
+    
+    # Strategic Identity (Output 2)
+    vision_statement = db.Column(db.Text)  # الرؤية
+    mission_statement = db.Column(db.Text)  # الرسالة
+    core_values = db.Column(db.Text)  # JSON array: القيم المؤسسية
+    strategic_themes = db.Column(db.Text)  # JSON array: المجالات الاستراتيجية
+    
+    # Status & Metadata
+    status = db.Column(db.String(50), default='draft')  # draft, analysis_complete, final
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    strategic_objectives = db.relationship('StrategicObjective', backref='identity_project', lazy=True, cascade='all, delete-orphan')
+    kpis = db.relationship('IdentityKPI', backref='identity_project', lazy=True, cascade='all, delete-orphan')
+    initiatives = db.relationship('IdentityInitiative', backref='identity_project', lazy=True, cascade='all, delete-orphan')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'organization_name': self.organization_name,
+            'sector': self.sector,
+            'employee_count': self.employee_count,
+            'status': self.status,
+            'vision_statement': self.vision_statement,
+            'mission_statement': self.mission_statement,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class StrategicObjective(db.Model):
+    """SMART Strategic Objectives (Output 3)"""
+    __tablename__ = 'strategic_objectives'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('strategic_identity_projects.id'), nullable=False)
+    
+    title = db.Column(db.String(300), nullable=False)  # العنوان
+    description = db.Column(db.Text)  # الوصف
+    rationale = db.Column(db.Text)  # السبب / المبرر
+    related_theme = db.Column(db.String(200))  # المجال الاستراتيجي المرتبط
+    timeframe = db.Column(db.String(50))  # short / medium / long
+    priority = db.Column(db.String(50))  # high / medium / low
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'timeframe': self.timeframe,
+            'priority': self.priority
+        }
+
+class IdentityKPI(db.Model):
+    """KPIs for Strategic Identity Project (Output 4)"""
+    __tablename__ = 'identity_kpis'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('strategic_identity_projects.id'), nullable=False)
+    objective_id = db.Column(db.Integer, db.ForeignKey('strategic_objectives.id'))  # Linked objective
+    
+    name = db.Column(db.String(300), nullable=False)  # اسم المؤشر
+    kpi_type = db.Column(db.String(50))  # quantitative / qualitative
+    measurement_unit = db.Column(db.String(100))  # وحدة القياس
+    target_value = db.Column(db.Float)  # القيمة المستهدفة
+    current_value = db.Column(db.Float)  # القيمة الحالية
+    measurement_frequency = db.Column(db.String(50))  # daily / weekly / monthly / quarterly / yearly
+    responsible_department = db.Column(db.String(200))  # الجهة المسؤولة
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'kpi_type': self.kpi_type,
+            'target_value': self.target_value,
+            'current_value': self.current_value,
+            'measurement_unit': self.measurement_unit
+        }
+
+class IdentityInitiative(db.Model):
+    """Initiatives/Projects for Strategic Identity (Output 5)"""
+    __tablename__ = 'identity_initiatives'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('strategic_identity_projects.id'), nullable=False)
+    objective_id = db.Column(db.Integer, db.ForeignKey('strategic_objectives.id'))  # Linked objective
+    
+    name = db.Column(db.String(300), nullable=False)  # اسم المبادرة
+    expected_outputs = db.Column(db.Text)  # المخرجات المتوقعة
+    implementation_period = db.Column(db.String(200))  # فترة التنفيذ
+    responsible_party = db.Column(db.String(200))  # الجهة المسؤولة
+    budget_estimate = db.Column(db.Float)  # التقدير المالي (اختياري)
+    status = db.Column(db.String(50), default='planned')  # planned / ongoing / completed
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'expected_outputs': self.expected_outputs,
+            'implementation_period': self.implementation_period,
+            'status': self.status
+        }
+
 class StrategicInitiative(db.Model):
     """Strategic Initiatives - Action plans to achieve strategic goals"""
     __tablename__ = 'strategic_initiatives'

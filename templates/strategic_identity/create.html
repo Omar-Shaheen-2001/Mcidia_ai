@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'إنشاء مشروع جديد' if lang == 'ar' else 'Create New Project' }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">
+                <i class="fas fa-fingerprint me-2 text-primary"></i>
+                {{ 'بناء الهوية الاستراتيجية - مشروع جديد' if lang == 'ar' else 'Strategic Identity - New Project' }}
+            </h2>
+            <p class="text-muted">{{ 'أدخل معلومات المؤسسة أو قم برفع الملفات للتحليل الذكي' if lang == 'ar' else 'Enter organization information or upload files for AI analysis' }}</p>
+        </div>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        <!-- Organization Information -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-building me-2"></i>
+                    {{ 'معلومات المؤسسة' if lang == 'ar' else 'Organization Information' }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ 'اسم المؤسسة' if lang == 'ar' else 'Organization Name' }} *</label>
+                    <input type="text" class="form-control" name="organization_name" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">{{ 'القطاع / النشاط' if lang == 'ar' else 'Sector / Activity' }}</label>
+                        <input type="text" class="form-control" name="sector" placeholder="{{ 'مثال: صحي، تعليمي، تقني' if lang == 'ar' else 'e.g., Healthcare, Education, Technology' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">{{ 'عدد الموظفين' if lang == 'ar' else 'Employee Count' }}</label>
+                        <input type="number" class="form-control" name="employee_count" min="1">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ 'الموقع الجغرافي' if lang == 'ar' else 'Geographic Location' }}</label>
+                    <input type="text" class="form-control" name="location" placeholder="{{ 'المدينة، الدولة' if lang == 'ar' else 'City, Country' }}">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ 'وصف مختصر للمؤسسة' if lang == 'ar' else 'Brief Organization Description' }}</label>
+                    <textarea class="form-control" name="description" rows="3" placeholder="{{ 'ما هي طبيعة عملكم؟ ما هي منتجاتكم أو خدماتكم؟' if lang == 'ar' else 'What is your business nature? What are your products or services?' }}"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current State -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    {{ 'الوضع الحالي' if lang == 'ar' else 'Current State' }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ 'الأهداف الحالية أو المقترحة' if lang == 'ar' else 'Current or Proposed Objectives' }}</label>
+                    <textarea class="form-control" name="current_objectives" rows="3" placeholder="{{ 'ما هي أهدافكم الحالية؟' if lang == 'ar' else 'What are your current objectives?' }}"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ 'المبادرات أو المشاريع الجارية' if lang == 'ar' else 'Ongoing Initiatives or Projects' }}</label>
+                    <textarea class="form-control" name="ongoing_initiatives" rows="3" placeholder="{{ 'ما هي المشاريع التي تعملون عليها حالياً؟' if lang == 'ar' else 'What projects are you currently working on?' }}"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- File Upload -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-upload me-2"></i>
+                    {{ 'رفع الملفات (اختياري)' if lang == 'ar' else 'Upload Files (Optional)' }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">{{ 'يمكنك رفع ملفات PDF, DOCX, XLSX للتحليل الذكي' if lang == 'ar' else 'You can upload PDF, DOCX, XLSX files for AI analysis' }}</p>
+                <input type="file" class="form-control" name="files" multiple accept=".pdf,.docx,.doc,.xlsx,.xls,.txt">
+                <small class="text-muted">{{ 'أنواع الملفات المدعومة: PDF, DOCX, XLSX, TXT' if lang == 'ar' else 'Supported file types: PDF, DOCX, XLSX, TXT' }}</small>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-rocket me-2"></i>
+                {{ 'إنشاء المشروع والبدء في التحليل' if lang == 'ar' else 'Create Project & Start Analysis' }}
+            </button>
+            <a href="{{ url_for('strategic_identity.index') }}" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-times me-2"></i>
+                {{ 'إلغاء' if lang == 'ar' else 'Cancel' }}
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'إنشاء التحليل' if lang == 'ar' else 'Generate Analysis' }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 800px;">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <i class="fas fa-robot fa-4x text-primary mb-3"></i>
+            <h2>{{ 'إنشاء التحليل الاستراتيجي الذكي' if lang == 'ar' else 'Generate AI-Powered Strategic Analysis' }}</h2>
+            <p class="text-muted">{{ project.organization_name }}</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body text-center p-5">
+            <p class="lead mb-4">
+                {{ 'سيقوم النظام بإنشاء تحليل استراتيجي شامل يتضمن:' if lang == 'ar' else 'The system will generate a comprehensive strategic analysis including:' }}
+            </p>
+            
+            <div class="row text-{{ 'end' if lang == 'ar' else 'start' }} mb-4">
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> {{ 'تحليل SWOT' if lang == 'ar' else 'SWOT Analysis' }}</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> {{ 'الرؤية' if lang == 'ar' else 'Vision Statement' }}</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> {{ 'الرسالة' if lang == 'ar' else 'Mission Statement' }}</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> {{ 'القيم المؤسسية' if lang == 'ar' else 'Core Values' }}</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> {{ 'المجالات الاستراتيجية' if lang == 'ar' else 'Strategic Themes' }}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                {{ 'قد يستغرق الأمر من 30 ثانية إلى دقيقة واحدة' if lang == 'ar' else 'This may take 30 seconds to 1 minute' }}
+            </div>
+
+            <form method="POST">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-magic me-2"></i>
+                    {{ 'بدء التحليل' if lang == 'ar' else 'Start Analysis' }}
+                </button>
+                <a href="{{ url_for('strategic_identity.project_dashboard', project_id=project.id) }}" class="btn btn-outline-secondary btn-lg ms-2">
+                    {{ 'إلغاء' if lang == 'ar' else 'Cancel' }}
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

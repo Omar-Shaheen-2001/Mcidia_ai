@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.organization_name }} - {{ 'الهوية الاستراتيجية' if lang == 'ar' else 'Strategic Identity' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h2 class="mb-1">{{ project.organization_name }}</h2>
+                <p class="text-muted mb-0">
+                    <i class="fas fa-industry me-1"></i> {{ project.sector }}
+                    <span class="badge bg-{{ 'success' if project.status == 'final' else 'warning' if project.status == 'analysis_complete' else 'secondary' }} ms-2">
+                        {{ project.status }}
+                    </span>
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('strategic_identity.index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>
+                    {{ 'رجوع' if lang == 'ar' else 'Back' }}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vision & Mission -->
+    {% if project.vision_statement or project.mission_statement %}
+    <div class="row mb-4">
+        {% if project.vision_statement %}
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">
+                        <i class="fas fa-eye me-2"></i>
+                        {{ 'الرؤية' if lang == 'ar' else 'Vision' }}
+                    </h5>
+                    <p class="lead">{{ project.vision_statement }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if project.mission_statement %}
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">
+                        <i class="fas fa-bullseye me-2"></i>
+                        {{ 'الرسالة' if lang == 'ar' else 'Mission' }}
+                    </h5>
+                    <p>{{ project.mission_statement }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Core Values -->
+    {% if values %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-heart me-2"></i>
+                        {{ 'القيم المؤسسية' if lang == 'ar' else 'Core Values' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for value in values %}
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                                    <i class="fas fa-check-circle text-secondary fs-4"></i>
+                                </div>
+                                <h6 class="text-secondary">{{ value.value }}</h6>
+                                <p class="text-muted small">{{ value.description }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- SWOT Analysis -->
+    {% if swot %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        {{ 'تحليل SWOT' if lang == 'ar' else 'SWOT Analysis' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Strengths -->
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-success"><i class="fas fa-plus-circle me-1"></i> {{ 'نقاط القوة' if lang == 'ar' else 'Strengths' }}</h6>
+                            <ul class="list-unstyled">
+                                {% for item in swot.strengths %}
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <!-- Weaknesses -->
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-warning"><i class="fas fa-minus-circle me-1"></i> {{ 'نقاط الضعف' if lang == 'ar' else 'Weaknesses' }}</h6>
+                            <ul class="list-unstyled">
+                                {% for item in swot.weaknesses %}
+                                <li class="mb-2"><i class="fas fa-times text-warning me-2"></i>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <!-- Opportunities -->
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-info"><i class="fas fa-lightbulb me-1"></i> {{ 'الفرص' if lang == 'ar' else 'Opportunities' }}</h6>
+                            <ul class="list-unstyled">
+                                {% for item in swot.opportunities %}
+                                <li class="mb-2"><i class="fas fa-arrow-up text-info me-2"></i>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <!-- Threats -->
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i> {{ 'التهديدات' if lang == 'ar' else 'Threats' }}</h6>
+                            <ul class="list-unstyled">
+                                {% for item in swot.threats %}
+                                <li class="mb-2"><i class="fas fa-arrow-down text-danger me-2"></i>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Empty State -->
+    {% if not project.vision_statement and not values and not swot %}
+    <div class="row">
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-robot fa-4x text-muted mb-3"></i>
+            <p class="text-muted">{{ 'لم يتم إنشاء التحليل الاستراتيجي بعد. انقر على "إنشاء التحليل" للبدء.' if lang == 'ar' else 'Strategic analysis not generated yet. Click "Generate Analysis" to start.' }}</p>
+            <a href="{{ url_for('strategic_identity.generate_analysis', project_id=project.id) }}" class="btn btn-primary mt-2">
+                <i class="fas fa-magic me-2"></i>
+                {{ 'إنشاء التحليل الاستراتيجي' if lang == 'ar' else 'Generate Strategic Analysis' }}
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
