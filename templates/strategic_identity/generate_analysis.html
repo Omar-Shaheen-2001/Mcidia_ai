@@ -40,6 +40,7 @@
             </div>
 
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
                 <button type="submit" class="btn btn-primary btn-lg">
                     <i class="fas fa-magic me-2"></i>
                     {{ 'بدء التحليل' if lang == 'ar' else 'Start Analysis' }}
