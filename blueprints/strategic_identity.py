@@ -313,6 +313,7 @@ def generate_analysis(project_id):
         db.session.commit()
         
         # Save Strategic Objectives
+        created_objectives = []
         for obj_data in objectives_data.get('objectives', []):
             objective = StrategicObjective(
                 project_id=project.id,
@@ -322,6 +323,98 @@ def generate_analysis(project_id):
                 priority='high'
             )
             db.session.add(objective)
+            created_objectives.append(objective)
+        
+        db.session.flush()  # Get IDs for objectives without committing
+        
+        # Generate KPIs for each objective (AI-Powered)
+        current_app.logger.info(f"Generating KPIs for {len(created_objectives)} objectives...")
+        
+        if created_objectives:
+            # Prepare objectives context for AI
+            objectives_text = "\n".join([
+                f"- ID {obj.id}: {obj.title}: {obj.description or 'لا يوجد وصف'}"
+                for obj in created_objectives
+            ])
+            
+            # AI Prompt for KPI generation
+            kpi_prompt = f"""أنت مستشار استراتيجي متخصص في تطوير مؤشرات الأداء الرئيسية (KPIs).
+
+المنظمة: {project.organization_name}
+القطاع: {project.sector or 'غير محدد'}
+
+الأهداف الاستراتيجية:
+{objectives_text}
+
+مهمتك: توليد 3-5 مؤشرات أداء رئيسية (KPIs) لكل هدف استراتيجي.
+
+لكل مؤشر، يجب تحديد:
+1. اسم المؤشر (واضح وقابل للقياس)
+2. نوع المؤشر (quantitative أو qualitative)
+3. وحدة القياس (مثل: نسبة مئوية، عدد، ر.س، ساعة، وحدة)
+4. القيمة المستهدفة (رقم محدد)
+5. القيمة الحالية (يمكن تركها 0 أو null إذا غير معروفة)
+6. دورية القياس (daily, weekly, monthly, quarterly, yearly)
+7. القسم أو الجهة المسؤولة عن قياس المؤشر
+
+**مهم جداً**: يجب أن تكون المؤشرات:
+- قابلة للقياس (SMART)
+- مرتبطة مباشرة بالهدف الاستراتيجي
+- واقعية وقابلة للتحقيق
+- متنوعة (مالية، تشغيلية، رضا عملاء، جودة، إلخ)
+
+أرجع النتيجة بصيغة JSON فقط على الشكل التالي:
+{{
+  "kpis": [
+    {{
+      "objective_id": رقم_معرف_الهدف,
+      "name": "اسم المؤشر",
+      "kpi_type": "quantitative",
+      "measurement_unit": "%",
+      "target_value": 90,
+      "current_value": 0,
+      "measurement_frequency": "monthly",
+      "responsible_department": "اسم القسم المسؤول"
+    }}
+  ]
+}}
+
+تأكد من تغطية جميع الأهداف الاستراتيجية المذكورة أعلاه."""
+
+            try:
+                kpi_ai = AIManager.for_use_case('kpi_generation')
+                kpi_response = kpi_ai.chat(kpi_prompt)
+                kpis_data = clean_and_parse_json(kpi_response)
+                
+                # Create objective_id mapping
+                obj_mapping = {obj.id: obj for obj in created_objectives}
+                
+                # Save KPIs to database
+                kpi_count = 0
+                if kpis_data and 'kpis' in kpis_data:
+                    for kpi_data in kpis_data['kpis']:
+                        obj_id = kpi_data.get('objective_id')
+                        if obj_id and obj_id in obj_mapping:
+                            kpi = IdentityKPI(
+                                project_id=project.id,
+                                objective_id=obj_id,
+                                name=kpi_data.get('name', ''),
+                                kpi_type=kpi_data.get('kpi_type', 'quantitative'),
+                                measurement_unit=kpi_data.get('measurement_unit', ''),
+                                target_value=float(kpi_data.get('target_value', 0)) if kpi_data.get('target_value') else None,
+                                current_value=float(kpi_data.get('current_value', 0)) if kpi_data.get('current_value') else None,
+                                measurement_frequency=kpi_data.get('measurement_frequency', 'monthly'),
+                                responsible_department=kpi_data.get('responsible_department', '')
+                            )
+                            db.session.add(kpi)
+                            kpi_count += 1
+                    
+                    current_app.logger.info(f"Generated {kpi_count} KPIs automatically")
+                else:
+                    current_app.logger.warning("KPI generation returned no data, skipping KPIs")
+            except Exception as kpi_error:
+                current_app.logger.error(f"Error generating KPIs (non-critical): {str(kpi_error)}")
+                # Continue even if KPI generation fails
         
         # Save Strategic Initiatives
         for init_data in initiatives_data.get('initiatives', []):

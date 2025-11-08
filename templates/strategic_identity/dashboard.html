@@ -205,10 +205,10 @@
                         <i class="fas fa-chart-bar me-2"></i>
                         {{ 'مؤشرات الأداء الرئيسية (KPIs)' if lang == 'ar' else 'Key Performance Indicators (KPIs)' }}
                     </h5>
-                    {% if objectives and not kpis %}
+                    {% if objectives %}
                     <button class="btn btn-light btn-sm" id="generateKpisBtn">
                         <i class="fas fa-magic me-2"></i>
-                        {{ 'توليد مؤشرات الأداء بالذكاء الاصطناعي' if lang == 'ar' else 'Generate KPIs with AI' }}
+                        {{ 'إعادة توليد مؤشرات الأداء' if lang == 'ar' else 'Regenerate KPIs' }}
                     </button>
                     {% endif %}
                 </div>
@@ -262,14 +262,13 @@
                     </div>
                     {% elif objectives %}
                     <div class="text-center py-4">
-                        <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                        <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
                         <p class="text-muted">
-                            {{ 'لم يتم توليد مؤشرات الأداء بعد. استخدم الذكاء الاصطناعي لتوليد مؤشرات أداء ذكية بناءً على أهدافك الاستراتيجية.' if lang == 'ar' else 'No KPIs generated yet. Use AI to generate smart KPIs based on your strategic objectives.' }}
+                            {{ 'لم يتم توليد مؤشرات الأداء تلقائياً. يمكنك استخدام الزر أعلاه لتوليدها.' if lang == 'ar' else 'KPIs were not auto-generated. You can use the button above to generate them.' }}
                         </p>
-                        <button class="btn btn-success" id="generateKpisBtn2">
-                            <i class="fas fa-magic me-2"></i>
-                            {{ 'توليد مؤشرات الأداء الآن' if lang == 'ar' else 'Generate KPIs Now' }}
-                        </button>
+                        <p class="small text-muted">
+                            {{ 'ملاحظة: يتم توليد مؤشرات الأداء تلقائياً عند إنشاء مشروع جديد.' if lang == 'ar' else 'Note: KPIs are automatically generated when creating a new project.' }}
+                        </p>
                     </div>
                     {% else %}
                     <div class="alert alert-warning mb-0">
@@ -346,9 +345,7 @@
 <script>
 // KPI Generation Handler
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle both generate KPI buttons
-    const generateBtn1 = document.getElementById('generateKpisBtn');
-    const generateBtn2 = document.getElementById('generateKpisBtn2');
+    const generateBtn = document.getElementById('generateKpisBtn');
     
     function generateKPIs(btn) {
         const originalText = btn.innerHTML;
@@ -380,17 +377,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    if (generateBtn1) {
-        generateBtn1.addEventListener('click', function() {
-            if (confirm('{{ "هل تريد توليد مؤشرات الأداء تلقائياً بناءً على الأهداف الاستراتيجية؟" if lang == "ar" else "Do you want to automatically generate KPIs based on strategic objectives?" }}')) {
-                generateKPIs(this);
-            }
-        });
-    }
-    
-    if (generateBtn2) {
-        generateBtn2.addEventListener('click', function() {
-            if (confirm('{{ "هل تريد توليد مؤشرات الأداء تلقائياً بناءً على الأهداف الاستراتيجية؟" if lang == "ar" else "Do you want to automatically generate KPIs based on strategic objectives?" }}')) {
+    if (generateBtn) {
+        generateBtn.addEventListener('click', function() {
+            {% if kpis %}
+            const confirmMsg = '{{ "سيتم حذف المؤشرات الحالية وتوليد مؤشرات جديدة. هل تريد المتابعة؟" if lang == "ar" else "Current KPIs will be deleted and new ones will be generated. Continue?" }}';
+            {% else %}
+            const confirmMsg = '{{ "هل تريد توليد مؤشرات الأداء تلقائياً بناءً على الأهداف الاستراتيجية؟" if lang == "ar" else "Do you want to automatically generate KPIs based on strategic objectives?" }}';
+            {% endif %}
+            
+            if (confirm(confirmMsg)) {
                 generateKPIs(this);
             }
         });

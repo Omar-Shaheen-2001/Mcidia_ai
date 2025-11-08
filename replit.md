@@ -80,16 +80,20 @@ A hierarchical role system is enforced using custom Flask decorators (`@login_re
 ### KPI Generation System (NEW - Nov 2025)
 -   **AI-Powered KPI Generator**: Automatically generates Key Performance Indicators (KPIs) for Strategic Identity projects based on strategic objectives
 -   **Features**:
+    - **Automatic Generation**: KPIs are generated automatically during strategic analysis workflow (integrated into `generate_analysis()`)
+    - **Manual Regeneration**: Users can manually regenerate KPIs using the dashboard button
     - Generates 3-5 KPIs per strategic objective using AI
     - Each KPI includes: name, type (quantitative/qualitative), measurement unit, target value, current value, measurement frequency, responsible department
     - Linked to specific strategic objectives for traceability
     - Full CRUD operations (Create via AI, Read, Delete)
 -   **Implementation**:
-    - Route: `/project/<id>/generate-kpis` (POST) - AI-powered KPI generation
+    - **Auto-Generation**: Integrated into `/generate-analysis` workflow (creates KPIs after objectives are saved)
+    - Route: `/project/<id>/generate-kpis` (POST) - Manual KPI generation/regeneration
     - Route: `/project/<id>/kpis/<kpi_id>` (DELETE) - KPI deletion
     - Database: `identity_kpis` table with foreign keys to projects and objectives
-    - UI: Interactive dashboard section with generation button and KPI display table
+    - UI: Interactive dashboard section with regeneration button and KPI display table
 -   **Use Case Config**: `kpi_generation` in AIManager using HuggingFace Llama3 model (temperature: 0.6)
+-   **Error Handling**: KPI generation errors are non-critical and logged; analysis continues even if KPI generation fails
 
 ### Environment Configuration
 -   Uses a `.env` file for sensitive credentials (API keys, database URLs, secret keys).
