@@ -751,7 +751,10 @@ def generate_kpis(project_id):
         # Get strategic objectives
         objectives = db.session.query(StrategicObjective).filter_by(project_id=project_id).all()
         
+        current_app.logger.info(f"KPI Generation: Found {len(objectives)} objectives for project {project_id}")
+        
         if not objectives:
+            current_app.logger.warning(f"KPI Generation: No objectives found for project {project_id}")
             return jsonify({
                 'success': False,
                 'error': 'لا توجد أهداف استراتيجية. يرجى إنشاء الأهداف أولاً / No strategic objectives found. Please create objectives first.'
@@ -762,6 +765,8 @@ def generate_kpis(project_id):
             f"- {obj.title}: {obj.description or 'لا يوجد وصف'}"
             for obj in objectives
         ])
+        
+        current_app.logger.info(f"KPI Generation: Prepared prompt with {len(objectives)} objectives")
         
         # AI Prompt for KPI generation
         prompt = f"""أنت مستشار استراتيجي متخصص في تطوير مؤشرات الأداء الرئيسية (KPIs).
@@ -810,13 +815,18 @@ def generate_kpis(project_id):
 تأكد من تغطية جميع الأهداف الاستراتيجية المذكورة أعلاه."""
 
         # Call AI
+        current_app.logger.info("KPI Generation: Calling AI...")
         ai_manager = AIManager.for_use_case('kpi_generation')
         response = ai_manager.chat(prompt)
+        
+        current_app.logger.info(f"KPI Generation: AI Response received (length: {len(response)})")
+        current_app.logger.debug(f"KPI Generation: AI Response: {response[:500]}")
         
         # Parse AI response
         kpis_data = clean_and_parse_json(response)
         
         if not kpis_data or 'kpis' not in kpis_data:
+            current_app.logger.error(f"KPI Generation: Failed to parse AI response. Data: {kpis_data}")
             return jsonify({
                 'success': False,
                 'error': 'فشل في معالجة استجابة الذكاء الاصطناعي / Failed to parse AI response'
@@ -824,6 +834,8 @@ def generate_kpis(project_id):
         
         # Create objective_id mapping
         obj_mapping = {obj.id: obj for obj in objectives}
+        
+        current_app.logger.info(f"KPI Generation: Processing {len(kpis_data['kpis'])} KPIs from AI")
         
         # Save KPIs to database
         created_kpis = []
@@ -844,7 +856,10 @@ def generate_kpis(project_id):
                 )
                 db.session.add(kpi)
                 created_kpis.append(kpi_data)
+            else:
+                current_app.logger.warning(f"KPI Generation: Skipping KPI with invalid objective_id: {obj_id}")
         
+        current_app.logger.info(f"KPI Generation: Created {len(created_kpis)} KPIs")
         db.session.commit()
         
         return jsonify({
