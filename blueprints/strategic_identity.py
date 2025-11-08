@@ -266,3 +266,277 @@ def project_dashboard(project_id):
                          kpis=kpis,
                          initiatives=initiatives,
                          lang=lang)
+
+# ==================== EXPORT FUNCTIONS ====================
+
+@strategic_identity_bp.route('/project/<int:project_id>/export/pdf')
+@login_required
+def export_pdf(project_id):
+    """Export strategic identity to PDF"""
+    from flask import make_response
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import cm
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_RIGHT, TA_CENTER
+    from io import BytesIO
+    import arabic_reshaper
+    from bidi.algorithm import get_display
+    
+    db = get_db()
+    lang = get_lang()
+    user_id = int(get_jwt_identity())
+    
+    # Authorization check
+    project = db.session.query(StrategicIdentityProject).filter_by(id=project_id).first_or_404()
+    if project.user_id != user_id:
+        flash('غير مصرح / Unauthorized', 'danger')
+        return redirect(url_for('strategic_identity.index'))
+    
+    # Parse JSON data
+    swot = json.loads(project.swot_analysis) if project.swot_analysis else {}
+    values = json.loads(project.core_values) if project.core_values else []
+    themes = json.loads(project.strategic_themes) if project.strategic_themes else []
+    
+    def prep_text(text):
+        """Prepare Arabic text for PDF"""
+        if not text:
+            return ""
+        reshaped = arabic_reshaper.reshape(text)
+        return get_display(reshaped)
+    
+    # Create PDF
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
+    
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Arabic RTL style
+    rtl_style = ParagraphStyle(
+        'RTL',
+        parent=styles['Normal'],
+        alignment=TA_RIGHT,
+        fontSize=12,
+        leading=16
+    )
+    
+    title_style = ParagraphStyle(
+        'RTLTitle',
+        parent=styles['Heading1'],
+        alignment=TA_CENTER,
+        fontSize=18,
+        leading=22
+    )
+    
+    # Title
+    title_text = prep_text(f"الهوية الاستراتيجية - {project.organization_name}")
+    elements.append(Paragraph(title_text, title_style))
+    elements.append(Spacer(1, 0.5*cm))
+    
+    # Vision
+    if project.vision_statement:
+        elements.append(Paragraph(prep_text("الرؤية:"), rtl_style))
+        elements.append(Paragraph(prep_text(project.vision_statement), rtl_style))
+        elements.append(Spacer(1, 0.3*cm))
+    
+    # Mission
+    if project.mission_statement:
+        elements.append(Paragraph(prep_text("الرسالة:"), rtl_style))
+        elements.append(Paragraph(prep_text(project.mission_statement), rtl_style))
+        elements.append(Spacer(1, 0.5*cm))
+    
+    # Core Values
+    if values:
+        elements.append(Paragraph(prep_text("القيم المؤسسية:"), rtl_style))
+        for value in values:
+            val_text = f"• {value.get('value', '')} - {value.get('description', '')}"
+            elements.append(Paragraph(prep_text(val_text), rtl_style))
+        elements.append(Spacer(1, 0.5*cm))
+    
+    # SWOT Analysis
+    if swot:
+        elements.append(Paragraph(prep_text("تحليل SWOT:"), rtl_style))
+        elements.append(Spacer(1, 0.2*cm))
+        
+        swot_data = []
+        swot_data.append([prep_text("نقاط القوة"), prep_text("نقاط الضعف")])
+        
+        strengths = swot.get('strengths', [])
+        weaknesses = swot.get('weaknesses', [])
+        max_len = max(len(strengths), len(weaknesses))
+        
+        for i in range(max_len):
+            s = prep_text(strengths[i]) if i < len(strengths) else ""
+            w = prep_text(weaknesses[i]) if i < len(weaknesses) else ""
+            swot_data.append([s, w])
+        
+        swot_table = Table(swot_data, colWidths=[8*cm, 8*cm])
+        swot_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(swot_table)
+    
+    doc.build(elements)
+    
+    pdf = buffer.getvalue()
+    buffer.close()
+    
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'attachment; filename=strategic_identity_{project_id}.pdf'
+    
+    return response
+
+@strategic_identity_bp.route('/project/<int:project_id>/export/excel')
+@login_required
+def export_excel(project_id):
+    """Export strategic identity to Excel"""
+    from flask import make_response
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, PatternFill
+    from io import BytesIO
+    
+    db = get_db()
+    user_id = int(get_jwt_identity())
+    
+    # Authorization check
+    project = db.session.query(StrategicIdentityProject).filter_by(id=project_id).first_or_404()
+    if project.user_id != user_id:
+        flash('غير مصرح / Unauthorized', 'danger')
+        return redirect(url_for('strategic_identity.index'))
+    
+    # Parse JSON data
+    swot = json.loads(project.swot_analysis) if project.swot_analysis else {}
+    values = json.loads(project.core_values) if project.core_values else []
+    themes = json.loads(project.strategic_themes) if project.strategic_themes else []
+    
+    # Create workbook
+    wb = Workbook()
+    
+    # Overview Sheet
+    ws_overview = wb.active
+    ws_overview.title = "Overview"
+    ws_overview.sheet_view.rightToLeft = True
+    
+    header_fill = PatternFill(start_color="0066CC", end_color="0066CC", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF", size=14)
+    
+    ws_overview['A1'] = "الهوية الاستراتيجية"
+    ws_overview['A1'].font = header_font
+    ws_overview['A1'].fill = header_fill
+    ws_overview.merge_cells('A1:B1')
+    
+    row = 3
+    ws_overview[f'A{row}'] = "اسم المؤسسة"
+    ws_overview[f'B{row}'] = project.organization_name
+    row += 1
+    ws_overview[f'A{row}'] = "القطاع"
+    ws_overview[f'B{row}'] = project.sector
+    row += 1
+    ws_overview[f'A{row}'] = "عدد الموظفين"
+    ws_overview[f'B{row}'] = project.employee_count
+    row += 2
+    
+    if project.vision_statement:
+        ws_overview[f'A{row}'] = "الرؤية"
+        ws_overview[f'A{row}'].font = Font(bold=True)
+        row += 1
+        ws_overview[f'A{row}'] = project.vision_statement
+        ws_overview.merge_cells(f'A{row}:B{row}')
+        row += 2
+    
+    if project.mission_statement:
+        ws_overview[f'A{row}'] = "الرسالة"
+        ws_overview[f'A{row}'].font = Font(bold=True)
+        row += 1
+        ws_overview[f'A{row}'] = project.mission_statement
+        ws_overview.merge_cells(f'A{row}:B{row}')
+        row += 2
+    
+    ws_overview.column_dimensions['A'].width = 20
+    ws_overview.column_dimensions['B'].width = 50
+    
+    # SWOT Sheet
+    if swot:
+        ws_swot = wb.create_sheet("SWOT Analysis")
+        ws_swot.sheet_view.rightToLeft = True
+        
+        ws_swot['A1'] = "تحليل SWOT"
+        ws_swot['A1'].font = header_font
+        ws_swot['A1'].fill = header_fill
+        ws_swot.merge_cells('A1:D1')
+        
+        ws_swot['A3'] = "نقاط القوة"
+        ws_swot['B3'] = "نقاط الضعف"
+        ws_swot['C3'] = "الفرص"
+        ws_swot['D3'] = "التهديدات"
+        
+        for cell in ['A3', 'B3', 'C3', 'D3']:
+            ws_swot[cell].font = Font(bold=True)
+            ws_swot[cell].fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+        
+        row = 4
+        max_items = max(
+            len(swot.get('strengths', [])),
+            len(swot.get('weaknesses', [])),
+            len(swot.get('opportunities', [])),
+            len(swot.get('threats', []))
+        )
+        
+        for i in range(max_items):
+            strengths = swot.get('strengths', [])
+            weaknesses = swot.get('weaknesses', [])
+            opportunities = swot.get('opportunities', [])
+            threats = swot.get('threats', [])
+            
+            ws_swot[f'A{row}'] = strengths[i] if i < len(strengths) else ""
+            ws_swot[f'B{row}'] = weaknesses[i] if i < len(weaknesses) else ""
+            ws_swot[f'C{row}'] = opportunities[i] if i < len(opportunities) else ""
+            ws_swot[f'D{row}'] = threats[i] if i < len(threats) else ""
+            row += 1
+        
+        for col in ['A', 'B', 'C', 'D']:
+            ws_swot.column_dimensions[col].width = 30
+    
+    # Core Values Sheet
+    if values:
+        ws_values = wb.create_sheet("Core Values")
+        ws_values.sheet_view.rightToLeft = True
+        
+        ws_values['A1'] = "القيم المؤسسية"
+        ws_values['A1'].font = header_font
+        ws_values['A1'].fill = header_fill
+        ws_values.merge_cells('A1:B1')
+        
+        ws_values['A3'] = "القيمة"
+        ws_values['B3'] = "الوصف"
+        ws_values['A3'].font = Font(bold=True)
+        ws_values['B3'].font = Font(bold=True)
+        
+        row = 4
+        for value in values:
+            ws_values[f'A{row}'] = value.get('value', '')
+            ws_values[f'B{row}'] = value.get('description', '')
+            row += 1
+        
+        ws_values.column_dimensions['A'].width = 20
+        ws_values.column_dimensions['B'].width = 50
+    
+    # Save to buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    
+    response = make_response(buffer.getvalue())
+    response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    response.headers['Content-Disposition'] = f'attachment; filename=strategic_identity_{project_id}.xlsx'
+    
+    return response
