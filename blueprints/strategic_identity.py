@@ -255,24 +255,28 @@ def generate_analysis(project_id):
             max_tokens=2000
         )
         
-        # Parse responses
-        try:
-            swot_data = json.loads(swot_response)
-            identity_data = json.loads(identity_response)
-            objectives_data = json.loads(objectives_response)
-            initiatives_data = json.loads(initiatives_response)
-        except json.JSONDecodeError:
-            # Fallback: try to extract JSON from response
+        # Helper function to clean and parse JSON
+        def clean_and_parse_json(response_text):
             import re
-            swot_match = re.search(r'\{.*\}', swot_response, re.DOTALL)
-            identity_match = re.search(r'\{.*\}', identity_response, re.DOTALL)
-            objectives_match = re.search(r'\{.*\}', objectives_response, re.DOTALL)
-            initiatives_match = re.search(r'\{.*\}', initiatives_response, re.DOTALL)
-            
-            swot_data = json.loads(swot_match.group(0)) if swot_match else {}
-            identity_data = json.loads(identity_match.group(0)) if identity_match else {}
-            objectives_data = json.loads(objectives_match.group(0)) if objectives_match else {}
-            initiatives_data = json.loads(initiatives_match.group(0)) if initiatives_match else {}
+            # Remove markdown code blocks
+            cleaned = re.sub(r'```json\s*', '', response_text)
+            cleaned = re.sub(r'```\s*', '', cleaned)
+            # Remove control characters
+            cleaned = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', cleaned)
+            # Try to extract JSON object
+            match = re.search(r'\{.*\}', cleaned, re.DOTALL)
+            if match:
+                try:
+                    return json.loads(match.group(0))
+                except json.JSONDecodeError:
+                    pass
+            return {}
+        
+        # Parse responses
+        swot_data = clean_and_parse_json(swot_response)
+        identity_data = clean_and_parse_json(identity_response)
+        objectives_data = clean_and_parse_json(objectives_response)
+        initiatives_data = clean_and_parse_json(initiatives_response)
         
         # Update project with AI-generated data
         project.swot_analysis = json.dumps(swot_data, ensure_ascii=False)
@@ -289,9 +293,10 @@ def generate_analysis(project_id):
         for obj_data in objectives_data.get('objectives', []):
             objective = StrategicObjective(
                 project_id=project.id,
-                objective_name=obj_data.get('name', ''),
+                title=obj_data.get('name', ''),
                 description=obj_data.get('description', ''),
-                timeframe=obj_data.get('timeframe', '')
+                timeframe=obj_data.get('timeframe', ''),
+                priority='high'
             )
             db.session.add(objective)
         
@@ -563,7 +568,7 @@ def export_pdf(project_id):
         obj_data = [[prep_text("الهدف"), prep_text("الوصف"), prep_text("الإطار الزمني")]]
         for obj in objectives:
             obj_data.append([
-                prep_text(obj.objective_name),
+                prep_text(obj.title),
                 prep_text(obj.description or ''),
                 prep_text(obj.timeframe or '')
             ])
@@ -871,7 +876,7 @@ def export_excel(project_id):
         
         row = 4
         for obj in objectives:
-            ws_obj[f'A{row}'] = obj.objective_name
+            ws_obj[f'A{row}'] = obj.title
             ws_obj[f'B{row}'] = obj.description or ''
             ws_obj[f'C{row}'] = obj.timeframe or ''
             row += 1
