@@ -399,6 +399,19 @@ def export_pdf(project_id):
     kpis = db.session.query(IdentityKPI).filter_by(project_id=project_id).all()
     initiatives = db.session.query(IdentityInitiative).filter_by(project_id=project_id).all()
     
+    # Register Arabic font
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    import os
+    
+    font_path = os.path.join(os.path.dirname(__file__), '..', 'static', 'fonts', 'Cairo-Regular.ttf')
+    try:
+        pdfmetrics.registerFont(TTFont('Cairo', font_path))
+        arabic_font = 'Cairo'
+    except:
+        # Fallback to Helvetica if font registration fails
+        arabic_font = 'Helvetica'
+    
     def prep_text(text):
         """Prepare Arabic text for PDF"""
         if not text:
@@ -413,10 +426,11 @@ def export_pdf(project_id):
     elements = []
     styles = getSampleStyleSheet()
     
-    # Arabic RTL style
+    # Arabic RTL style with Cairo font
     rtl_style = ParagraphStyle(
         'RTL',
         parent=styles['Normal'],
+        fontName=arabic_font,
         alignment=TA_RIGHT,
         fontSize=12,
         leading=16
@@ -425,18 +439,22 @@ def export_pdf(project_id):
     title_style = ParagraphStyle(
         'RTLTitle',
         parent=styles['Heading1'],
+        fontName=arabic_font,
         alignment=TA_CENTER,
         fontSize=18,
-        leading=22
+        leading=22,
+        textColor=colors.HexColor('#1a365d')
     )
     
     heading_style = ParagraphStyle(
         'RTLHeading',
         parent=styles['Heading2'],
+        fontName=arabic_font,
         alignment=TA_RIGHT,
         fontSize=14,
         leading=18,
-        spaceAfter=10
+        spaceAfter=10,
+        textColor=colors.HexColor('#2c5282')
     )
     
     # Title
@@ -504,8 +522,9 @@ def export_pdf(project_id):
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 0), (-1, -1), arabic_font),
             ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
@@ -530,8 +549,9 @@ def export_pdf(project_id):
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 0), (-1, -1), arabic_font),
             ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
@@ -578,8 +598,9 @@ def export_pdf(project_id):
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 0), (-1, -1), arabic_font),
             ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
@@ -604,8 +625,9 @@ def export_pdf(project_id):
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 0), (-1, -1), arabic_font),
             ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
@@ -631,8 +653,9 @@ def export_pdf(project_id):
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 0), (-1, -1), arabic_font),
             ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
