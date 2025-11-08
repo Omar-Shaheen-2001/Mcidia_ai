@@ -399,18 +399,22 @@ def export_pdf(project_id):
     kpis = db.session.query(IdentityKPI).filter_by(project_id=project_id).all()
     initiatives = db.session.query(IdentityInitiative).filter_by(project_id=project_id).all()
     
-    # Register Arabic font
+    # Register Arabic fonts
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
     import os
     
-    font_path = os.path.join(os.path.dirname(__file__), '..', 'static', 'fonts', 'Cairo-Regular.ttf')
+    font_dir = os.path.join(os.path.dirname(__file__), '..', 'static', 'fonts')
     try:
-        pdfmetrics.registerFont(TTFont('Cairo', font_path))
+        pdfmetrics.registerFont(TTFont('Cairo', os.path.join(font_dir, 'Cairo-Regular.ttf')))
+        pdfmetrics.registerFont(TTFont('Cairo-Bold', os.path.join(font_dir, 'Cairo-Bold.ttf')))
         arabic_font = 'Cairo'
-    except:
+        arabic_font_bold = 'Cairo-Bold'
+    except Exception as e:
+        current_app.logger.warning(f"Could not load Arabic fonts: {e}")
         # Fallback to Helvetica if font registration fails
         arabic_font = 'Helvetica'
+        arabic_font_bold = 'Helvetica-Bold'
     
     def prep_text(text):
         """Prepare Arabic text for PDF"""
@@ -426,35 +430,55 @@ def export_pdf(project_id):
     elements = []
     styles = getSampleStyleSheet()
     
-    # Arabic RTL style with Cairo font
+    # Arabic RTL styles with Cairo font
     rtl_style = ParagraphStyle(
         'RTL',
         parent=styles['Normal'],
         fontName=arabic_font,
         alignment=TA_RIGHT,
-        fontSize=12,
-        leading=16
+        fontSize=11,
+        leading=18,
+        spaceBefore=3,
+        spaceAfter=3,
+        rightIndent=5,
+        leftIndent=5
     )
     
     title_style = ParagraphStyle(
         'RTLTitle',
         parent=styles['Heading1'],
-        fontName=arabic_font,
+        fontName=arabic_font_bold,
         alignment=TA_CENTER,
-        fontSize=18,
-        leading=22,
+        fontSize=20,
+        leading=28,
+        spaceBefore=0,
+        spaceAfter=20,
         textColor=colors.HexColor('#1a365d')
     )
     
     heading_style = ParagraphStyle(
         'RTLHeading',
         parent=styles['Heading2'],
-        fontName=arabic_font,
+        fontName=arabic_font_bold,
         alignment=TA_RIGHT,
-        fontSize=14,
-        leading=18,
+        fontSize=15,
+        leading=22,
+        spaceBefore=15,
         spaceAfter=10,
-        textColor=colors.HexColor('#2c5282')
+        textColor=colors.HexColor('#2c5282'),
+        borderPadding=5
+    )
+    
+    subheading_style = ParagraphStyle(
+        'RTLSubHeading',
+        parent=styles['Normal'],
+        fontName=arabic_font_bold,
+        alignment=TA_RIGHT,
+        fontSize=12,
+        leading=18,
+        spaceBefore=8,
+        spaceAfter=5,
+        textColor=colors.HexColor('#4a5568')
     )
     
     # Title
@@ -519,14 +543,20 @@ def export_pdf(project_id):
         
         swot_table = Table(swot_data, colWidths=[8*cm, 8*cm])
         swot_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c5282')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 0), (-1, -1), arabic_font),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('FONTNAME', (0, 0), (-1, 0), arabic_font_bold),
+            ('FONTNAME', (0, 1), (-1, -1), arabic_font),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
             ('FONTSIZE', (0, 1), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor('#1a365d')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f7fafc')])
         ]))
         elements.append(swot_table)
         elements.append(Spacer(1, 0.5*cm))
@@ -546,14 +576,20 @@ def export_pdf(project_id):
         
         swot_table2 = Table(swot_data2, colWidths=[8*cm, 8*cm])
         swot_table2.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c5282')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 0), (-1, -1), arabic_font),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('FONTNAME', (0, 0), (-1, 0), arabic_font_bold),
+            ('FONTNAME', (0, 1), (-1, -1), arabic_font),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
             ('FONTSIZE', (0, 1), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor('#1a365d')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f7fafc')])
         ]))
         elements.append(swot_table2)
     
@@ -593,16 +629,22 @@ def export_pdf(project_id):
                 prep_text(obj.timeframe or '')
             ])
         
-        obj_table = Table(obj_data, colWidths=[5*cm, 7*cm, 4*cm])
+        obj_table = Table(obj_data, colWidths=[5.5*cm, 7*cm, 3.5*cm])
         obj_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c5282')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 0), (-1, -1), arabic_font),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('FONTSIZE', (0, 1), (-1, -1), 9),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ('FONTNAME', (0, 0), (-1, 0), arabic_font_bold),
+            ('FONTNAME', (0, 1), (-1, -1), arabic_font),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor('#1a365d')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f7fafc')])
         ]))
         elements.append(obj_table)
     
@@ -622,14 +664,20 @@ def export_pdf(project_id):
         
         kpi_table = Table(kpi_data, colWidths=[8*cm, 4*cm, 4*cm])
         kpi_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c5282')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 0), (-1, -1), arabic_font),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('FONTSIZE', (0, 1), (-1, -1), 9),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ('FONTNAME', (0, 0), (-1, 0), arabic_font_bold),
+            ('FONTNAME', (0, 1), (-1, -1), arabic_font),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor('#1a365d')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f7fafc')])
         ]))
         elements.append(kpi_table)
     
@@ -648,16 +696,22 @@ def export_pdf(project_id):
                 prep_text(init.responsible_party or '')
             ])
         
-        init_table = Table(init_data, colWidths=[4*cm, 5*cm, 3.5*cm, 3.5*cm])
+        init_table = Table(init_data, colWidths=[4.2*cm, 5*cm, 3.5*cm, 3.3*cm])
         init_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c5282')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 0), (-1, -1), arabic_font),
-            ('FONTSIZE', (0, 0), (-1, 0), 9),
-            ('FONTSIZE', (0, 1), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ('FONTNAME', (0, 0), (-1, 0), arabic_font_bold),
+            ('FONTNAME', (0, 1), (-1, -1), arabic_font),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 5),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor('#1a365d')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f7fafc')])
         ]))
         elements.append(init_table)
     
