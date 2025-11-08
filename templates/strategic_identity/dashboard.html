@@ -158,6 +158,90 @@
     </div>
     {% endif %}
 
+    <!-- Strategic Objectives -->
+    {% if objectives %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bullseye me-2"></i>
+                        {{ 'الأهداف الاستراتيجية' if lang == 'ar' else 'Strategic Objectives' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{{ 'الهدف' if lang == 'ar' else 'Objective' }}</th>
+                                    <th>{{ 'الوصف' if lang == 'ar' else 'Description' }}</th>
+                                    <th>{{ 'الإطار الزمني' if lang == 'ar' else 'Timeframe' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for obj in objectives %}
+                                <tr>
+                                    <td><strong>{{ obj.objective_name }}</strong></td>
+                                    <td>{{ obj.description }}</td>
+                                    <td><span class="badge bg-info">{{ obj.timeframe }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Strategic Initiatives -->
+    {% if initiatives %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tasks me-2"></i>
+                        {{ 'المبادرات التنفيذية الاستراتيجية' if lang == 'ar' else 'Strategic Initiatives' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{{ 'المبادرة' if lang == 'ar' else 'Initiative' }}</th>
+                                    <th>{{ 'المخرجات المتوقعة' if lang == 'ar' else 'Expected Outputs' }}</th>
+                                    <th>{{ 'فترة التنفيذ' if lang == 'ar' else 'Implementation Period' }}</th>
+                                    <th>{{ 'الجهة المسؤولة' if lang == 'ar' else 'Responsible Party' }}</th>
+                                    <th>{{ 'الميزانية' if lang == 'ar' else 'Budget' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for init in initiatives %}
+                                <tr>
+                                    <td><strong>{{ init.name }}</strong></td>
+                                    <td>{{ init.expected_outputs }}</td>
+                                    <td><span class="badge bg-primary">{{ init.implementation_period }}</span></td>
+                                    <td>{{ init.responsible_party }}</td>
+                                    <td>
+                                        {% if init.budget_estimate %}
+                                        <span class="text-success">{{ init.budget_estimate }} ر.س</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Empty State -->
     {% if not project.vision_statement and not values and not swot %}
     <div class="row">

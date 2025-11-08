@@ -196,18 +196,83 @@ def generate_analysis(project_id):
             max_tokens=2000
         )
         
+        # Generate Strategic Objectives
+        objectives_prompt = f"""أنت خبير في التخطيط الاستراتيجي. بناءً على المعلومات التالية:
+
+{context}
+
+أنشئ 5 أهداف استراتيجية SMART (محددة، قابلة للقياس، قابلة للتحقيق، ذات صلة، محددة بزمن):
+
+قدم النتيجة بصيغة JSON:
+{{
+    "objectives": [
+        {{
+            "name": "اسم الهدف",
+            "description": "وصف تفصيلي للهدف",
+            "timeframe": "الإطار الزمني (مثال: 2024-2025)"
+        }},
+        ...
+    ]
+}}"""
+
+        objectives_response = ai.chat(
+            prompt=objectives_prompt,
+            temperature=0.7,
+            max_tokens=1500
+        )
+        
+        # Generate Strategic Initiatives
+        initiatives_prompt = f"""أنت خبير في إدارة المشاريع الاستراتيجية. بناءً على المعلومات التالية:
+
+{context}
+
+أنشئ 5 مبادرات تنفيذية استراتيجية، كل مبادرة يجب أن تحتوي على:
+- اسم المبادرة
+- الهدف المرتبط بها
+- المخرجات المتوقعة
+- فترة التنفيذ
+- الجهة المسؤولة (قسم أو فريق)
+
+قدم النتيجة بصيغة JSON:
+{{
+    "initiatives": [
+        {{
+            "name": "اسم المبادرة",
+            "objective": "الهدف المرتبط",
+            "expected_outputs": "المخرجات المتوقعة",
+            "implementation_period": "فترة التنفيذ (مثال: 6 أشهر)",
+            "responsible_party": "الجهة المسؤولة",
+            "budget": 50000,
+            "description": "وصف مختصر للمبادرة"
+        }},
+        ...
+    ]
+}}"""
+
+        initiatives_response = ai.chat(
+            prompt=initiatives_prompt,
+            temperature=0.7,
+            max_tokens=2000
+        )
+        
         # Parse responses
         try:
             swot_data = json.loads(swot_response)
             identity_data = json.loads(identity_response)
+            objectives_data = json.loads(objectives_response)
+            initiatives_data = json.loads(initiatives_response)
         except json.JSONDecodeError:
             # Fallback: try to extract JSON from response
             import re
             swot_match = re.search(r'\{.*\}', swot_response, re.DOTALL)
             identity_match = re.search(r'\{.*\}', identity_response, re.DOTALL)
+            objectives_match = re.search(r'\{.*\}', objectives_response, re.DOTALL)
+            initiatives_match = re.search(r'\{.*\}', initiatives_response, re.DOTALL)
             
             swot_data = json.loads(swot_match.group(0)) if swot_match else {}
             identity_data = json.loads(identity_match.group(0)) if identity_match else {}
+            objectives_data = json.loads(objectives_match.group(0)) if objectives_match else {}
+            initiatives_data = json.loads(initiatives_match.group(0)) if initiatives_match else {}
         
         # Update project with AI-generated data
         project.swot_analysis = json.dumps(swot_data, ensure_ascii=False)
@@ -217,6 +282,30 @@ def generate_analysis(project_id):
         project.strategic_themes = json.dumps(identity_data.get('strategic_themes', []), ensure_ascii=False)
         project.status = 'analysis_complete'
         project.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        # Save Strategic Objectives
+        for obj_data in objectives_data.get('objectives', []):
+            objective = StrategicObjective(
+                project_id=project.id,
+                objective_name=obj_data.get('name', ''),
+                description=obj_data.get('description', ''),
+                timeframe=obj_data.get('timeframe', '')
+            )
+            db.session.add(objective)
+        
+        # Save Strategic Initiatives
+        for init_data in initiatives_data.get('initiatives', []):
+            initiative = IdentityInitiative(
+                project_id=project.id,
+                name=init_data.get('name', ''),
+                expected_outputs=init_data.get('expected_outputs', '') + "\n\nالهدف المرتبط: " + init_data.get('objective', ''),
+                implementation_period=init_data.get('implementation_period', ''),
+                responsible_party=init_data.get('responsible_party', ''),
+                budget_estimate=init_data.get('budget', 0)
+            )
+            db.session.add(initiative)
         
         db.session.commit()
         
@@ -523,22 +612,22 @@ def export_pdf(project_id):
         elements.append(Paragraph(prep_text("المبادرات الاستراتيجية:"), heading_style))
         elements.append(Spacer(1, 0.2*cm))
         
-        init_data = [[prep_text("المبادرة"), prep_text("الوصف"), prep_text("الميزانية")]]
+        init_data = [[prep_text("المبادرة"), prep_text("المخرجات المتوقعة"), prep_text("الفترة"), prep_text("المسؤول")]]
         for init in initiatives:
-            budget = f"{init.budget or 0} ر.س" if init.budget else ""
             init_data.append([
-                prep_text(init.initiative_name),
-                prep_text(init.description or ''),
-                prep_text(budget)
+                prep_text(init.name),
+                prep_text(init.expected_outputs or ''),
+                prep_text(init.implementation_period or ''),
+                prep_text(init.responsible_party or '')
             ])
         
-        init_table = Table(init_data, colWidths=[5*cm, 7*cm, 4*cm])
+        init_table = Table(init_data, colWidths=[4*cm, 5*cm, 3.5*cm, 3.5*cm])
         init_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
@@ -827,31 +916,34 @@ def export_excel(project_id):
         ws_init = wb.create_sheet("Initiatives")
         ws_init.sheet_view.rightToLeft = True
         
-        ws_init['A1'] = "المبادرات الاستراتيجية"
+        ws_init['A1'] = "المبادرات التنفيذية الاستراتيجية"
         ws_init['A1'].font = header_font
         ws_init['A1'].fill = header_fill
-        ws_init.merge_cells('A1:D1')
+        ws_init.merge_cells('A1:E1')
         
         ws_init['A3'] = "المبادرة"
-        ws_init['B3'] = "الوصف"
-        ws_init['C3'] = "الميزانية"
-        ws_init['D3'] = "المسؤول"
-        for cell in ['A3', 'B3', 'C3', 'D3']:
+        ws_init['B3'] = "المخرجات المتوقعة"
+        ws_init['C3'] = "فترة التنفيذ"
+        ws_init['D3'] = "الجهة المسؤولة"
+        ws_init['E3'] = "الميزانية التقديرية"
+        for cell in ['A3', 'B3', 'C3', 'D3', 'E3']:
             ws_init[cell].font = Font(bold=True)
             ws_init[cell].fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
         
         row = 4
         for init in initiatives:
-            ws_init[f'A{row}'] = init.initiative_name
-            ws_init[f'B{row}'] = init.description or ''
-            ws_init[f'C{row}'] = f"{init.budget or 0} ر.س" if init.budget else ""
+            ws_init[f'A{row}'] = init.name
+            ws_init[f'B{row}'] = init.expected_outputs or ''
+            ws_init[f'C{row}'] = init.implementation_period or ''
             ws_init[f'D{row}'] = init.responsible_party or ''
+            ws_init[f'E{row}'] = f"{init.budget_estimate or 0} ر.س" if init.budget_estimate else ""
             row += 1
         
         ws_init.column_dimensions['A'].width = 25
         ws_init.column_dimensions['B'].width = 40
         ws_init.column_dimensions['C'].width = 15
         ws_init.column_dimensions['D'].width = 20
+        ws_init.column_dimensions['E'].width = 15
     
     # Save to buffer
     buffer = BytesIO()
