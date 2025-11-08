@@ -524,20 +524,9 @@ def plan_dashboard(plan_id):
 @strategic_planning_bp.route('/plan/<int:plan_id>/export-pdf')
 @login_required
 def export_pdf(plan_id):
-    """Export strategic plan as PDF report with Arabic support"""
+    """Export strategic plan as PDF report with Arabic support using WeasyPrint"""
     from flask import make_response
-    from io import BytesIO
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.units import cm
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
-    from reportlab.lib import colors
-    from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT, TA_JUSTIFY
-    from reportlab.pdfbase import pdfmetrics
-    from reportlab.pdfbase.ttfonts import TTFont
-    from datetime import datetime
-    import arabic_reshaper
-    from bidi.algorithm import get_display
+    from .pdf_export_strategic_planning import generate_strategic_plan_pdf
     
     db = get_db()
     lang = get_lang()
@@ -549,156 +538,22 @@ def export_pdf(plan_id):
         flash('غير مصرح لك بالوصول لهذه الخطة / Unauthorized access', 'danger')
         return redirect(url_for('strategic_planning_ai.index')), 403
     
-    def prep_text(text):
-        """Prepare text for PDF - Arabic reshaping if needed"""
-        if not text:
-            return ""
-        try:
-            # Check if text contains Arabic characters
-            if any('\u0600' <= c <= '\u06FF' for c in text):
-                reshaped = arabic_reshaper.reshape(text)
-                return get_display(reshaped)
-            return text
-        except:
-            return text
-    
     try:
-        # Create PDF in memory
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
-        
-        # Build content
-        story = []
-        styles = getSampleStyleSheet()
-        
-        # Define heading style for sections
-        heading_style = ParagraphStyle('Heading', parent=styles['Heading2'], fontSize=14, textColor=colors.HexColor('#1e3a8a'), spaceAfter=6, alignment=TA_RIGHT if lang == 'ar' else TA_LEFT)
-        normal_style = ParagraphStyle('NormalText', parent=styles['Normal'], alignment=TA_RIGHT if lang == 'ar' else TA_LEFT)
-        
-        # Title
-        title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#1e3a8a'), spaceAfter=12, alignment=TA_CENTER)
-        story.append(Paragraph(prep_text(plan.title), title_style))
-        story.append(Spacer(1, 0.3*cm))
-        
-        # Planning Period
-        period_style = ParagraphStyle('Period', parent=styles['Normal'], fontSize=12, textColor=colors.grey, alignment=TA_CENTER)
-        period_label = prep_text("فترة التخطيط:" if lang == 'ar' else "Planning Period:")
-        story.append(Paragraph(f"{period_label} {plan.planning_period}", period_style))
-        story.append(Spacer(1, 0.5*cm))
-        
-        # Vision & Mission
-        if plan.vision_statement or plan.mission_statement:
-            
-            if plan.vision_statement:
-                vision_label = prep_text("الرؤية" if lang == 'ar' else "Vision")
-                story.append(Paragraph(f"<b>{vision_label}</b>", heading_style))
-                story.append(Paragraph(prep_text(plan.vision_statement), normal_style))
-                story.append(Spacer(1, 0.3*cm))
-            
-            if plan.mission_statement:
-                mission_label = prep_text("الرسالة" if lang == 'ar' else "Mission")
-                story.append(Paragraph(f"<b>{mission_label}</b>", heading_style))
-                story.append(Paragraph(prep_text(plan.mission_statement), normal_style))
-                story.append(Spacer(1, 0.5*cm))
-        
-        # Strategic Goals
-        goals = json.loads(plan.strategic_goals) if plan.strategic_goals else []
-        if goals:
-            goals_label = prep_text("الأهداف الاستراتيجية" if lang == 'ar' else "Strategic Goals")
-            story.append(Paragraph(f"<b>{goals_label}</b>", heading_style))
-            for i, goal in enumerate(goals, 1):
-                goal_text = prep_text(goal.get('goal', ''))
-                goal_desc = prep_text(goal.get('description', ''))
-                story.append(Paragraph(f"<b>{i}. {goal_text}</b>", normal_style))
-                story.append(Paragraph(goal_desc, normal_style))
-                story.append(Spacer(1, 0.2*cm))
-            story.append(Spacer(1, 0.3*cm))
-        
-        # SWOT Analysis
+        # Parse JSON fields
         swot = json.loads(plan.swot_analysis) if plan.swot_analysis else {}
-        if swot:
-            story.append(PageBreak())
-            swot_label = prep_text("تحليل SWOT" if lang == 'ar' else "SWOT Analysis")
-            story.append(Paragraph(f"<b>{swot_label}</b>", heading_style))
-            
-            strengths_label = prep_text("نقاط القوة" if lang == 'ar' else "Strengths")
-            weaknesses_label = prep_text("نقاط الضعف" if lang == 'ar' else "Weaknesses")
-            opportunities_label = prep_text("الفرص" if lang == 'ar' else "Opportunities")
-            threats_label = prep_text("التهديدات" if lang == 'ar' else "Threats")
-            
-            swot_data = [
-                [Paragraph(f"<b>{strengths_label}</b>", normal_style), Paragraph(f"<b>{weaknesses_label}</b>", normal_style)],
-                [Paragraph("<br/>".join(f"• {prep_text(s)}" for s in swot.get('strengths', [])), normal_style), 
-                 Paragraph("<br/>".join(f"• {prep_text(w)}" for w in swot.get('weaknesses', [])), normal_style)],
-                [Paragraph(f"<b>{opportunities_label}</b>", normal_style), Paragraph(f"<b>{threats_label}</b>", normal_style)],
-                [Paragraph("<br/>".join(f"• {prep_text(o)}" for o in swot.get('opportunities', [])), normal_style), 
-                 Paragraph("<br/>".join(f"• {prep_text(t)}" for t in swot.get('threats', [])), normal_style)]
-            ]
-            
-            swot_table = Table(swot_data, colWidths=[8*cm, 8*cm])
-            swot_table.setStyle(TableStyle([
-                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e0e7ff')),
-                ('BACKGROUND', (0, 2), (-1, 2), colors.HexColor('#e0e7ff')),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('PADDING', (0, 0), (-1, -1), 6),
-            ]))
-            story.append(swot_table)
-            story.append(Spacer(1, 0.5*cm))
-        
-        # PESTEL Analysis
         pestel = json.loads(plan.pestel_analysis) if plan.pestel_analysis else {}
-        if pestel:
-            story.append(PageBreak())
-            pestel_label = prep_text("تحليل PESTEL" if lang == 'ar' else "PESTEL Analysis")
-            story.append(Paragraph(f"<b>{pestel_label}</b>", heading_style))
-            
-            categories = [
-                ("سياسية" if lang == 'ar' else "Political", pestel.get('political', [])),
-                ("اقتصادية" if lang == 'ar' else "Economic", pestel.get('economic', [])),
-                ("اجتماعية" if lang == 'ar' else "Social", pestel.get('social', [])),
-                ("تقنية" if lang == 'ar' else "Technological", pestel.get('technological', [])),
-                ("بيئية" if lang == 'ar' else "Environmental", pestel.get('environmental', [])),
-                ("قانونية" if lang == 'ar' else "Legal", pestel.get('legal', []))
-            ]
-            
-            for category, items in categories:
-                if items:
-                    cat_label = prep_text(category)
-                    story.append(Paragraph(f"<b>{cat_label}:</b>", normal_style))
-                    items_text = "<br/>".join(f"• {prep_text(item)}" for item in items)
-                    story.append(Paragraph(items_text, normal_style))
-                    story.append(Spacer(1, 0.2*cm))
+        goals = json.loads(plan.strategic_goals) if plan.strategic_goals else []
+        values = json.loads(plan.core_values) if plan.core_values else []
         
-        # KPIs
+        # Get related data
         kpis = db.session.query(StrategicKPI).filter_by(plan_id=plan_id).all()
-        if kpis:
-            story.append(PageBreak())
-            kpi_label = prep_text("مؤشرات الأداء الرئيسية" if lang == 'ar' else "Key Performance Indicators (KPIs)")
-            story.append(Paragraph(f"<b>{kpi_label}</b>", heading_style))
-            
-            # Simple list instead of table for better Arabic support
-            for kpi in kpis:
-                kpi_name = prep_text(kpi.name)
-                kpi_cat = prep_text(kpi.category or '')
-                story.append(Paragraph(f"<b>• {kpi_name}</b> ({kpi_cat})", normal_style))
-                current_label = prep_text("الحالي:" if lang == 'ar' else "Current:")
-                target_label = prep_text("المستهدف:" if lang == 'ar' else "Target:")
-                story.append(Paragraph(f"  {current_label} {kpi.current_value} {kpi.measurement_unit} | {target_label} {kpi.target_value} {kpi.measurement_unit}", normal_style))
-                story.append(Spacer(1, 0.3*cm))
+        initiatives = db.session.query(StrategicInitiative).filter_by(plan_id=plan_id).all()
         
-        # Footer
-        story.append(Spacer(1, 1*cm))
-        footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.grey, alignment=TA_CENTER)
-        footer_text = prep_text(f"تم الإنشاء في {datetime.now().strftime('%Y-%m-%d %H:%M')} بواسطة منصة Mcidia" if lang == 'ar' else f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M')} by Mcidia Platform")
-        story.append(Paragraph(footer_text, footer_style))
-        
-        # Build PDF
-        doc.build(story)
+        # Generate PDF using WeasyPrint
+        pdf = generate_strategic_plan_pdf(plan, kpis, initiatives, swot, pestel, goals, values, lang)
         
         # Prepare response
-        buffer.seek(0)
-        response = make_response(buffer.getvalue())
+        response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
         response.headers['Content-Disposition'] = f'attachment; filename="strategic_plan_{plan_id}.pdf"'
         

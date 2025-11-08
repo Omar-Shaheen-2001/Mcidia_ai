@@ -69,8 +69,12 @@ A hierarchical role system is enforced using custom Flask decorators (`@login_re
 -   **Arabic Font**: Google Fonts Cairo loaded via CDN for reliable Arabic rendering.
 -   **RTL Support**: Native CSS `direction: rtl` for proper right-to-left text layout.
 -   **Professional Formatting**: Gradient headers, color-coded tables, responsive layouts, page breaks.
--   **Exported Components**: Vision, Mission, Core Values, SWOT Analysis, Strategic Objectives, and Implementation Initiatives.
--   **Module**: `blueprints/pdf_export_weasy.py` - Dedicated WeasyPrint export module.
+-   **Modules**:
+    - `blueprints/pdf_export_weasy.py` - Strategic Identity module PDF export
+    - `blueprints/pdf_export_strategic_planning.py` - Strategic Planning & KPIs module PDF export
+-   **Exported Components**:
+    - **Strategic Identity**: Vision, Mission, Core Values, SWOT Analysis, Strategic Objectives, Implementation Initiatives
+    - **Strategic Planning**: Vision, Mission, Values, Strategic Goals, SWOT Analysis, PESTEL Analysis, KPIs, Strategic Initiatives
 -   **Note**: Previous ReportLab implementation replaced due to Arabic text rendering issues with TTF fonts.
 
 ### Environment Configuration
