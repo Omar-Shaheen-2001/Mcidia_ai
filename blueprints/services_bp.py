@@ -12,7 +12,7 @@ services_bp = Blueprint('services', __name__, url_prefix='/services')
 
 def get_lang():
     """Get current language from session"""
-    return session.get('lang', 'ar')
+    return session.get('language', 'ar')
 
 def get_db():
     """Get database instance from current app"""
@@ -186,7 +186,7 @@ def api_generate_content(service_slug, offering_slug):
     form_data = request.get_json()
     
     # Build prompt from template
-    lang = session.get('lang', 'ar')
+    lang = session.get('language', 'ar')
     
     # System prompt
     system_prompt = f"""أنت مستشار خبير في {service.title_ar if lang == 'ar' else service.title_en}.
