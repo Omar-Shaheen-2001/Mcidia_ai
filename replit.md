@@ -29,8 +29,44 @@ Admins can customize service offerings with dynamic form fields and personalized
 ### Saved Consultations & Project View System
 All generated consultations are automatically saved as projects. These are accessible from the user dashboard, displaying service metadata and offering one-click access to detailed project views. The project view page displays input data, AI output, and supports printing.
 
-### PDF Export System (WeasyPrint)
-HTML/CSS templates are converted to PDF using WeasyPrint for professional reporting. It includes robust Arabic font rendering (Cairo), RTL support, and professional formatting for modules like Strategic Identity and Strategic Planning.
+### PDF & Excel Export System
+A comprehensive export system allows users to download their AI consultation results in professional PDF and Excel formats with full bilingual support.
+
+**PDF Export (WeasyPrint):**
+- Route: `/services/project/<project_id>/export-pdf`
+- Technology: WeasyPrint library converts HTML to PDF
+- Template: `templates/exports/project_pdf.html`
+- Features:
+  - Robust Arabic font rendering (Cairo) and English (Poppins)
+  - Full RTL/LTR support based on language
+  - Professional formatting with service-specific color schemes
+  - Basic Markdown rendering (headings, lists, bold, tables)
+  - Responsive layout optimized for A4 printing
+- Security: JWT authentication with ownership verification
+
+**Excel Export (OpenPyXL):**
+- Route: `/services/project/<project_id>/export-excel`
+- Technology: OpenPyXL library for Excel file generation
+- Features:
+  - Professional formatting with colored headers
+  - RTL support for Arabic content
+  - Three sections: Project Info, Input Data, AI Results
+  - Markdown cleanup for clean text display
+  - Auto-sized columns for readability
+- Security: JWT authentication with ownership verification
+
+**UI Integration:**
+- Static export buttons in project view page (`project_view.html`)
+- Dynamic export buttons in live consultation results (`offering_detail.html`)
+- JavaScript function `addExportButtons(projectId)` adds buttons after AI generation
+- Color-coded buttons: Red for PDF, Green for Excel
+
+**Authentication & Security:**
+- Both routes use `@login_required` decorator
+- JWT identity verification via `get_jwt_identity()`
+- Returns 401 if authentication fails
+- Returns 403 if user doesn't own the project
+- Returns 404 if project not found
 
 ### KPI Generation System
 AI-powered KPI generation automatically creates 3-5 KPIs per strategic objective during strategic analysis workflows, with options for manual regeneration. Each KPI includes details like name, type, measurement unit, target, and frequency.
