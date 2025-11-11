@@ -5,8 +5,10 @@ Handles all consulting services pages and API endpoints
 
 from flask import Blueprint, render_template, session, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import Service, ServiceOffering, User, Project
+from models import Service, ServiceOffering, User, Project, AILog
 from utils.decorators import login_required
+from utils.ai_providers.ai_manager import AIManager
+import json
 
 services_bp = Blueprint('services', __name__, url_prefix='/services')
 
@@ -154,9 +156,6 @@ def offering_detail(service_slug, offering_slug):
 def api_generate_content(service_slug, offering_slug):
     """API endpoint to generate AI content for an offering"""
     from flask import request, abort
-    from utils.ai_client import llm_chat
-    from models import AILog
-    import json
     
     db = get_db()
     
@@ -277,12 +276,9 @@ def api_generate_content(service_slug, offering_slug):
 يرجى تقديم استشارة شاملة ومفصلة."""
     
     try:
-        # Call AI
-        response_text = llm_chat(
-            system_prompt=system_prompt,
-            user_message=user_message,
-            response_format="text"
-        )
+        # Use HuggingFace AI via AIManager (same as Strategic Planning)
+        ai_manager = AIManager.for_use_case('custom_consultation')
+        response_text = ai_manager.chat(system_prompt, user_message)
         
         # Log AI usage
         ai_log = AILog(

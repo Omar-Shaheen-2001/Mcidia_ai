@@ -74,6 +74,12 @@ class AIConfig:
             'temperature': 0.7,
             'max_tokens': 2000,
         },
+        'custom_consultation': {
+            'provider': 'huggingface',
+            'model': 'llama3',
+            'temperature': 0.7,
+            'max_tokens': 3000,
+        },
     }
     
     @classmethod

@@ -115,6 +115,8 @@ A hierarchical role system is enforced using custom Flask decorators (`@login_re
       - Automatic field validation (required, type checking)
     - **API Integration** (`blueprints/services_bp.py`):
       - `/api/services/<service>/<offering>/generate` endpoint
+      - **Uses HuggingFace AI via AIManager** (same as Strategic Planning modules)
+      - Use case config: `custom_consultation` with llama3 model (temperature: 0.7, max_tokens: 3000)
       - Custom prompt template with `{field_name}` placeholder substitution
       - FormData serialization sends all dynamic + static fields
 -   **Database Schema**:
