@@ -256,6 +256,20 @@ def api_generate_content(service_slug, offering_slug):
             if placeholder in system_prompt:
                 system_prompt = system_prompt.replace(placeholder, str(field_value))
         
+        # إضافة تعليمات Markdown إلى system_prompt لضمان تنسيق منظم
+        markdown_instructions = """
+
+**تعليمات التنسيق (مهم جداً):**
+- استخدم تنسيق Markdown للرد
+- استخدم العناوين (#, ##, ###) لتنظيم المحتوى
+- استخدم القوائم غير المرقمة (- ) للنقاط المهمة (3+ نقاط)
+- استخدم القوائم المرقمة (1. ) للخطوات والمراحل
+- استخدم الجداول (|) لعرض البيانات المنظمة
+- استخدم **النص الغامق** للتأكيد على النقاط الهامة
+- نسق الأرقام والإحصائيات بصيغة: "رقم - وصف" (مثال: "75% - معدل النجاح")"""
+        
+        system_prompt += markdown_instructions
+        
         # User message is just the data summary
         user_message = f"""المشروع / Project: {form_data.get('project_name', 'غير محدد')}
 
@@ -263,15 +277,7 @@ def api_generate_content(service_slug, offering_slug):
 
 {"معلومات إضافية / Additional info: " + form_data.get('additional_context', '') if form_data.get('additional_context') else ''}
 
-يرجى تقديم استشارة شاملة ومفصلة / Please provide comprehensive consultation.
-
-**مهم جداً: قم بتنسيق الرد باستخدام Markdown مع:**
-- استخدم العناوين (#, ##, ###) لتنظيم المحتوى
-- استخدم القوائم غير المرقمة (- ) للنقاط المهمة (3 نقاط على الأقل)
-- استخدم القوائم المرقمة (1. ) للخطوات والمراحل
-- استخدم الجداول (|) لعرض البيانات المنظمة
-- استخدم **النص الغامق** للتأكيد على النقاط الهامة
-- نسق الأرقام والإحصائيات بصيغة: "رقم - وصف" (مثال: "75% - معدل النجاح")"""
+يرجى تقديم استشارة شاملة ومفصلة / Please provide comprehensive consultation."""
     else:
         # Default prompt (fallback)
         system_prompt = f"""أنت مستشار خبير في {service.title_ar if lang == 'ar' else service.title_en}.
