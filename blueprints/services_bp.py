@@ -219,6 +219,9 @@ def api_generate_content(service_slug, offering_slug):
             'additional_context': form_data.get('additional_context', '')
         }
         
+        # Build structured input context with field metadata
+        input_context_parts = []
+        
         # Add custom fields to replacement dict with validation
         for field in form_fields_schema:
             if not isinstance(field, dict):
@@ -229,7 +232,10 @@ def api_generate_content(service_slug, offering_slug):
                 continue
             
             field_type = field.get('type', 'text')
+            field_label_ar = field.get('label_ar', field_name)
+            field_label_en = field.get('label_en', field_name)
             field_value = form_data.get(field_name, 'N/A')
+            field_options = field.get('options', [])
             
             # Validate required fields
             if field.get('required') and (not field_value or field_value == 'N/A'):
@@ -243,15 +249,39 @@ def api_generate_content(service_slug, offering_slug):
                     return jsonify({'error': f'Invalid number format for field: {field_name}'}), 400
             
             # Sanitize field value to prevent injection
-            # Convert to string and escape HTML/special characters
             field_value_str = str(field_value)
-            # Remove or escape potential prompt injection characters
             field_value_sanitized = field_value_str.replace('{', '').replace('}', '').strip()
-            # Limit length to prevent extremely long inputs
             if len(field_value_sanitized) > 5000:
                 field_value_sanitized = field_value_sanitized[:5000] + '...'
             
             replacement_dict[field_name] = field_value_sanitized
+            
+            # Build rich context for this field
+            field_context = f"• {field_label_ar} / {field_label_en}"
+            
+            # Add field type information
+            type_mapping = {
+                'text': 'نص / Text',
+                'textarea': 'نص طويل / Long Text',
+                'number': 'رقم / Number',
+                'select': 'اختيار / Selection',
+                'date': 'تاريخ / Date'
+            }
+            field_type_display = type_mapping.get(field_type, field_type)
+            field_context += f" ({field_type_display})"
+            
+            # Add value
+            field_context += f": {field_value_sanitized}"
+            
+            # Add available options for select fields
+            if field_type == 'select' and field_options:
+                options_str = ', '.join(field_options)
+                field_context += f"\n  الخيارات المتاحة / Available options: [{options_str}]"
+            
+            input_context_parts.append(field_context)
+        
+        # Combine structured input context
+        structured_input_context = "\n".join(input_context_parts) if input_context_parts else ""
         
         # Replace {field_name} with actual values in prompt template
         system_prompt = offering.ai_prompt_template
@@ -261,10 +291,18 @@ def api_generate_content(service_slug, offering_slug):
             if placeholder in system_prompt:
                 system_prompt = system_prompt.replace(placeholder, str(field_value))
         
-        # إضافة تعليمات Markdown إلى system_prompt لضمان تنسيق منظم
-        markdown_instructions = """
+        # إضافة تعليمات للذكاء الاصطناعي حول كيفية التعامل مع المدخلات
+        input_handling_instructions = """
 
-**تعليمات التنسيق (مهم جداً):**
+**تعليمات التعامل مع المدخلات (Input Handling Instructions):**
+- اقرأ بعناية نوع كل حقل (Field Type) المذكور في بيانات المستخدم
+- الحقول الرقمية (Number): استخدمها في الحسابات والتحليلات الكمية
+- حقول الاختيار (Selection): افهم أن المستخدم اختار من بين عدة خيارات، وركز على الخيار المحدد
+- النصوص الطويلة (Long Text): احلل المحتوى بتفصيل واستخرج النقاط الرئيسية
+- التواريخ (Date): استخدمها في الجدولة الزمنية والتخطيط
+- استخدم جميع المدخلات المتاحة بذكاء لتقديم استشارة دقيقة وشاملة
+
+**تعليمات التنسيق (Formatting Instructions):**
 - استخدم تنسيق Markdown للرد
 - استخدم العناوين (#, ##, ###) لتنظيم المحتوى
 - استخدم القوائم غير المرقمة (- ) للنقاط المهمة (3+ نقاط)
@@ -273,16 +311,26 @@ def api_generate_content(service_slug, offering_slug):
 - استخدم **النص الغامق** للتأكيد على النقاط الهامة
 - نسق الأرقام والإحصائيات بصيغة: "رقم - وصف" (مثال: "75% - معدل النجاح")"""
         
-        system_prompt += markdown_instructions
+        system_prompt += input_handling_instructions
         
-        # User message is just the data summary
-        user_message = f"""المشروع / Project: {form_data.get('project_name', 'غير محدد')}
-
-{f"الوصف / Description: {form_data.get('description', '')}" if form_data.get('description') else ''}
-
-{"معلومات إضافية / Additional info: " + form_data.get('additional_context', '') if form_data.get('additional_context') else ''}
-
-يرجى تقديم استشارة شاملة ومفصلة / Please provide comprehensive consultation."""
+        # Build comprehensive user message with structured input context
+        user_message_parts = [
+            f"المشروع / Project: {form_data.get('project_name', 'غير محدد')}"
+        ]
+        
+        if form_data.get('description'):
+            user_message_parts.append(f"\nالوصف / Description:\n{form_data.get('description')}")
+        
+        if form_data.get('additional_context'):
+            user_message_parts.append(f"\nمعلومات إضافية / Additional Context:\n{form_data.get('additional_context')}")
+        
+        # Add structured input context (field metadata)
+        if structured_input_context:
+            user_message_parts.append(f"\n**بيانات الحقول المدخلة / Input Field Data:**\n{structured_input_context}")
+        
+        user_message_parts.append("\nيرجى تقديم استشارة شاملة ومفصلة بناءً على جميع البيانات المتاحة أعلاه / Please provide comprehensive consultation based on all the data provided above.")
+        
+        user_message = "\n".join(user_message_parts)
     else:
         # Default prompt (fallback)
         system_prompt = f"""أنت مستشار خبير في {service.title_ar if lang == 'ar' else service.title_en}.
