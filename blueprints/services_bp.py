@@ -192,12 +192,17 @@ def api_generate_content(service_slug, offering_slug):
     if offering.ai_prompt_template:
         # Parse form_fields to extract field names and values
         import json
+        import html
         form_fields_schema = []
         try:
             if offering.form_fields:
                 form_fields_schema = json.loads(offering.form_fields) if isinstance(offering.form_fields, str) else offering.form_fields
-        except:
-            pass
+        except Exception as e:
+            return jsonify({'error': 'Invalid form fields schema'}), 500
+        
+        # Validate that form_fields_schema is a list
+        if not isinstance(form_fields_schema, list):
+            form_fields_schema = []
         
         # Build replacement dictionary with field values
         replacement_dict = {
@@ -206,16 +211,47 @@ def api_generate_content(service_slug, offering_slug):
             'additional_context': form_data.get('additional_context', '')
         }
         
-        # Add custom fields to replacement dict
+        # Add custom fields to replacement dict with validation
         for field in form_fields_schema:
+            if not isinstance(field, dict):
+                continue
+                
             field_name = field.get('name')
+            if not field_name or not isinstance(field_name, str):
+                continue
+            
+            field_type = field.get('type', 'text')
             field_value = form_data.get(field_name, 'N/A')
-            replacement_dict[field_name] = field_value
+            
+            # Validate required fields
+            if field.get('required') and (not field_value or field_value == 'N/A'):
+                return jsonify({'error': f'Required field missing: {field_name}'}), 400
+            
+            # Type validation
+            if field_type == 'number' and field_value != 'N/A':
+                try:
+                    field_value = float(field_value)
+                except ValueError:
+                    return jsonify({'error': f'Invalid number format for field: {field_name}'}), 400
+            
+            # Sanitize field value to prevent injection
+            # Convert to string and escape HTML/special characters
+            field_value_str = str(field_value)
+            # Remove or escape potential prompt injection characters
+            field_value_sanitized = field_value_str.replace('{', '').replace('}', '').strip()
+            # Limit length to prevent extremely long inputs
+            if len(field_value_sanitized) > 5000:
+                field_value_sanitized = field_value_sanitized[:5000] + '...'
+            
+            replacement_dict[field_name] = field_value_sanitized
         
         # Replace {field_name} with actual values in prompt template
         system_prompt = offering.ai_prompt_template
         for field_name, field_value in replacement_dict.items():
-            system_prompt = system_prompt.replace(f'{{{field_name}}}', str(field_value))
+            # Use safe replacement - only replace exact {field_name} pattern
+            placeholder = f'{{{field_name}}}'
+            if placeholder in system_prompt:
+                system_prompt = system_prompt.replace(placeholder, str(field_value))
         
         # User message is just the data summary
         user_message = f"""المشروع / Project: {form_data.get('project_name', 'غير محدد')}

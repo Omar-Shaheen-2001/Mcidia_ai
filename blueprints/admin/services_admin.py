@@ -209,6 +209,46 @@ def create_offering(service_id):
     
     # POST - Create offering
     try:
+        import json
+        
+        # Validate and parse form_fields JSON
+        form_fields_json = request.form.get('form_fields', '[]')
+        try:
+            form_fields = json.loads(form_fields_json) if form_fields_json else []
+            
+            # Validate schema structure
+            if not isinstance(form_fields, list):
+                flash('Invalid form fields format. Must be a JSON array.' if lang == 'en' else 'صيغة حقول غير صحيحة. يجب أن تكون مصفوفة JSON.', 'danger')
+                return redirect(url_for('admin.services_admin.create_offering', service_id=service_id))
+            
+            # Validate each field has required properties
+            for field in form_fields:
+                if not isinstance(field, dict):
+                    flash('Each field must be an object.' if lang == 'en' else 'كل حقل يجب أن يكون كائن.', 'danger')
+                    return redirect(url_for('admin.services_admin.create_offering', service_id=service_id))
+                
+                if 'name' not in field or not field['name']:
+                    flash('Each field must have a name.' if lang == 'en' else 'كل حقل يجب أن يحتوي على اسم.', 'danger')
+                    return redirect(url_for('admin.services_admin.create_offering', service_id=service_id))
+                
+                # Validate field name format (alphanumeric + underscore only)
+                if not field['name'].replace('_', '').isalnum():
+                    flash(f'Invalid field name: {field["name"]}. Use only letters, numbers, and underscores.' if lang == 'en' else f'اسم حقل غير صحيح: {field["name"]}. استخدم فقط الحروف والأرقام والشرطات السفلية.', 'danger')
+                    return redirect(url_for('admin.services_admin.create_offering', service_id=service_id))
+                
+                # Validate field type
+                valid_types = ['text', 'textarea', 'number', 'email', 'date', 'select']
+                if field.get('type') not in valid_types:
+                    flash(f'Invalid field type: {field.get("type")}. Must be one of: {", ".join(valid_types)}' if lang == 'en' else f'نوع حقل غير صحيح: {field.get("type")}', 'danger')
+                    return redirect(url_for('admin.services_admin.create_offering', service_id=service_id))
+            
+            # Convert back to JSON string for storage
+            form_fields_json = json.dumps(form_fields)
+            
+        except json.JSONDecodeError:
+            flash('Invalid JSON format in form fields.' if lang == 'en' else 'صيغة JSON غير صحيحة في الحقول.', 'danger')
+            return redirect(url_for('admin.services_admin.create_offering', service_id=service_id))
+        
         new_offering = ServiceOffering(
             service_id=service_id,
             slug=request.form.get('slug'),
@@ -222,7 +262,7 @@ def create_offering(service_id):
             ai_prompt_template=request.form.get('ai_prompt_template'),
             ai_model=request.form.get('ai_model', 'gpt-4'),
             ai_credits_cost=int(request.form.get('ai_credits_cost', 1)),
-            form_fields=request.form.get('form_fields')
+            form_fields=form_fields_json
         )
         
         db.session.add(new_offering)
@@ -252,6 +292,46 @@ def edit_offering(service_id, offering_id):
     
     # POST - Update offering
     try:
+        import json
+        
+        # Validate and parse form_fields JSON
+        form_fields_json = request.form.get('form_fields', '[]')
+        try:
+            form_fields = json.loads(form_fields_json) if form_fields_json else []
+            
+            # Validate schema structure
+            if not isinstance(form_fields, list):
+                flash('Invalid form fields format. Must be a JSON array.' if lang == 'en' else 'صيغة حقول غير صحيحة. يجب أن تكون مصفوفة JSON.', 'danger')
+                return redirect(url_for('admin.services_admin.edit_offering', service_id=service_id, offering_id=offering_id))
+            
+            # Validate each field has required properties
+            for field in form_fields:
+                if not isinstance(field, dict):
+                    flash('Each field must be an object.' if lang == 'en' else 'كل حقل يجب أن يكون كائن.', 'danger')
+                    return redirect(url_for('admin.services_admin.edit_offering', service_id=service_id, offering_id=offering_id))
+                
+                if 'name' not in field or not field['name']:
+                    flash('Each field must have a name.' if lang == 'en' else 'كل حقل يجب أن يحتوي على اسم.', 'danger')
+                    return redirect(url_for('admin.services_admin.edit_offering', service_id=service_id, offering_id=offering_id))
+                
+                # Validate field name format (alphanumeric + underscore only)
+                if not field['name'].replace('_', '').isalnum():
+                    flash(f'Invalid field name: {field["name"]}. Use only letters, numbers, and underscores.' if lang == 'en' else f'اسم حقل غير صحيح: {field["name"]}. استخدم فقط الحروف والأرقام والشرطات السفلية.', 'danger')
+                    return redirect(url_for('admin.services_admin.edit_offering', service_id=service_id, offering_id=offering_id))
+                
+                # Validate field type
+                valid_types = ['text', 'textarea', 'number', 'email', 'date', 'select']
+                if field.get('type') not in valid_types:
+                    flash(f'Invalid field type: {field.get("type")}. Must be one of: {", ".join(valid_types)}' if lang == 'en' else f'نوع حقل غير صحيح: {field.get("type")}', 'danger')
+                    return redirect(url_for('admin.services_admin.edit_offering', service_id=service_id, offering_id=offering_id))
+            
+            # Convert back to JSON string for storage
+            form_fields_json = json.dumps(form_fields)
+            
+        except json.JSONDecodeError:
+            flash('Invalid JSON format in form fields.' if lang == 'en' else 'صيغة JSON غير صحيحة في الحقول.', 'danger')
+            return redirect(url_for('admin.services_admin.edit_offering', service_id=service_id, offering_id=offering_id))
+        
         offering.slug = request.form.get('slug')
         offering.title_ar = request.form.get('title_ar')
         offering.title_en = request.form.get('title_en')
@@ -263,7 +343,7 @@ def edit_offering(service_id, offering_id):
         offering.ai_prompt_template = request.form.get('ai_prompt_template')
         offering.ai_model = request.form.get('ai_model', 'gpt-4')
         offering.ai_credits_cost = int(request.form.get('ai_credits_cost', 1))
-        offering.form_fields = request.form.get('form_fields')
+        offering.form_fields = form_fields_json
         
         db.session.commit()
         

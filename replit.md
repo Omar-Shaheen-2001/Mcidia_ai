@@ -77,7 +77,7 @@ A hierarchical role system is enforced using custom Flask decorators (`@login_re
     - **Strategic Planning**: Vision, Mission, Values, Strategic Goals, SWOT Analysis, PESTEL Analysis, KPIs, Strategic Initiatives
 -   **Note**: Previous ReportLab implementation replaced due to Arabic text rendering issues with TTF fonts.
 
-### KPI Generation System (NEW - Nov 2025)
+### KPI Generation System (Nov 2025)
 -   **AI-Powered KPI Generator**: Automatically generates Key Performance Indicators (KPIs) for Strategic Identity projects based on strategic objectives
 -   **Features**:
     - **Automatic Generation**: KPIs are generated automatically during strategic analysis workflow (integrated into `generate_analysis()`)
@@ -94,6 +94,56 @@ A hierarchical role system is enforced using custom Flask decorators (`@login_re
     - UI: Interactive dashboard section with regeneration button and KPI display table
 -   **Use Case Config**: `kpi_generation` in AIManager using HuggingFace Llama3 model (temperature: 0.6)
 -   **Error Handling**: KPI generation errors are non-critical and logged; analysis continues even if KPI generation fails
+
+### Dynamic Form Builder & Custom AI Prompts (Nov 2025)
+-   **Dynamic Service Customization**: Admins can customize service offerings with dynamic form fields and personalized AI prompts
+-   **Features**:
+    - **Visual Form Builder**: Interactive UI to create custom input fields (text, textarea, number, email, date, select)
+    - **Bilingual Field Support**: Each field has Arabic and English labels for full i18n
+    - **Custom AI Prompts**: Admin-defined prompt templates with variable substitution `{field_name}`
+    - **Dynamic Form Rendering**: User-facing forms automatically generated from JSON schema
+    - **Schema-Driven Validation**: Server-side validation ensures data integrity
+-   **Implementation**:
+    - **Admin Interface**:
+      - `templates/admin/services/create_offering.html` - Create offerings with form builder
+      - `templates/admin/services/edit_offering.html` - Edit with field loading
+      - Visual field editor with add/remove/reorder capabilities
+      - Real-time JSON generation for storage
+    - **User Interface**:
+      - `templates/services/offering_detail.html` - Dynamic form generation
+      - JavaScript parses `form_fields` JSON to render appropriate input types
+      - Automatic field validation (required, type checking)
+    - **API Integration** (`blueprints/services_bp.py`):
+      - `/api/services/<service>/<offering>/generate` endpoint
+      - Custom prompt template with `{field_name}` placeholder substitution
+      - FormData serialization sends all dynamic + static fields
+-   **Database Schema**:
+    - `ServiceOffering.form_fields` (JSON): Array of field definitions
+    - Format: `[{"name": "field_name", "type": "text|textarea|number|email|select|date", "label_ar": "...", "label_en": "...", "required": true|false, "options": [...]}]`
+    - `ServiceOffering.ai_prompt_template` (Text): Custom prompt with variable placeholders
+-   **Security**:
+    - **Prompt Injection Protection**: Removes `{}` from user inputs before substitution
+    - **Length Limiting**: Max 5000 characters per field to prevent abuse
+    - **JSON Validation**: Admin input validated against schema structure
+    - **Type Validation**: Server-side validation for numbers, emails, required fields
+    - **Field Name Sanitization**: Only alphanumeric + underscore allowed
+    - **Whitelisted Field Types**: Only predefined types accepted
+-   **Example Use Case**:
+    ```
+    Admin creates "Market Analysis" offering with custom fields:
+    - company_size (select: "Small", "Medium", "Large")
+    - target_market (text, required)
+    - annual_revenue (number)
+    
+    Custom prompt: "Provide market analysis for {project_name}. Company size: {company_size}. Target market: {target_market}. Annual revenue: {annual_revenue}."
+    
+    User fills form → API receives all fields → Prompt variables replaced with sanitized values → AI generates personalized consultation
+    ```
+-   **Benefits**:
+    - **Flexible Offering Creation**: No code changes needed for new service types
+    - **Personalized AI Responses**: Each offering can have specialized prompts
+    - **Improved UX**: Tailored forms for specific consultation needs
+    - **Scalability**: Easy to add new services without developer intervention
 
 ### Environment Configuration
 -   Uses a `.env` file for sensitive credentials (API keys, database URLs, secret keys).
