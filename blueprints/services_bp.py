@@ -412,9 +412,12 @@ def view_project(project_id):
     if not project:
         abort(404)
     
-    # Check ownership
+    # Check ownership or admin access
     user_id = get_jwt_identity()
-    if project.user_id != int(user_id):
+    current_user = db.session.get(User, int(user_id))
+    
+    # Allow if user owns the project OR is system_admin
+    if project.user_id != int(user_id) and current_user.role != 'system_admin':
         abort(403)
     
     # Parse module to get service and offering info
