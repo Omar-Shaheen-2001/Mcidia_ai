@@ -112,180 +112,46 @@
         </div>
     </div>
     
-    <!-- Consulting Modules Section -->
+    <!-- Consulting Services Section -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h4 class="fw-bold mb-1">
-                        {{ 'الوحدات الاستشارية الذكية' if lang == 'ar' else 'Smart Consulting Modules' }}
+                        {{ 'الخدمات الاستشارية الذكية' if lang == 'ar' else 'Smart Consulting Services' }}
                     </h4>
                     <p class="text-muted mb-0">
-                        {{ 'اختر الوحدة المناسبة لاحتياجاتك' if lang == 'ar' else 'Choose the right module for your needs' }}
+                        {{ 'استكشف جميع الخدمات الاستشارية المتاحة لك' if lang == 'ar' else 'Explore all available consulting services' }}
                     </p>
                 </div>
                 <div>
-                    <span class="badge badge--primary">
-                        {{ '12+ وحدة' if lang == 'ar' else '12+ Modules' }}
-                    </span>
+                    <a href="{{ url_for('services.index') }}" class="btn btn-sm btn-outline-primary">
+                        {{ 'عرض الكل' if lang == 'ar' else 'View All' }}
+                        <i class="fas fa-arrow-{{ 'left' if lang == 'ar' else 'right' }} ms-1"></i>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
     
     <div class="row g-4 mb-5">
-        <!-- Strategy Module -->
+        {% for service in all_services %}
         <div class="col-lg-3 col-md-6">
-            <a href="{{ url_for('strategy.index') }}" class="text-decoration-none">
+            <a href="{{ url_for('services.service_detail', service_slug=service.slug) }}" class="text-decoration-none">
                 <div class="card card--feature hover-lift h-100">
                     <div class="card__body text-center">
-                        <div class="icon-box icon-box--primary mb-3">
-                            <i class="fas fa-compass fa-2x"></i>
+                        <div class="icon-box {{ 'icon-box--primary' if loop.index % 2 == 1 else 'icon-box--secondary' }} mb-3">
+                            <i class="fas {{ service.icon or 'fa-briefcase' }} fa-2x"></i>
                         </div>
-                        <h6 class="card__title small">{{ 'التخطيط الاستراتيجي' if lang == 'ar' else 'Strategic Planning' }}</h6>
+                        <h6 class="card__title small">{{ service.title_ar if lang == 'ar' else service.title_en }}</h6>
                         <p class="card__description mb-0 small">
-                            {{ 'SWOT، الرؤية والرسالة' if lang == 'ar' else 'SWOT, Vision & Mission' }}
+                            {{ service.description_ar[:60] + '...' if lang == 'ar' and service.description_ar and service.description_ar|length > 60 else (service.description_ar or '') if lang == 'ar' else (service.description_en[:60] + '...' if service.description_en and service.description_en|length > 60 else (service.description_en or '')) }}
                         </p>
                     </div>
                 </div>
             </a>
         </div>
-        
-        <!-- HR Module -->
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ url_for('hr.index') }}" class="text-decoration-none">
-                <div class="card card--feature hover-lift h-100">
-                    <div class="card__body text-center">
-                        <div class="icon-box icon-box--secondary mb-3">
-                            <i class="fas fa-users fa-2x"></i>
-                        </div>
-                        <h6 class="card__title small">{{ 'الموارد البشرية' if lang == 'ar' else 'Human Resources' }}</h6>
-                        <p class="card__description mb-0 small">
-                            {{ 'التوصيف، الهيكل التنظيمي' if lang == 'ar' else 'Job Descriptions, Org Structure' }}
-                        </p>
-                    </div>
-                </div>
-            </a>
-        </div>
-        
-        <!-- Finance Module -->
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ url_for('finance.index') }}" class="text-decoration-none">
-                <div class="card card--feature hover-lift h-100">
-                    <div class="card__body text-center">
-                        <div class="icon-box icon-box--primary mb-3">
-                            <i class="fas fa-chart-line fa-2x"></i>
-                        </div>
-                        <h6 class="card__title small">{{ 'المالية والتكاليف' if lang == 'ar' else 'Finance & Costing' }}</h6>
-                        <p class="card__description mb-0 small">
-                            {{ 'دراسات الجدوى، التحليل المالي' if lang == 'ar' else 'Feasibility, Financial Analysis' }}
-                        </p>
-                    </div>
-                </div>
-            </a>
-        </div>
-        
-        <!-- Marketing Module -->
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ url_for('marketing.index') }}" class="text-decoration-none">
-                <div class="card card--feature hover-lift h-100">
-                    <div class="card__body text-center">
-                        <div class="icon-box icon-box--secondary mb-3">
-                            <i class="fas fa-bullhorn fa-2x"></i>
-                        </div>
-                        <h6 class="card__title small">{{ 'التسويق' if lang == 'ar' else 'Marketing' }}</h6>
-                        <p class="card__description mb-0 small">
-                            {{ 'خطط تسويقية، تحليل المنافسين' if lang == 'ar' else 'Marketing Plans, Competitor Analysis' }}
-                        </p>
-                    </div>
-                </div>
-            </a>
-        </div>
-        
-        <!-- Knowledge Management -->
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ url_for('knowledge.index') }}" class="text-decoration-none">
-                <div class="card card--feature hover-lift h-100">
-                    <div class="card__body text-center">
-                        <div class="icon-box icon-box--primary mb-3">
-                            <i class="fas fa-book fa-2x"></i>
-                        </div>
-                        <h6 class="card__title small">{{ 'إدارة المعرفة' if lang == 'ar' else 'Knowledge Management' }}</h6>
-                        <p class="card__description mb-0 small">
-                            {{ 'بحث دلالي، استفسارات ذكية' if lang == 'ar' else 'Semantic Search, Smart Q&A' }}
-                        </p>
-                    </div>
-                </div>
-            </a>
-        </div>
-        
-        <!-- Governance Module -->
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ url_for('governance.index') }}" class="text-decoration-none">
-                <div class="card card--feature hover-lift h-100">
-                    <div class="card__body text-center">
-                        <div class="icon-box icon-box--secondary mb-3">
-                            <i class="fas fa-gavel fa-2x"></i>
-                        </div>
-                        <h6 class="card__title small">{{ 'الجودة والحوكمة' if lang == 'ar' else 'Quality & Governance' }}</h6>
-                        <p class="card__description mb-0 small">
-                            {{ 'السياسات، الإجراءات' if lang == 'ar' else 'Policies, Procedures' }}
-                        </p>
-                    </div>
-                </div>
-            </a>
-        </div>
-        
-        <!-- Innovation Module -->
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ url_for('innovation.index') }}" class="text-decoration-none">
-                <div class="card card--feature hover-lift h-100">
-                    <div class="card__body text-center">
-                        <div class="icon-box icon-box--primary mb-3">
-                            <i class="fas fa-lightbulb fa-2x"></i>
-                        </div>
-                        <h6 class="card__title small">{{ 'الابتكار' if lang == 'ar' else 'Innovation' }}</h6>
-                        <p class="card__description mb-0 small">
-                            {{ 'نموذج العمل، أفكار ابتكارية' if lang == 'ar' else 'Business Model, Innovation Ideas' }}
-                        </p>
-                    </div>
-                </div>
-            </a>
-        </div>
-        
-        <!-- AI Consultation -->
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ url_for('consultation.index') }}" class="text-decoration-none">
-                <div class="card card--feature hover-lift h-100">
-                    <div class="card__body text-center">
-                        <div class="icon-box icon-box--secondary mb-3">
-                            <i class="fas fa-comments fa-2x"></i>
-                        </div>
-                        <h6 class="card__title small">{{ 'الاستشارات الذكية' if lang == 'ar' else 'AI Consultation' }}</h6>
-                        <p class="card__description mb-0 small">
-                            {{ 'دردشة فورية مع المستشار' if lang == 'ar' else 'Instant chat with AI consultant' }}
-                        </p>
-                    </div>
-                </div>
-            </a>
-        </div>
-        
-        <!-- Billing Module -->
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ url_for('billing.index') }}" class="text-decoration-none">
-                <div class="card card--feature hover-lift h-100">
-                    <div class="card__body text-center">
-                        <div class="icon-box icon-box--primary mb-3">
-                            <i class="fas fa-credit-card fa-2x"></i>
-                        </div>
-                        <h6 class="card__title small">{{ 'الفواتير والاشتراكات' if lang == 'ar' else 'Billing & Subscriptions' }}</h6>
-                        <p class="card__description mb-0 small">
-                            {{ 'إدارة الاشتراكات والدفع' if lang == 'ar' else 'Manage subscriptions and payment' }}
-                        </p>
-                    </div>
-                </div>
-            </a>
-        </div>
+        {% endfor %}
         
         <!-- Admin Panel (if system_admin) -->
         {% if user.role == 'system_admin' %}

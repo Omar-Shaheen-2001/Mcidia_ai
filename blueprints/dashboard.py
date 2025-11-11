@@ -42,6 +42,9 @@ def index():
                             'offering': offering
                         }
     
+    # Get all active services for dashboard display
+    all_services = db.session.query(Service).filter_by(is_active=True).order_by(Service.display_order).limit(8).all()
+    
     lang = session.get('language', 'ar')
     
     return render_template('dashboard/index.html', 
@@ -52,4 +55,5 @@ def index():
                          recent_projects=recent_projects,
                          recent_ai_activity=recent_ai_activity,
                          project_services=project_services,
+                         all_services=all_services,
                          lang=lang)
