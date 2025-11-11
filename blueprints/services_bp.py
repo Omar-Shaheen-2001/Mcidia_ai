@@ -505,89 +505,134 @@ def export_project_excel(project_id):
                 ).first()
     
     try:
+        from utils.markdown_formatter import extract_sections_from_markdown, clean_markdown_for_excel
+        
         # Create workbook
         wb = Workbook()
         ws = wb.active
         ws.title = "الاستشارة" if lang == 'ar' else "Consultation"
         ws.sheet_view.rightToLeft = (lang == 'ar')
         
-        # Define styles
-        header_fill = PatternFill(start_color="1e3a8a", end_color="1e3a8a", fill_type="solid")
+        # Get service color
+        service_color = service.color.replace('#', '') if service and service.color else '1e3a8a'
+        
+        # Define professional styles
+        title_fill = PatternFill(start_color=service_color, end_color=service_color, fill_type="solid")
+        title_font = Font(name='Arial', size=18, bold=True, color="FFFFFF")
+        
+        header_fill = PatternFill(start_color=service_color, end_color=service_color, fill_type="solid")
         header_font = Font(name='Arial', size=14, bold=True, color="FFFFFF")
-        section_font = Font(name='Arial', size=12, bold=True)
+        
+        section_fill = PatternFill(start_color="e2e8f0", end_color="e2e8f0", fill_type="solid")
+        section_font = Font(name='Arial', size=12, bold=True, color="2c5282")
+        
+        key_fill = PatternFill(start_color="f7fafc", end_color="f7fafc", fill_type="solid")
+        key_font = Font(name='Arial', size=10, bold=True, color="2c5282")
+        value_font = Font(name='Arial', size=10)
+        
         normal_font = Font(name='Arial', size=10)
         rtl_alignment = Alignment(horizontal='right', vertical='top', wrap_text=True, readingOrder=2)
         ltr_alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
         
-        # Title
         row = 1
+        
+        # Title
         ws[f'A{row}'] = project.title
-        ws[f'A{row}'].font = Font(name='Arial', size=16, bold=True)
-        ws[f'A{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
-        ws.merge_cells(f'A{row}:D{row}')
+        ws[f'A{row}'].font = title_font
+        ws[f'A{row}'].fill = title_fill
+        ws[f'A{row}'].alignment = Alignment(horizontal='center', vertical='center')
+        ws.merge_cells(f'A{row}:E{row}')
+        ws.row_dimensions[row].height = 35
+        row += 1
         
         # Service info
-        row += 2
         if service and offering:
-            ws[f'A{row}'] = "الخدمة:" if lang == 'ar' else "Service:"
-            ws[f'A{row}'].font = section_font
-            ws[f'B{row}'] = f"{service.title_ar if lang == 'ar' else service.title_en} - {offering.title_ar if lang == 'ar' else offering.title_en}"
-            ws[f'B{row}'].font = normal_font
-            ws[f'B{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+            ws[f'A{row}'] = f"{service.title_ar if lang == 'ar' else service.title_en} - {offering.title_ar if lang == 'ar' else offering.title_en}"
+            ws[f'A{row}'].font = Font(name='Arial', size=11, color="4a5568")
+            ws[f'A{row}'].alignment = Alignment(horizontal='center')
+            ws.merge_cells(f'A{row}:E{row}')
             row += 1
         
         # Date
-        ws[f'A{row}'] = "التاريخ:" if lang == 'ar' else "Date:"
-        ws[f'A{row}'].font = section_font
-        ws[f'B{row}'] = project.created_at.strftime('%Y-%m-%d %H:%M')
-        ws[f'B{row}'].font = normal_font
+        ws[f'A{row}'] = f"{'التاريخ' if lang == 'ar' else 'Date'}: {project.created_at.strftime('%Y-%m-%d %H:%M')}"
+        ws[f'A{row}'].font = Font(name='Arial', size=10, color="718096")
+        ws[f'A{row}'].alignment = Alignment(horizontal='center')
+        ws.merge_cells(f'A{row}:E{row}')
         row += 2
         
-        # Input section
+        # Input section header
         ws[f'A{row}'] = "البيانات المدخلة" if lang == 'ar' else "Input Data"
         ws[f'A{row}'].font = header_font
         ws[f'A{row}'].fill = header_fill
         ws[f'A{row}'].alignment = Alignment(horizontal='center', vertical='center')
-        ws.merge_cells(f'A{row}:D{row}')
+        ws.merge_cells(f'A{row}:E{row}')
+        ws.row_dimensions[row].height = 30
         row += 1
         
         # Input data
         input_data = project_data.get('input', {})
         for key, value in input_data.items():
-            ws[f'A{row}'] = str(key)
-            ws[f'A{row}'].font = section_font
+            ws[f'A{row}'] = str(key).replace('_', ' ').title()
+            ws[f'A{row}'].font = key_font
+            ws[f'A{row}'].fill = key_fill
             ws[f'A{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+            
             ws[f'B{row}'] = str(value)
-            ws[f'B{row}'].font = normal_font
+            ws[f'B{row}'].font = value_font
             ws[f'B{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+            ws.merge_cells(f'B{row}:E{row}')
+            ws.row_dimensions[row].height = 20
             row += 1
         
         row += 1
         
-        # Output section
-        ws[f'A{row}'] = "نتيجة الاستشارة" if lang == 'ar' else "Consultation Result"
+        # Output section header
+        ws[f'A{row}'] = "نتيجة الاستشارة الذكية" if lang == 'ar' else "AI Consultation Result"
         ws[f'A{row}'].font = header_font
         ws[f'A{row}'].fill = header_fill
         ws[f'A{row}'].alignment = Alignment(horizontal='center', vertical='center')
-        ws.merge_cells(f'A{row}:D{row}')
+        ws.merge_cells(f'A{row}:E{row}')
+        ws.row_dimensions[row].height = 30
         row += 1
         
-        # Output content - clean from markdown
+        # Output content with sections
         output_text = project_data.get('output', '')
-        # Remove markdown formatting for Excel
-        output_text = re.sub(r'[#*_`]', '', output_text)
-        output_text = re.sub(r'\n\n+', '\n', output_text)
+        sections = extract_sections_from_markdown(output_text)
         
-        ws[f'A{row}'] = output_text
-        ws[f'A{row}'].font = normal_font
-        ws[f'A{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
-        ws.merge_cells(f'A{row}:D{row}')
+        if sections:
+            for section in sections:
+                # Section title
+                ws[f'A{row}'] = section['title']
+                ws[f'A{row}'].font = section_font
+                ws[f'A{row}'].fill = section_fill
+                ws[f'A{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+                ws.merge_cells(f'A{row}:E{row}')
+                ws.row_dimensions[row].height = 25
+                row += 1
+                
+                # Section content
+                content = clean_markdown_for_excel(section['content'])
+                ws[f'A{row}'] = content
+                ws[f'A{row}'].font = normal_font
+                ws[f'A{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+                ws.merge_cells(f'A{row}:E{row}')
+                
+                lines = content.count('\n') + 1
+                ws.row_dimensions[row].height = max(20, min(lines * 15, 200))
+                row += 2
+        else:
+            content = clean_markdown_for_excel(output_text)
+            ws[f'A{row}'] = content
+            ws[f'A{row}'].font = normal_font
+            ws[f'A{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+            ws.merge_cells(f'A{row}:E{row}')
         
         # Adjust column widths
-        ws.column_dimensions['A'].width = 20
-        ws.column_dimensions['B'].width = 50
-        ws.column_dimensions['C'].width = 20
-        ws.column_dimensions['D'].width = 20
+        ws.column_dimensions['A'].width = 25
+        ws.column_dimensions['B'].width = 60
+        ws.column_dimensions['C'].width = 15
+        ws.column_dimensions['D'].width = 15
+        ws.column_dimensions['E'].width = 15
         
         # Save to BytesIO
         output = BytesIO()
@@ -607,123 +652,24 @@ def export_project_excel(project_id):
         abort(500)
 
 def _generate_project_html(project, service, offering, project_data, lang):
-    """Generate HTML for PDF export with formatted consultation content"""
+    """Generate HTML for PDF export with professionally formatted consultation content"""
+    from utils.markdown_formatter import format_consultation_output
     
     input_data = project_data.get('input', {})
     output_text = project_data.get('output', '')
     
-    # Convert markdown headers to HTML (basic conversion)
-    output_html = output_text
-    output_html = re.sub(r'^### (.+)$', r'<h3>\1</h3>', output_html, flags=re.MULTILINE)
-    output_html = re.sub(r'^## (.+)$', r'<h2>\1</h2>', output_html, flags=re.MULTILINE)
-    output_html = re.sub(r'^# (.+)$', r'<h1>\1</h1>', output_html, flags=re.MULTILINE)
-    output_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', output_html)
-    output_html = re.sub(r'\n\n', r'</p><p>', output_html)
-    output_html = f'<p>{output_html}</p>'
+    # Format Markdown to beautiful HTML with cards, grids, tables, stat boxes
+    formatted_output = format_consultation_output(output_text, lang)
     
-    html_template = f'''
-    <!DOCTYPE html>
-    <html dir="{'rtl' if lang == 'ar' else 'ltr'}" lang="{'ar' if lang == 'ar' else 'en'}">
-    <head>
-        <meta charset="UTF-8">
-        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-        <style>
-            @page {{
-                size: A4;
-                margin: 2cm;
-            }}
-            
-            body {{
-                font-family: {'Cairo' if lang == 'ar' else 'Poppins'}, Arial, sans-serif;
-                direction: {'rtl' if lang == 'ar' else 'ltr'};
-                text-align: {'right' if lang == 'ar' else 'left'};
-                line-height: 1.8;
-                color: #333;
-                font-size: 14px;
-            }}
-            
-            .header {{
-                text-align: center;
-                padding: 30px 0;
-                background: linear-gradient(135deg, {service.color if service else '#1a365d'} 0%, {service.color if service else '#2c5282'} 100%);
-                color: white;
-                margin-bottom: 30px;
-                border-radius: 8px;
-            }}
-            
-            .header h1 {{
-                font-size: 24px;
-                font-weight: 700;
-                margin-bottom: 8px;
-            }}
-            
-            .section {{
-                margin-bottom: 25px;
-                page-break-inside: avoid;
-            }}
-            
-            .section-title {{
-                font-size: 18px;
-                font-weight: 700;
-                color: {service.color if service else '#2c5282'};
-                margin-bottom: 12px;
-                padding-bottom: 6px;
-                border-bottom: 3px solid {service.color if service else '#2c5282'};
-            }}
-            
-            .content {{
-                font-size: 14px;
-                line-height: 2;
-                padding: 12px 15px;
-                background: #f7fafc;
-                border-{'right' if lang == 'ar' else 'left'}: 4px solid {service.color if service else '#4299e1'};
-                margin-bottom: 12px;
-            }}
-            
-            .input-item {{
-                padding: 10px 15px;
-                margin-bottom: 8px;
-                background: #edf2f7;
-                display: flex;
-                justify-content: space-between;
-            }}
-            
-            .input-label {{
-                font-weight: 700;
-                color: #2c5282;
-            }}
-            
-            h1, h2, h3 {{
-                color: {service.color if service else '#2c5282'};
-                margin-top: 1.5rem;
-                margin-bottom: 0.8rem;
-            }}
-            
-            strong {{
-                color: #1a365d;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <h1>{project.title}</h1>
-            {f'<p>{service.title_ar if lang == "ar" else service.title_en} - {offering.title_ar if lang == "ar" else offering.title_en}</p>' if service and offering else ''}
-            <p style="font-size: 12px; opacity: 0.9;">{project.created_at.strftime('%Y-%m-%d %H:%M')}</p>
-        </div>
-        
-        <div class="section">
-            <h2 class="section-title">{'البيانات المدخلة' if lang == 'ar' else 'Input Data'}</h2>
-            {''.join([f'<div class="input-item"><span class="input-label">{key}:</span><span>{value}</span></div>' for key, value in input_data.items()])}
-        </div>
-        
-        <div class="section">
-            <h2 class="section-title">{'نتيجة الاستشارة' if lang == 'ar' else 'Consultation Result'}</h2>
-            <div class="content">
-                {output_html}
-            </div>
-        </div>
-    </body>
-    </html>
-    '''
+    # Render the professional export template
+    html = render_template(
+        'exports/project_export.html',
+        project=project,
+        service=service,
+        offering=offering,
+        input_data=input_data,
+        formatted_output=formatted_output,
+        lang=lang
+    )
     
-    return html_template
+    return html

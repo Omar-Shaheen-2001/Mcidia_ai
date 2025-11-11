@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}" lang="{{ 'ar' if lang == 'ar' else 'en' }}">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ project.title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: {{ 'Cairo' if lang == 'ar' else 'Poppins' }}, Arial, sans-serif;
+            direction: {{ 'rtl' if lang == 'ar' else 'ltr' }};
+            text-align: {{ 'right' if lang == 'ar' else 'left' }};
+            line-height: 1.8;
+            color: #333;
+            font-size: 14px;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Header Section */
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, {{ service.color if service else '#1a365d' }} 0%, {{ service.color if service else '#2c5282' }} 100%);
+            color: white;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            margin-top: 0;
+        }
+        
+        .header p {
+            font-size: 14px;
+            margin: 5px 0;
+            opacity: 0.95;
+        }
+        
+        /* Section Styling */
+        .section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: {{ service.color if service else '#2c5282' }};
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 3px solid {{ service.color if service else '#2c5282' }};
+        }
+        
+        /* Input Data Grid */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .input-item {
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 6px;
+            border-{{ 'right' if lang == 'ar' else 'left' }}: 4px solid {{ service.color if service else '#4299e1' }};
+        }
+        
+        .input-label {
+            font-weight: 700;
+            color: #2c5282;
+            font-size: 12px;
+            margin-bottom: 5px;
+            text-transform: capitalize;
+        }
+        
+        .input-value {
+            color: #1a202c;
+            font-size: 14px;
+            word-wrap: break-word;
+        }
+        
+        /* AI Output Content */
+        .ai-output-content {
+            font-size: 1.05rem;
+            line-height: 2.0;
+            color: #1a202c;
+        }
+        
+        .ai-output-content p {
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Headings */
+        .ai-output-content h1,
+        .ai-output-content h2,
+        .ai-output-content h3,
+        .ai-output-content h4 {
+            color: {{ service.color if service else '#2c5282' }};
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 1.2rem;
+            page-break-after: avoid;
+        }
+        
+        .ai-output-content h1 {
+            font-size: 1.8rem;
+            border-bottom: 2px solid {{ service.color if service else '#2c5282' }};
+            padding-bottom: 0.5rem;
+        }
+        
+        .ai-output-content h2 {
+            font-size: 1.5rem;
+            border-{{ 'right' if lang == 'ar' else 'left' }}: 4px solid {{ service.color if service else '#2c5282' }};
+            padding-{{ 'right' if lang == 'ar' else 'left' }}: 1rem;
+        }
+        
+        .ai-output-content h3 {
+            font-size: 1.3rem;
+        }
+        
+        .ai-output-content h4 {
+            font-size: 1.1rem;
+        }
+        
+        /* Lists */
+        .ai-output-content ul,
+        .ai-output-content ol {
+            margin-bottom: 1.5rem;
+            padding-{{ 'right' if lang == 'ar' else 'left' }}: 2rem;
+            padding-{{ 'left' if lang == 'ar' else 'right' }}: 0;
+        }
+        
+        .ai-output-content li {
+            margin-bottom: 0.8rem;
+            line-height: 1.8;
+        }
+        
+        /* Card Lists */
+        .ai-output-content ul.card-list {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 2rem;
+        }
+        
+        .ai-output-content ul.card-list li {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border: 2px solid #e2e8f0;
+            border-{{ 'right' if lang == 'ar' else 'left' }}: 4px solid {{ service.color if service else '#4299e1' }};
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 0;
+            transition: transform 0.2s;
+        }
+        
+        .ai-output-content ul.card-list li strong {
+            display: block;
+            color: {{ service.color if service else '#2c5282' }};
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        
+        /* Tables */
+        .ai-output-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            page-break-inside: avoid;
+        }
+        
+        .ai-output-content table th {
+            background: linear-gradient(135deg, {{ service.color if service else '#1a365d' }} 0%, {{ service.color if service else '#2c5282' }} 100%);
+            color: white;
+            font-weight: 700;
+            padding: 15px;
+            text-align: {{ 'right' if lang == 'ar' else 'left' }};
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .ai-output-content table td {
+            border: 1px solid #e2e8f0;
+            padding: 12px 15px;
+            text-align: {{ 'right' if lang == 'ar' else 'left' }};
+        }
+        
+        .ai-output-content table tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
+        
+        .ai-output-content table tr:hover {
+            background-color: #edf2f7;
+        }
+        
+        .table-responsive {
+            margin-bottom: 2rem;
+            page-break-inside: avoid;
+        }
+        
+        /* Stat Boxes */
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            page-break-inside: avoid;
+        }
+        
+        .stat-box .stat-number {
+            display: block;
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 10px;
+        }
+        
+        .stat-box .stat-label {
+            display: block;
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+        
+        /* Info Grids */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+            page-break-inside: avoid;
+        }
+        
+        .info-grid-item {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .info-grid-item strong {
+            display: block;
+            color: {{ service.color if service else '#2c5282' }};
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-grid-item p {
+            margin: 0;
+            color: #1a202c;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        /* Code Blocks */
+        .ai-output-content code {
+            background-color: #f7fafc;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #c7254e;
+        }
+        
+        .ai-output-content pre {
+            background-color: #f7fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .ai-output-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #1a202c;
+        }
+        
+        /* Blockquotes */
+        .ai-output-content blockquote {
+            border-{{ 'right' if lang == 'ar' else 'left' }}: 4px solid {{ service.color if service else '#4299e1' }};
+            padding-{{ 'right' if lang == 'ar' else 'left' }}: 20px;
+            margin: 20px 0;
+            color: #6c757d;
+            font-style: italic;
+            background: #f7fafc;
+            padding: 15px 20px;
+            border-radius: 4px;
+        }
+        
+        /* Strong/Bold Text */
+        .ai-output-content strong {
+            color: #1a365d;
+            font-weight: 700;
+        }
+        
+        /* Links */
+        .ai-output-content a {
+            color: {{ service.color if service else '#4299e1' }};
+            text-decoration: underline;
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+            text-align: center;
+            font-size: 12px;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>{{ project.title }}</h1>
+        {% if service and offering %}
+        <p>{{ service.title_ar if lang == 'ar' else service.title_en }} - {{ offering.title_ar if lang == 'ar' else offering.title_en }}</p>
+        {% endif %}
+        <p>{{ project.created_at.strftime('%Y-%m-%d %H:%M') if project.created_at else '' }}</p>
+    </div>
+    
+    <!-- Input Data Section -->
+    {% if input_data %}
+    <div class="section">
+        <h2 class="section-title">{{ 'البيانات المدخلة' if lang == 'ar' else 'Input Data' }}</h2>
+        <div class="input-grid">
+            {% for key, value in input_data.items() %}
+            {% if value and key not in ['additional_context'] %}
+            <div class="input-item">
+                <div class="input-label">{{ key.replace('_', ' ') }}</div>
+                <div class="input-value">{{ value }}</div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        
+        {% if input_data.get('additional_context') %}
+        <div class="input-item" style="grid-column: 1 / -1;">
+            <div class="input-label">{{ 'معلومات إضافية' if lang == 'ar' else 'Additional Context' }}</div>
+            <div class="input-value">{{ input_data.get('additional_context') }}</div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- AI Output Section -->
+    <div class="section">
+        <h2 class="section-title">{{ 'نتيجة الاستشارة الذكية' if lang == 'ar' else 'AI Consultation Result' }}</h2>
+        <div class="ai-output-content">
+            {{ formatted_output|safe }}
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+        <p>{{ 'منصة مسيديا للاستشارات الذكية' if lang == 'ar' else 'Mcidia AI Consulting Platform' }}</p>
+        <p>{{ 'تم الإنشاء بتاريخ' if lang == 'ar' else 'Generated on' }}: {{ project.created_at.strftime('%Y-%m-%d') if project.created_at else '' }}</p>
+    </div>
+</body>
+</html>
