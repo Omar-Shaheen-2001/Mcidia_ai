@@ -159,7 +159,7 @@
                             <i class="fas fa-check-circle text-success me-2"></i>
                             {{ 'نتيجة الاستشارة' if lang == 'ar' else 'Consultation Result' }}
                         </h5>
-                        <div id="resultContent" class="card bg-light p-4" style="white-space: pre-wrap; line-height: 1.8;"></div>
+                        <div id="resultContent" class="card bg-light p-4 ai-output-content"></div>
                         
                         <div class="mt-3 d-flex gap-2">
                             <button class="btn btn-outline-primary" onclick="window.print()">
@@ -392,8 +392,41 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             
             if (data.success) {
-                // Show result
-                resultContent.textContent = data.response;
+                // عرض النتيجة مع معالجة Markdown
+                let content = data.response;
+                
+                try {
+                    // تكوين Marked.js
+                    marked.setOptions({
+                        breaks: true,
+                        gfm: true,
+                        headerIds: false,
+                        mangle: false
+                    });
+                    
+                    // تحويل Markdown إلى HTML
+                    content = marked.parse(content);
+                    
+                    // تنظيف HTML (XSS Protection)
+                    content = DOMPurify.sanitize(content, {
+                        ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'b', 'i', 'u', 
+                                      'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 
+                                      'blockquote', 'code', 'pre', 'a', 'hr', 'div', 'span'],
+                        ALLOWED_ATTR: ['href', 'target', 'class', 'id'],
+                        ALLOW_DATA_ATTR: false
+                    });
+                    
+                    resultContent.innerHTML = content;
+                } catch(e) {
+                    // في حالة الفشل، نعرض النص مع تحسينات بسيطة
+                    content = content.replace(/\n/g, '<br>');
+                    content = DOMPurify.sanitize(content);
+                    resultContent.innerHTML = content;
+                }
+                
+                // معالجة العناصر لتحسين العرض
+                processOutputContent();
+                
                 loadingState.classList.add('d-none');
                 resultSection.classList.remove('d-none');
                 
@@ -414,6 +447,100 @@ document.addEventListener('DOMContentLoaded', function() {
         form.classList.remove('d-none');
         resultSection.classList.add('d-none');
     });
+    
+    // دالة معالجة المحتوى لتحسين العرض
+    function processOutputContent() {
+        const outputElement = document.getElementById('resultContent');
+        if (!outputElement) return;
+        
+        // تحويل القوائم غير المرتبة إلى بطاقات
+        const lists = outputElement.querySelectorAll('ul');
+        lists.forEach(list => {
+            // إذا كانت القائمة تحتوي على 3 عناصر أو أكثر، نحولها لبطاقات
+            if (list.children.length >= 3 && !list.classList.contains('no-cards')) {
+                list.classList.add('card-list');
+            }
+        });
+        
+        // تحسين عرض الجداول
+        const tables = outputElement.querySelectorAll('table');
+        tables.forEach(table => {
+            // إضافة wrapper للجداول لتحسين العرض على الموبايل
+            if (!table.parentElement.classList.contains('table-responsive')) {
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('table-responsive');
+                table.parentNode.insertBefore(wrapper, table);
+                wrapper.appendChild(table);
+            }
+        });
+        
+        // تحويل الفقرات التي تحتوي على أرقام إلى stat boxes
+        const paragraphs = outputElement.querySelectorAll('p');
+        paragraphs.forEach(p => {
+            const text = p.textContent;
+            // البحث عن أنماط مثل "50%" أو "$1000" أو "25 items"
+            const numberPattern = /^(\d+[%$]?|\$?\d+(?:,\d{3})*(?:\.\d+)?)\s*[-:–]\s*(.+)$/;
+            const match = text.match(numberPattern);
+            
+            if (match && match[1] && match[2]) {
+                const statBox = document.createElement('div');
+                statBox.classList.add('stat-box');
+                statBox.innerHTML = `
+                    <span class="stat-number">${match[1]}</span>
+                    <span class="stat-label">${match[2]}</span>
+                `;
+                p.replaceWith(statBox);
+            }
+        });
+        
+        // إنشاء info-grid للبيانات المنظمة
+        const strongElements = outputElement.querySelectorAll('strong');
+        const gridItems = [];
+        
+        strongElements.forEach(strong => {
+            const nextSibling = strong.nextSibling;
+            if (nextSibling && nextSibling.nodeType === 3) { // Text node
+                const text = nextSibling.textContent.trim();
+                if (text.startsWith(':') || text.startsWith('-')) {
+                    const value = text.substring(1).trim();
+                    gridItems.push({
+                        label: strong.textContent,
+                        value: value,
+                        element: strong.parentElement
+                    });
+                }
+            }
+        });
+        
+        // إذا وجدنا 3 عناصر أو أكثر متتالية، ننشئ grid
+        if (gridItems.length >= 3) {
+            const firstElement = gridItems[0].element;
+            const gridContainer = document.createElement('div');
+            gridContainer.classList.add('info-grid');
+            
+            gridItems.forEach(item => {
+                const gridItem = document.createElement('div');
+                gridItem.classList.add('info-grid-item');
+                gridItem.innerHTML = `
+                    <strong>${item.label}</strong>
+                    <p>${item.value}</p>
+                `;
+                gridContainer.appendChild(gridItem);
+                
+                // حذف العنصر الأصلي
+                if (item.element && item.element.parentNode) {
+                    item.element.parentNode.removeChild(item.element);
+                }
+            });
+            
+            // إضافة الـ grid قبل أول عنصر
+            if (firstElement && firstElement.parentNode) {
+                firstElement.parentNode.insertBefore(gridContainer, firstElement);
+            } else {
+                outputElement.insertBefore(gridContainer, outputElement.firstChild);
+            }
+        }
+    }
 });
 </script>
 
