@@ -156,6 +156,7 @@ def offering_detail(service_slug, offering_slug):
 def api_generate_content(service_slug, offering_slug):
     """API endpoint to generate AI content for an offering"""
     from flask import request, abort
+    import json
     
     db = get_db()
     
@@ -175,6 +176,10 @@ def api_generate_content(service_slug, offering_slug):
     user_id = get_jwt_identity()
     user = db.session.get(User, int(user_id))
     
+    # Initialize ai_credits_used if None
+    if user.ai_credits_used is None:
+        user.ai_credits_used = 0
+    
     # Check AI credits
     plan = user.plan_ref
     if plan and plan.ai_credits_limit:
@@ -190,7 +195,6 @@ def api_generate_content(service_slug, offering_slug):
     # Use custom prompt template if available, otherwise use default
     if offering.ai_prompt_template:
         # Parse form_fields to extract field names and values
-        import json
         import html
         form_fields_schema = []
         try:
