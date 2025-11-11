@@ -365,12 +365,14 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        // Get form data
-        const formData = {
-            project_name: form.project_name.value,
-            description: form.description.value,
-            additional_context: form.additional_context.value
-        };
+        // Get form data - collect ALL form inputs including dynamic fields
+        const formData = new FormData(form);
+        const jsonData = {};
+        
+        // Convert FormData to JSON object
+        for (const [key, value] of formData.entries()) {
+            jsonData[key] = value;
+        }
         
         // Show loading, hide form
         form.classList.add('d-none');
@@ -384,7 +386,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': '{{ csrf_token }}'
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(jsonData)
             });
             
             const data = await response.json();
