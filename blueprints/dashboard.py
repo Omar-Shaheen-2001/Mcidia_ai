@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, session, current_app
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
-from models import User, Project, AILog, Transaction
+from models import User, Project, AILog, Transaction, Service, ServiceOffering
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -23,6 +23,25 @@ def index():
     # Get recent AI logs
     recent_ai_activity = db.session.query(AILog).filter_by(user_id=user_id).order_by(AILog.created_at.desc()).limit(5).all()
     
+    # Build service info map for projects
+    project_services = {}
+    for project in recent_projects:
+        if project.module and '_' in project.module:
+            parts = project.module.split('_', 1)
+            if len(parts) == 2:
+                service_slug, offering_slug = parts
+                service = db.session.query(Service).filter_by(slug=service_slug).first()
+                if service:
+                    offering = db.session.query(ServiceOffering).filter_by(
+                        service_id=service.id,
+                        slug=offering_slug
+                    ).first()
+                    if offering:
+                        project_services[project.id] = {
+                            'service': service,
+                            'offering': offering
+                        }
+    
     lang = session.get('language', 'ar')
     
     return render_template('dashboard/index.html', 
@@ -32,4 +51,5 @@ def index():
                          ai_credits=ai_credits,
                          recent_projects=recent_projects,
                          recent_ai_activity=recent_ai_activity,
+                         project_services=project_services,
                          lang=lang)

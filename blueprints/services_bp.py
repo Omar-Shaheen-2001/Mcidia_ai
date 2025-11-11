@@ -323,3 +323,52 @@ def api_generate_content(service_slug, offering_slug):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+@services_bp.route('/project/<int:project_id>/view')
+@login_required
+def view_project(project_id):
+    """View a consultation project"""
+    from flask import abort
+    
+    db = get_db()
+    lang = session.get('language', 'ar')
+    
+    # Get project
+    project = db.session.get(Project, project_id)
+    if not project:
+        abort(404)
+    
+    # Check ownership
+    user_id = get_jwt_identity()
+    if project.user_id != int(user_id):
+        abort(403)
+    
+    # Parse module to get service and offering info
+    service = None
+    offering = None
+    if project.module and '_' in project.module:
+        parts = project.module.split('_', 1)
+        if len(parts) == 2:
+            service_slug, offering_slug = parts
+            service = db.session.query(Service).filter_by(slug=service_slug).first()
+            if service:
+                offering = db.session.query(ServiceOffering).filter_by(
+                    service_id=service.id,
+                    slug=offering_slug
+                ).first()
+    
+    # Parse project content
+    project_data = {}
+    try:
+        project_data = json.loads(project.content) if project.content else {}
+    except:
+        project_data = {'input': {}, 'output': ''}
+    
+    return render_template(
+        'services/project_view.html',
+        project=project,
+        service=service,
+        offering=offering,
+        project_data=project_data,
+        lang=lang
+    )

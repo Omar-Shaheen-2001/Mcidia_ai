@@ -342,7 +342,21 @@
                                         <strong>{{ project.title }}</strong>
                                     </td>
                                     <td>
-                                        <span class="badge badge--primary">{{ project.module }}</span>
+                                        {% if project.id in project_services %}
+                                            {% set service = project_services[project.id].service %}
+                                            {% set offering = project_services[project.id].offering %}
+                                            <div class="d-flex flex-column gap-1">
+                                                <span class="badge badge--primary">
+                                                    <i class="{{ service.icon }} me-1"></i>
+                                                    {{ service.title_ar if lang == 'ar' else service.title_en }}
+                                                </span>
+                                                <span class="badge badge--secondary small">
+                                                    {{ offering.title_ar if lang == 'ar' else offering.title_en }}
+                                                </span>
+                                            </div>
+                                        {% else %}
+                                            <span class="badge badge--primary">{{ project.module }}</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <span class="badge badge--success">
@@ -355,7 +369,7 @@
                                         {{ project.created_at.strftime('%Y-%m-%d') if project.created_at else 'N/A' }}
                                     </td>
                                     <td class="text-end">
-                                        <a href="#" class="btn btn-sm btn-outline-primary">
+                                        <a href="{{ url_for('services.view_project', project_id=project.id) }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="{{ 'معاينة' if lang == 'ar' else 'View' }}">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     </td>
