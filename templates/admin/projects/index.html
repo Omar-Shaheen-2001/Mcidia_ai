@@ -169,7 +169,7 @@
                         <small class="text-muted">{{ detail.project.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
                     </td>
                     <td>
-                        <a href="{{ url_for('services.project_view', project_id=detail.project.id) }}" 
+                        <a href="{{ url_for('services.view_project', project_id=detail.project.id) }}" 
                            class="btn btn-sm btn-outline-primary" 
                            title="{{ 'عرض' if lang == 'ar' else 'View' }}">
                             <i class="fas fa-eye"></i>
