@@ -93,21 +93,27 @@
                     </div>
                     {% else %}
                     <form id="aiConsultationForm">
-                        <!-- Project Name -->
+                        <!-- Project Name (Always Required) -->
                         <div class="mb-4">
                             <label class="form-label fw-semibold">
                                 <i class="fas fa-folder me-1"></i>
                                 {{ 'اسم المشروع' if lang == 'ar' else 'Project Name' }}
+                                <span class="text-danger">*</span>
                             </label>
                             <input type="text" class="form-control" name="project_name" 
                                    placeholder="{{ 'أدخل اسم المشروع' if lang == 'ar' else 'Enter project name' }}" required>
                         </div>
                         
-                        <!-- Description -->
+                        {% if offering.form_fields %}
+                        <!-- Dynamic Custom Fields -->
+                        <div id="customFieldsContainer"></div>
+                        {% else %}
+                        <!-- Default Fields (if no custom fields defined) -->
                         <div class="mb-4">
                             <label class="form-label fw-semibold">
                                 <i class="fas fa-align-left me-1"></i>
                                 {{ 'وصف الاحتياجات' if lang == 'ar' else 'Description of Needs' }}
+                                <span class="text-danger">*</span>
                             </label>
                             <textarea class="form-control" name="description" rows="6"
                                       placeholder="{{ 'صف احتياجاتك بالتفصيل للحصول على استشارة دقيقة...' if lang == 'ar' else 'Describe your needs in detail for accurate consultation...' }}" required></textarea>
@@ -117,7 +123,6 @@
                             </div>
                         </div>
                         
-                        <!-- Additional Context -->
                         <div class="mb-4">
                             <label class="form-label fw-semibold">
                                 <i class="fas fa-list me-1"></i>
@@ -126,6 +131,7 @@
                             <textarea class="form-control" name="additional_context" rows="3"
                                       placeholder="{{ 'أضف أي معلومات إضافية تساعد في تقديم استشارة أفضل' if lang == 'ar' else 'Add any additional information for better consultation' }}"></textarea>
                         </div>
+                        {% endif %}
                         
                         <!-- Submit Button -->
                         <button type="submit" class="btn btn-lg w-100" style="background-color: {{ service.color }}; color: white;" id="generateBtn">
@@ -268,6 +274,80 @@ document.addEventListener('DOMContentLoaded', function() {
             overlay.classList.remove('show');
         });
     }
+    
+    // Generate dynamic custom fields
+    {% if offering.form_fields %}
+    const customFieldsContainer = document.getElementById('customFieldsContainer');
+    if (customFieldsContainer) {
+        try {
+            const fields = {{ offering.form_fields | tojson | safe }};
+            const parsedFields = typeof fields === 'string' ? JSON.parse(fields) : fields;
+            const lang = '{{ lang }}';
+            
+            if (Array.isArray(parsedFields)) {
+                parsedFields.forEach(field => {
+                    const fieldDiv = document.createElement('div');
+                    fieldDiv.className = 'mb-4';
+                    
+                    const label = field['label_' + lang] || field.label_ar || field.label_en || field.name;
+                    const isRequired = field.required;
+                    
+                    let fieldHTML = `
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-${getFieldIcon(field.type)} me-1"></i>
+                            ${label}
+                            ${isRequired ? '<span class="text-danger">*</span>' : ''}
+                        </label>
+                    `;
+                    
+                    switch (field.type) {
+                        case 'textarea':
+                            fieldHTML += `<textarea class="form-control" name="${field.name}" rows="4" ${isRequired ? 'required' : ''}></textarea>`;
+                            break;
+                        case 'select':
+                            fieldHTML += `<select class="form-select" name="${field.name}" ${isRequired ? 'required' : ''}>`;
+                            fieldHTML += `<option value="">${lang === 'ar' ? 'اختر...' : 'Select...'}</option>`;
+                            if (field.options && Array.isArray(field.options)) {
+                                field.options.forEach(option => {
+                                    fieldHTML += `<option value="${option}">${option}</option>`;
+                                });
+                            }
+                            fieldHTML += `</select>`;
+                            break;
+                        case 'number':
+                            fieldHTML += `<input type="number" class="form-control" name="${field.name}" ${isRequired ? 'required' : ''}>`;
+                            break;
+                        case 'email':
+                            fieldHTML += `<input type="email" class="form-control" name="${field.name}" ${isRequired ? 'required' : ''}>`;
+                            break;
+                        case 'date':
+                            fieldHTML += `<input type="date" class="form-control" name="${field.name}" ${isRequired ? 'required' : ''}>`;
+                            break;
+                        default: // text
+                            fieldHTML += `<input type="text" class="form-control" name="${field.name}" ${isRequired ? 'required' : ''}>`;
+                    }
+                    
+                    fieldDiv.innerHTML = fieldHTML;
+                    customFieldsContainer.appendChild(fieldDiv);
+                });
+            }
+        } catch (e) {
+            console.error('Error loading custom fields:', e);
+        }
+    }
+    
+    function getFieldIcon(type) {
+        const icons = {
+            'text': 'keyboard',
+            'textarea': 'align-left',
+            'number': 'hashtag',
+            'email': 'envelope',
+            'select': 'list',
+            'date': 'calendar'
+        };
+        return icons[type] || 'edit';
+    }
+    {% endif %}
     
     // AI Form functionality (only if user is logged in)
     const form = document.getElementById('aiConsultationForm');

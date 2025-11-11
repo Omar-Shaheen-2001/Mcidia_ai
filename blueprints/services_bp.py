@@ -188,13 +188,50 @@ def api_generate_content(service_slug, offering_slug):
     # Build prompt from template
     lang = session.get('language', 'ar')
     
-    # System prompt
-    system_prompt = f"""أنت مستشار خبير في {service.title_ar if lang == 'ar' else service.title_en}.
+    # Use custom prompt template if available, otherwise use default
+    if offering.ai_prompt_template:
+        # Parse form_fields to extract field names and values
+        import json
+        form_fields_schema = []
+        try:
+            if offering.form_fields:
+                form_fields_schema = json.loads(offering.form_fields) if isinstance(offering.form_fields, str) else offering.form_fields
+        except:
+            pass
+        
+        # Build replacement dictionary with field values
+        replacement_dict = {
+            'project_name': form_data.get('project_name', 'غير محدد / Not specified'),
+            'description': form_data.get('description', ''),
+            'additional_context': form_data.get('additional_context', '')
+        }
+        
+        # Add custom fields to replacement dict
+        for field in form_fields_schema:
+            field_name = field.get('name')
+            field_value = form_data.get(field_name, 'N/A')
+            replacement_dict[field_name] = field_value
+        
+        # Replace {field_name} with actual values in prompt template
+        system_prompt = offering.ai_prompt_template
+        for field_name, field_value in replacement_dict.items():
+            system_prompt = system_prompt.replace(f'{{{field_name}}}', str(field_value))
+        
+        # User message is just the data summary
+        user_message = f"""المشروع / Project: {form_data.get('project_name', 'غير محدد')}
+
+{f"الوصف / Description: {form_data.get('description', '')}" if form_data.get('description') else ''}
+
+{"معلومات إضافية / Additional info: " + form_data.get('additional_context', '') if form_data.get('additional_context') else ''}
+
+يرجى تقديم استشارة شاملة ومفصلة / Please provide comprehensive consultation."""
+    else:
+        # Default prompt (fallback)
+        system_prompt = f"""أنت مستشار خبير في {service.title_ar if lang == 'ar' else service.title_en}.
 مهمتك تقديم استشارات احترافية وشاملة في مجال {offering.title_ar if lang == 'ar' else offering.title_en}.
 قدم تحليلاً دقيقاً وتوصيات عملية بناءً على المعلومات المقدمة."""
-    
-    # User message
-    user_message = f"""المشروع: {form_data.get('project_name', 'غير محدد')}
+        
+        user_message = f"""المشروع: {form_data.get('project_name', 'غير محدد')}
 
 الوصف:
 {form_data.get('description', '')}
