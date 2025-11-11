@@ -85,16 +85,35 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label">{{ 'قالب التعليمات للذكاء الاصطناعي' if lang == 'ar' else 'AI Prompt Template' }}</label>
-                        <textarea class="form-control font-monospace" name="ai_prompt_template" rows="5" placeholder="أنت مستشار متخصص في...&#10;&#10;المعلومات المقدمة من المستخدم:&#10;{user_input}"></textarea>
-                        <div class="form-text">{{ 'استخدم {user_input} للإشارة إلى البيانات المدخلة' if lang == 'ar' else 'Use {user_input} to reference user input data' }}</div>
+                        <label class="form-label">{{ 'البرومبت المخصص للذكاء الاصطناعي' if lang == 'ar' else 'Custom AI Prompt' }}</label>
+                        <textarea class="form-control font-monospace" name="ai_prompt_template" rows="8" placeholder="{{ 'أنت مستشار استراتيجي متخصص في...&#10;&#10;المعلومات المقدمة من المستخدم:&#10;{field_name_1}: {value_1}&#10;{field_name_2}: {value_2}&#10;&#10;مهمتك: تقديم تحليل شامل...' if lang == 'ar' else 'You are a strategic consultant specialized in...&#10;&#10;User provided information:&#10;{field_name_1}: {value_1}&#10;{field_name_2}: {value_2}&#10;&#10;Your task: Provide comprehensive analysis...' }}"></textarea>
+                        <div class="form-text">
+                            <strong>{{ 'مهم' if lang == 'ar' else 'Important' }}:</strong> 
+                            {{ 'استخدم {اسم_الحقل} للإشارة إلى قيم الحقول المخصصة أدناه' if lang == 'ar' else 'Use {field_name} to reference custom field values below' }}
+                            <br>
+                            <span class="text-muted">{{ 'مثال: {company_name}, {project_goal}, {target_market}' if lang == 'ar' else 'Example: {company_name}, {project_goal}, {target_market}' }}</span>
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">{{ 'حقول النموذج (JSON)' if lang == 'ar' else 'Form Fields (JSON)' }}</label>
-                        <textarea class="form-control font-monospace" name="form_fields" rows="4" placeholder='[{"name": "company_name", "type": "text", "label_ar": "اسم الشركة", "label_en": "Company Name"}]'></textarea>
-                        <div class="form-text">{{ 'اختياري - تعريف حقول النموذج بصيغة JSON' if lang == 'ar' else 'Optional - Define form fields in JSON format' }}</div>
+                    <hr class="my-4">
+                    
+                    <h6 class="mb-3">
+                        {{ 'حقول النموذج المخصصة' if lang == 'ar' else 'Custom Form Fields' }}
+                        <button type="button" class="btn btn-sm btn-success {{ 'float-start' if lang == 'ar' else 'float-end' }}" id="addFieldBtn">
+                            <i class="fas fa-plus {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {{ 'إضافة حقل' if lang == 'ar' else 'Add Field' }}
+                        </button>
+                    </h6>
+                    
+                    <div id="fieldsContainer" class="mb-3">
+                        <!-- Fields will be added dynamically here -->
+                        <div class="alert alert-info" id="noFieldsMessage">
+                            <i class="fas fa-info-circle {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {{ 'لم يتم إضافة حقول بعد. اضغط "إضافة حقل" لتخصيص الحقول.' if lang == 'ar' else 'No fields added yet. Click "Add Field" to customize fields.' }}
+                        </div>
                     </div>
+                    
+                    <input type="hidden" name="form_fields" id="formFieldsInput">
                     
                     <div class="form-check form-switch mb-4">
                         <input class="form-check-input" type="checkbox" name="is_active" checked>
@@ -117,4 +136,162 @@
         </div>
     </div>
 </div>
+
+<style>
+.field-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background: #f8f9fa;
+}
+.field-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.field-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dee2e6;
+}
+</style>
+
+<script>
+let fieldCounter = 0;
+const fields = [];
+
+document.getElementById('addFieldBtn').addEventListener('click', function() {
+    addField();
+});
+
+function addField(data = null) {
+    const fieldId = fieldCounter++;
+    
+    const fieldCard = document.createElement('div');
+    fieldCard.className = 'field-card';
+    fieldCard.id = `field-${fieldId}`;
+    
+    fieldCard.innerHTML = `
+        <div class="field-header">
+            <h6 class="mb-0">
+                <i class="fas fa-{{ 'bars' if lang == 'ar' else 'grip-vertical' }} {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                <span>{{ 'حقل #' if lang == 'ar' else 'Field #' }}${fieldId + 1}</span>
+            </h6>
+            <button type="button" class="btn btn-sm btn-danger" onclick="removeField(${fieldId})">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <label class="form-label">{{ 'اسم الحقل (Field Name)' if lang == 'ar' else 'Field Name' }}</label>
+                <input type="text" class="form-control field-name" placeholder="company_name" value="${data?.name || ''}" required>
+                <small class="text-muted">{{ 'استخدم أحرف إنجليزية وشرطات فقط' if lang == 'ar' else 'Use English letters and underscores only' }}</small>
+            </div>
+            
+            <div class="col-md-6 mb-2">
+                <label class="form-label">{{ 'نوع الحقل' if lang == 'ar' else 'Field Type' }}</label>
+                <select class="form-select field-type" onchange="updateFieldOptions(${fieldId})">
+                    <option value="text" ${data?.type === 'text' ? 'selected' : ''}>{{ 'نص' if lang == 'ar' else 'Text' }}</option>
+                    <option value="textarea" ${data?.type === 'textarea' ? 'selected' : ''}>{{ 'نص طويل' if lang == 'ar' else 'Long Text' }}</option>
+                    <option value="number" ${data?.type === 'number' ? 'selected' : ''}>{{ 'رقم' if lang == 'ar' else 'Number' }}</option>
+                    <option value="email" ${data?.type === 'email' ? 'selected' : ''}>{{ 'بريد إلكتروني' if lang == 'ar' else 'Email' }}</option>
+                    <option value="select" ${data?.type === 'select' ? 'selected' : ''}>{{ 'قائمة منسدلة' if lang == 'ar' else 'Dropdown' }}</option>
+                    <option value="date" ${data?.type === 'date' ? 'selected' : ''}>{{ 'تاريخ' if lang == 'ar' else 'Date' }}</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <label class="form-label">{{ 'العنوان بالعربية' if lang == 'ar' else 'Arabic Label' }}</label>
+                <input type="text" class="form-control field-label-ar" placeholder="{{ 'اسم الشركة' if lang == 'ar' else 'Company Name' }}" value="${data?.label_ar || ''}" required>
+            </div>
+            
+            <div class="col-md-6 mb-2">
+                <label class="form-label">{{ 'العنوان بالإنجليزية' if lang == 'ar' else 'English Label' }}</label>
+                <input type="text" class="form-control field-label-en" placeholder="Company Name" value="${data?.label_en || ''}" required>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input field-required" id="required-${fieldId}" ${data?.required ? 'checked' : ''}>
+                    <label class="form-check-label" for="required-${fieldId}">{{ 'حقل مطلوب' if lang == 'ar' else 'Required Field' }}</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="select-options-container" id="options-${fieldId}" style="display: ${data?.type === 'select' ? 'block' : 'none'};">
+            <label class="form-label">{{ 'خيارات القائمة (كل خيار في سطر)' if lang == 'ar' else 'Options (one per line)' }}</label>
+            <textarea class="form-control field-options" rows="3" placeholder="{{ 'خيار 1&#10;خيار 2&#10;خيار 3' if lang == 'ar' else 'Option 1&#10;Option 2&#10;Option 3' }}">${data?.options?.join('\n') || ''}</textarea>
+        </div>
+    `;
+    
+    document.getElementById('fieldsContainer').appendChild(fieldCard);
+    document.getElementById('noFieldsMessage')?.remove();
+    
+    updateFormFields();
+}
+
+function removeField(fieldId) {
+    document.getElementById(`field-${fieldId}`).remove();
+    
+    // Show message if no fields
+    if (document.getElementById('fieldsContainer').children.length === 0) {
+        const message = document.createElement('div');
+        message.className = 'alert alert-info';
+        message.id = 'noFieldsMessage';
+        message.innerHTML = '<i class="fas fa-info-circle {{ "ms-1" if lang == "ar" else "me-1" }}"></i> {{ "لم يتم إضافة حقول بعد. اضغط \\"إضافة حقل\\" لتخصيص الحقول." if lang == "ar" else "No fields added yet. Click \\"Add Field\\" to customize fields." }}';
+        document.getElementById('fieldsContainer').appendChild(message);
+    }
+    
+    updateFormFields();
+}
+
+function updateFieldOptions(fieldId) {
+    const fieldCard = document.getElementById(`field-${fieldId}`);
+    const fieldType = fieldCard.querySelector('.field-type').value;
+    const optionsContainer = document.getElementById(`options-${fieldId}`);
+    
+    if (fieldType === 'select') {
+        optionsContainer.style.display = 'block';
+    } else {
+        optionsContainer.style.display = 'none';
+    }
+    
+    updateFormFields();
+}
+
+function updateFormFields() {
+    const fields = [];
+    const fieldCards = document.querySelectorAll('.field-card');
+    
+    fieldCards.forEach(card => {
+        const field = {
+            name: card.querySelector('.field-name').value,
+            type: card.querySelector('.field-type').value,
+            label_ar: card.querySelector('.field-label-ar').value,
+            label_en: card.querySelector('.field-label-en').value,
+            required: card.querySelector('.field-required').checked
+        };
+        
+        if (field.type === 'select') {
+            const optionsText = card.querySelector('.field-options').value;
+            field.options = optionsText.split('\n').filter(o => o.trim());
+        }
+        
+        fields.push(field);
+    });
+    
+    document.getElementById('formFieldsInput').value = JSON.stringify(fields);
+}
+
+// Update on any change
+document.getElementById('fieldsContainer').addEventListener('input', updateFormFields);
+document.getElementById('fieldsContainer').addEventListener('change', updateFormFields);
+</script>
 {% endblock %}
