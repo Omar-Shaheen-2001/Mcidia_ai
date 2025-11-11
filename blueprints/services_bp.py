@@ -3,12 +3,17 @@ Services Blueprint
 Handles all consulting services pages and API endpoints
 """
 
-from flask import Blueprint, render_template, session, jsonify, current_app
+from flask import Blueprint, render_template, session, jsonify, current_app, make_response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import Service, ServiceOffering, User, Project, AILog
 from utils.decorators import login_required
 from utils.ai_providers.ai_manager import AIManager
+from weasyprint import HTML
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from io import BytesIO
 import json
+import re
 
 services_bp = Blueprint('services', __name__, url_prefix='/services')
 
@@ -393,3 +398,332 @@ def view_project(project_id):
         project_data=project_data,
         lang=lang
     )
+
+@services_bp.route('/project/<int:project_id>/export-pdf')
+@login_required
+def export_project_pdf(project_id):
+    """تصدير المشروع كملف PDF مع التنسيق الكامل"""
+    from flask import abort
+    
+    db = get_db()
+    lang = session.get('language', 'ar')
+    
+    # Get project
+    project = db.session.get(Project, project_id)
+    if not project:
+        abort(404)
+    
+    # Check ownership - get JWT identity and handle None
+    user_id = get_jwt_identity()
+    if user_id is None:
+        abort(401)  # Unauthorized
+    
+    if project.user_id != int(user_id):
+        abort(403)  # Forbidden
+    
+    # Parse project content
+    project_data = {}
+    try:
+        project_data = json.loads(project.content) if project.content else {}
+    except:
+        project_data = {'input': {}, 'output': ''}
+    
+    # Get service and offering info
+    service = None
+    offering = None
+    if project.module and '_' in project.module:
+        parts = project.module.split('_', 1)
+        if len(parts) == 2:
+            service_slug, offering_slug = parts
+            service = db.session.query(Service).filter_by(slug=service_slug).first()
+            if service:
+                offering = db.session.query(ServiceOffering).filter_by(
+                    service_id=service.id,
+                    slug=offering_slug
+                ).first()
+    
+    try:
+        # Generate HTML for PDF
+        html_content = _generate_project_html(project, service, offering, project_data, lang)
+        
+        # Convert to PDF using WeasyPrint
+        pdf_file = HTML(string=html_content).write_pdf()
+        
+        # Create response
+        response = make_response(pdf_file)
+        response.headers['Content-Type'] = 'application/pdf'
+        filename = f"consultation_{project_id}.pdf"
+        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        return response
+        
+    except Exception as e:
+        current_app.logger.error(f"PDF export error: {str(e)}")
+        abort(500)
+
+@services_bp.route('/project/<int:project_id>/export-excel')
+@login_required
+def export_project_excel(project_id):
+    """تصدير المشروع كملف Excel"""
+    from flask import abort
+    
+    db = get_db()
+    lang = session.get('language', 'ar')
+    
+    # Get project
+    project = db.session.get(Project, project_id)
+    if not project:
+        abort(404)
+    
+    # Check ownership - get JWT identity and handle None
+    user_id = get_jwt_identity()
+    if user_id is None:
+        abort(401)  # Unauthorized
+    
+    if project.user_id != int(user_id):
+        abort(403)  # Forbidden
+    
+    # Parse project content
+    project_data = {}
+    try:
+        project_data = json.loads(project.content) if project.content else {}
+    except:
+        project_data = {'input': {}, 'output': ''}
+    
+    # Get service and offering info
+    service = None
+    offering = None
+    if project.module and '_' in project.module:
+        parts = project.module.split('_', 1)
+        if len(parts) == 2:
+            service_slug, offering_slug = parts
+            service = db.session.query(Service).filter_by(slug=service_slug).first()
+            if service:
+                offering = db.session.query(ServiceOffering).filter_by(
+                    service_id=service.id,
+                    slug=offering_slug
+                ).first()
+    
+    try:
+        # Create workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "الاستشارة" if lang == 'ar' else "Consultation"
+        ws.sheet_view.rightToLeft = (lang == 'ar')
+        
+        # Define styles
+        header_fill = PatternFill(start_color="1e3a8a", end_color="1e3a8a", fill_type="solid")
+        header_font = Font(name='Arial', size=14, bold=True, color="FFFFFF")
+        section_font = Font(name='Arial', size=12, bold=True)
+        normal_font = Font(name='Arial', size=10)
+        rtl_alignment = Alignment(horizontal='right', vertical='top', wrap_text=True, readingOrder=2)
+        ltr_alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
+        
+        # Title
+        row = 1
+        ws[f'A{row}'] = project.title
+        ws[f'A{row}'].font = Font(name='Arial', size=16, bold=True)
+        ws[f'A{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+        ws.merge_cells(f'A{row}:D{row}')
+        
+        # Service info
+        row += 2
+        if service and offering:
+            ws[f'A{row}'] = "الخدمة:" if lang == 'ar' else "Service:"
+            ws[f'A{row}'].font = section_font
+            ws[f'B{row}'] = f"{service.title_ar if lang == 'ar' else service.title_en} - {offering.title_ar if lang == 'ar' else offering.title_en}"
+            ws[f'B{row}'].font = normal_font
+            ws[f'B{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+            row += 1
+        
+        # Date
+        ws[f'A{row}'] = "التاريخ:" if lang == 'ar' else "Date:"
+        ws[f'A{row}'].font = section_font
+        ws[f'B{row}'] = project.created_at.strftime('%Y-%m-%d %H:%M')
+        ws[f'B{row}'].font = normal_font
+        row += 2
+        
+        # Input section
+        ws[f'A{row}'] = "البيانات المدخلة" if lang == 'ar' else "Input Data"
+        ws[f'A{row}'].font = header_font
+        ws[f'A{row}'].fill = header_fill
+        ws[f'A{row}'].alignment = Alignment(horizontal='center', vertical='center')
+        ws.merge_cells(f'A{row}:D{row}')
+        row += 1
+        
+        # Input data
+        input_data = project_data.get('input', {})
+        for key, value in input_data.items():
+            ws[f'A{row}'] = str(key)
+            ws[f'A{row}'].font = section_font
+            ws[f'A{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+            ws[f'B{row}'] = str(value)
+            ws[f'B{row}'].font = normal_font
+            ws[f'B{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+            row += 1
+        
+        row += 1
+        
+        # Output section
+        ws[f'A{row}'] = "نتيجة الاستشارة" if lang == 'ar' else "Consultation Result"
+        ws[f'A{row}'].font = header_font
+        ws[f'A{row}'].fill = header_fill
+        ws[f'A{row}'].alignment = Alignment(horizontal='center', vertical='center')
+        ws.merge_cells(f'A{row}:D{row}')
+        row += 1
+        
+        # Output content - clean from markdown
+        output_text = project_data.get('output', '')
+        # Remove markdown formatting for Excel
+        output_text = re.sub(r'[#*_`]', '', output_text)
+        output_text = re.sub(r'\n\n+', '\n', output_text)
+        
+        ws[f'A{row}'] = output_text
+        ws[f'A{row}'].font = normal_font
+        ws[f'A{row}'].alignment = rtl_alignment if lang == 'ar' else ltr_alignment
+        ws.merge_cells(f'A{row}:D{row}')
+        
+        # Adjust column widths
+        ws.column_dimensions['A'].width = 20
+        ws.column_dimensions['B'].width = 50
+        ws.column_dimensions['C'].width = 20
+        ws.column_dimensions['D'].width = 20
+        
+        # Save to BytesIO
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        # Create response
+        response = make_response(output.read())
+        response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        filename = f"consultation_{project_id}.xlsx"
+        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        return response
+        
+    except Exception as e:
+        current_app.logger.error(f"Excel export error: {str(e)}")
+        abort(500)
+
+def _generate_project_html(project, service, offering, project_data, lang):
+    """Generate HTML for PDF export with formatted consultation content"""
+    
+    input_data = project_data.get('input', {})
+    output_text = project_data.get('output', '')
+    
+    # Convert markdown headers to HTML (basic conversion)
+    output_html = output_text
+    output_html = re.sub(r'^### (.+)$', r'<h3>\1</h3>', output_html, flags=re.MULTILINE)
+    output_html = re.sub(r'^## (.+)$', r'<h2>\1</h2>', output_html, flags=re.MULTILINE)
+    output_html = re.sub(r'^# (.+)$', r'<h1>\1</h1>', output_html, flags=re.MULTILINE)
+    output_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', output_html)
+    output_html = re.sub(r'\n\n', r'</p><p>', output_html)
+    output_html = f'<p>{output_html}</p>'
+    
+    html_template = f'''
+    <!DOCTYPE html>
+    <html dir="{'rtl' if lang == 'ar' else 'ltr'}" lang="{'ar' if lang == 'ar' else 'en'}">
+    <head>
+        <meta charset="UTF-8">
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+            @page {{
+                size: A4;
+                margin: 2cm;
+            }}
+            
+            body {{
+                font-family: {'Cairo' if lang == 'ar' else 'Poppins'}, Arial, sans-serif;
+                direction: {'rtl' if lang == 'ar' else 'ltr'};
+                text-align: {'right' if lang == 'ar' else 'left'};
+                line-height: 1.8;
+                color: #333;
+                font-size: 14px;
+            }}
+            
+            .header {{
+                text-align: center;
+                padding: 30px 0;
+                background: linear-gradient(135deg, {service.color if service else '#1a365d'} 0%, {service.color if service else '#2c5282'} 100%);
+                color: white;
+                margin-bottom: 30px;
+                border-radius: 8px;
+            }}
+            
+            .header h1 {{
+                font-size: 24px;
+                font-weight: 700;
+                margin-bottom: 8px;
+            }}
+            
+            .section {{
+                margin-bottom: 25px;
+                page-break-inside: avoid;
+            }}
+            
+            .section-title {{
+                font-size: 18px;
+                font-weight: 700;
+                color: {service.color if service else '#2c5282'};
+                margin-bottom: 12px;
+                padding-bottom: 6px;
+                border-bottom: 3px solid {service.color if service else '#2c5282'};
+            }}
+            
+            .content {{
+                font-size: 14px;
+                line-height: 2;
+                padding: 12px 15px;
+                background: #f7fafc;
+                border-{'right' if lang == 'ar' else 'left'}: 4px solid {service.color if service else '#4299e1'};
+                margin-bottom: 12px;
+            }}
+            
+            .input-item {{
+                padding: 10px 15px;
+                margin-bottom: 8px;
+                background: #edf2f7;
+                display: flex;
+                justify-content: space-between;
+            }}
+            
+            .input-label {{
+                font-weight: 700;
+                color: #2c5282;
+            }}
+            
+            h1, h2, h3 {{
+                color: {service.color if service else '#2c5282'};
+                margin-top: 1.5rem;
+                margin-bottom: 0.8rem;
+            }}
+            
+            strong {{
+                color: #1a365d;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>{project.title}</h1>
+            {f'<p>{service.title_ar if lang == "ar" else service.title_en} - {offering.title_ar if lang == "ar" else offering.title_en}</p>' if service and offering else ''}
+            <p style="font-size: 12px; opacity: 0.9;">{project.created_at.strftime('%Y-%m-%d %H:%M')}</p>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">{'البيانات المدخلة' if lang == 'ar' else 'Input Data'}</h2>
+            {''.join([f'<div class="input-item"><span class="input-label">{key}:</span><span>{value}</span></div>' for key, value in input_data.items()])}
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">{'نتيجة الاستشارة' if lang == 'ar' else 'Consultation Result'}</h2>
+            <div class="content">
+                {output_html}
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+    
+    return html_template

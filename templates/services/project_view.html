@@ -156,6 +156,16 @@
                             <i class="fas fa-print me-2"></i>
                             {{ 'طباعة' if lang == 'ar' else 'Print' }}
                         </button>
+                        
+                        <a href="{{ url_for('services.export_project_pdf', project_id=project.id) }}" class="btn btn-outline-danger">
+                            <i class="fas fa-file-pdf me-2"></i>
+                            {{ 'تصدير PDF' if lang == 'ar' else 'Export PDF' }}
+                        </a>
+                        
+                        <a href="{{ url_for('services.export_project_excel', project_id=project.id) }}" class="btn btn-outline-success">
+                            <i class="fas fa-file-excel me-2"></i>
+                            {{ 'تصدير Excel' if lang == 'ar' else 'Export Excel' }}
+                        </a>
                     </div>
                 </div>
             </div>

@@ -161,7 +161,7 @@
                         </h5>
                         <div id="resultContent" class="card bg-light p-4 ai-output-content"></div>
                         
-                        <div class="mt-3 d-flex gap-2">
+                        <div class="mt-3 d-flex gap-2 flex-wrap" id="resultActions">
                             <button class="btn btn-outline-primary" onclick="window.print()">
                                 <i class="fas fa-print me-1"></i>
                                 {{ 'طباعة' if lang == 'ar' else 'Print' }}
@@ -170,6 +170,7 @@
                                 <i class="fas fa-plus me-1"></i>
                                 {{ 'استشارة جديدة' if lang == 'ar' else 'New Consultation' }}
                             </button>
+                            <!-- Export buttons will be added dynamically after project creation -->
                         </div>
                     </div>
                 </div>
@@ -430,6 +431,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 loadingState.classList.add('d-none');
                 resultSection.classList.remove('d-none');
                 
+                // إضافة أزرار التصدير مع project_id
+                if (data.project_id) {
+                    addExportButtons(data.project_id);
+                }
+                
                 // Show success message
                 alert('{{ "تم إنشاء الاستشارة بنجاح!" if lang == "ar" else "Consultation generated successfully!" }}');
             } else {
@@ -447,6 +453,31 @@ document.addEventListener('DOMContentLoaded', function() {
         form.classList.remove('d-none');
         resultSection.classList.add('d-none');
     });
+    
+    // دالة إضافة أزرار التصدير
+    function addExportButtons(projectId) {
+        const resultActions = document.getElementById('resultActions');
+        if (!resultActions) return;
+        
+        // تحقق من عدم إضافة الأزرار مرتين
+        if (resultActions.querySelector('.export-pdf-btn')) return;
+        
+        // زر تصدير PDF
+        const pdfBtn = document.createElement('a');
+        pdfBtn.href = `/services/project/${projectId}/export-pdf`;
+        pdfBtn.className = 'btn btn-outline-danger export-pdf-btn';
+        pdfBtn.innerHTML = '<i class="fas fa-file-pdf me-1"></i> {{ "تصدير PDF" if lang == "ar" else "Export PDF" }}';
+        
+        // زر تصدير Excel
+        const excelBtn = document.createElement('a');
+        excelBtn.href = `/services/project/${projectId}/export-excel`;
+        excelBtn.className = 'btn btn-outline-success export-excel-btn';
+        excelBtn.innerHTML = '<i class="fas fa-file-excel me-1"></i> {{ "تصدير Excel" if lang == "ar" else "Export Excel" }}';
+        
+        // إضافة الأزرار
+        resultActions.appendChild(pdfBtn);
+        resultActions.appendChild(excelBtn);
+    }
     
     // دالة معالجة المحتوى لتحسين العرض
     function processOutputContent() {
