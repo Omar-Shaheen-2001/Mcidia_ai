@@ -29,30 +29,49 @@ Admins can customize service offerings with dynamic form fields and personalized
 ### Saved Consultations & Project View System
 All generated consultations are automatically saved as projects. These are accessible from the user dashboard, displaying service metadata and offering one-click access to detailed project views. The project view page displays input data, AI output, and supports printing.
 
-### PDF & Excel Export System
-A comprehensive export system allows users to download their AI consultation results in professional PDF and Excel formats with full bilingual support.
+### Professional PDF & Excel Export System
+A comprehensive export system that generates beautifully formatted PDF and Excel files matching the rich web interface visualization with cards, grids, tables, and stat boxes.
+
+**Architecture:**
+- **Python Markdown Formatter** (`utils/markdown_formatter.py`): Server-side formatter that replicates frontend JavaScript logic
+  - `format_consultation_output()`: Converts Markdown to formatted HTML with visual components
+  - `clean_markdown_for_excel()`: Cleans Markdown syntax for Excel display
+  - `extract_sections_from_markdown()`: Extracts structured sections from AI output
+  - Mirror logic ensures PDF/Excel match web interface exactly
 
 **PDF Export (WeasyPrint):**
 - Route: `/services/project/<project_id>/export-pdf`
 - Technology: WeasyPrint library converts HTML to PDF
-- Template: `templates/exports/project_pdf.html`
+- Template: `templates/exports/project_export.html` (dedicated export template with inline CSS)
 - Features:
-  - Robust Arabic font rendering (Cairo) and English (Poppins)
-  - Full RTL/LTR support based on language
-  - Professional formatting with service-specific color schemes
-  - Basic Markdown rendering (headings, lists, bold, tables)
-  - Responsive layout optimized for A4 printing
+  - **Visual Components**: Cards, info grids, stat boxes, formatted tables
+  - **Dynamic Service Colors**: Headers and accents use service-specific color schemes
+  - **Typography**: Cairo font for Arabic, Poppins for English with proper RTL/LTR
+  - **Professional Layout**: Title banner, structured sections, print-optimized A4 format
+  - **Markdown Processing**: Full support for headings, lists, tables, bold text
+  - **Gradient Styling**: Service-themed gradients for headers, cards, and tables
+- Implementation:
+  - Uses `format_consultation_output()` to transform Markdown into formatted HTML
+  - Renders via dedicated template with inline CSS for WeasyPrint compatibility
+  - Google Fonts loaded via HTTPS for consistent typography
 - Security: JWT authentication with ownership verification
 
 **Excel Export (OpenPyXL):**
 - Route: `/services/project/<project_id>/export-excel`
 - Technology: OpenPyXL library for Excel file generation
 - Features:
-  - Professional formatting with colored headers
-  - RTL support for Arabic content
-  - Three sections: Project Info, Input Data, AI Results
-  - Markdown cleanup for clean text display
-  - Auto-sized columns for readability
+  - **Service-Themed Headers**: Dynamic colors matching service branding
+  - **Structured Sections**: Project info, input data, AI results with clear visual hierarchy
+  - **Professional Styling**: Gradient fills, bold fonts, alternating row colors
+  - **RTL Support**: Proper right-to-left text alignment for Arabic content
+  - **Smart Row Heights**: Auto-adjusted based on content length
+  - **Section Extraction**: AI output parsed into titled sections for clarity
+  - **Markdown Cleanup**: Formatted text without Markdown syntax clutter
+- Implementation:
+  - Uses `extract_sections_from_markdown()` to structure AI output
+  - Uses `clean_markdown_for_excel()` to remove Markdown formatting
+  - 5-column layout (A-E) with merged cells for better readability
+  - Title banner with service color, metadata rows, structured content sections
 - Security: JWT authentication with ownership verification
 
 **UI Integration:**
