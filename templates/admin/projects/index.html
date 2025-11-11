@@ -1,0 +1,191 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'مشاريع المستخدمين' if lang == 'ar' else 'User Projects' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="mb-0">{{ 'مشاريع المستخدمين' if lang == 'ar' else 'User Projects' }}</h2>
+        <p class="text-muted">{{ 'عرض ومراقبة جميع مشاريع المستخدمين' if lang == 'ar' else 'View and monitor all user projects' }}</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(10, 39, 86, 0.1); color: #0A2756;">
+                        <i class="fas fa-folder"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ total_projects }}</div>
+                    <div class="stat-label">{{ 'إجمالي المشاريع' if lang == 'ar' else 'Total Projects' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(255, 193, 7, 0.1); color: #FFC107;">
+                        <i class="fas fa-pen"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ draft_projects }}</div>
+                    <div class="stat-label">{{ 'مسودات' if lang == 'ar' else 'Drafts' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(44, 140, 86, 0.1); color: #2C8C56;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ completed_projects }}</div>
+                    <div class="stat-label">{{ 'مكتملة' if lang == 'ar' else 'Completed' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="table-card p-3">
+            <form method="GET" action="{{ url_for('admin.projects.index') }}" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="user_search" class="form-control" 
+                           placeholder="{{ 'بحث عن مستخدم...' if lang == 'ar' else 'Search user...' }}"
+                           value="{{ current_user_search or '' }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="service" class="form-select">
+                        <option value="">{{ 'جميع الخدمات' if lang == 'ar' else 'All Services' }}</option>
+                        {% for service in services %}
+                        <option value="{{ service.slug }}" {% if current_service_filter == service.slug %}selected{% endif %}>
+                            {{ service.title_ar if lang == 'ar' else service.title_en }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">{{ 'جميع الحالات' if lang == 'ar' else 'All Status' }}</option>
+                        <option value="draft" {% if current_status_filter == 'draft' %}selected{% endif %}>
+                            {{ 'مسودة' if lang == 'ar' else 'Draft' }}
+                        </option>
+                        <option value="completed" {% if current_status_filter == 'completed' %}selected{% endif %}>
+                            {{ 'مكتملة' if lang == 'ar' else 'Completed' }}
+                        </option>
+                        <option value="archived" {% if current_status_filter == 'archived' %}selected{% endif %}>
+                            {{ 'مؤرشفة' if lang == 'ar' else 'Archived' }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                        {{ 'فلترة' if lang == 'ar' else 'Filter' }}
+                    </button>
+                    <a href="{{ url_for('admin.projects.index') }}" class="btn btn-outline-secondary">
+                        {{ 'إعادة تعيين' if lang == 'ar' else 'Reset' }}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Projects Table -->
+<div class="table-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>{{ 'المشروع' if lang == 'ar' else 'Project' }}</th>
+                    <th>{{ 'المستخدم' if lang == 'ar' else 'User' }}</th>
+                    <th>{{ 'الخدمة الرئيسية' if lang == 'ar' else 'Main Service' }}</th>
+                    <th>{{ 'الخدمة الفرعية' if lang == 'ar' else 'Sub-service' }}</th>
+                    <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                    <th>{{ 'تاريخ الإنشاء' if lang == 'ar' else 'Created Date' }}</th>
+                    <th>{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detail in project_details %}
+                <tr>
+                    <td>
+                        <strong>{{ detail.project.title }}</strong>
+                    </td>
+                    <td>
+                        <div>
+                            <strong>{{ detail.user.username }}</strong>
+                            <br><small class="text-muted">{{ detail.user.email }}</small>
+                        </div>
+                    </td>
+                    <td>
+                        {% if detail.service %}
+                        <div class="d-flex align-items-center">
+                            <i class="fas {{ detail.service.icon or 'fa-briefcase' }} {{ 'ms-2' if lang == 'ar' else 'me-2' }}" 
+                               style="color: {{ detail.service.color or '#0A2756' }};"></i>
+                            <span>{{ detail.service.title_ar if lang == 'ar' else detail.service.title_en }}</span>
+                        </div>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if detail.offering %}
+                        <span class="badge bg-info">{{ detail.offering.title_ar if lang == 'ar' else detail.offering.title_en }}</span>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if detail.project.status == 'completed' %}
+                        <span class="badge bg-success">{{ 'مكتمل' if lang == 'ar' else 'Completed' }}</span>
+                        {% elif detail.project.status == 'draft' %}
+                        <span class="badge bg-warning">{{ 'مسودة' if lang == 'ar' else 'Draft' }}</span>
+                        {% elif detail.project.status == 'archived' %}
+                        <span class="badge bg-secondary">{{ 'مؤرشف' if lang == 'ar' else 'Archived' }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ detail.project.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <small class="text-muted">{{ detail.project.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('services.project_view', project_id=detail.project.id) }}" 
+                           class="btn btn-sm btn-outline-primary" 
+                           title="{{ 'عرض' if lang == 'ar' else 'View' }}">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if not project_details %}
+    <div class="text-center py-5">
+        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+        <p class="text-muted">{{ 'لا توجد مشاريع' if lang == 'ar' else 'No projects found' }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

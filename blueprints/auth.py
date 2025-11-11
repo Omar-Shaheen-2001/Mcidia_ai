@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response, session, current_app
-from flask_jwt_extended import create_access_token, set_access_cookies, unset_jwt_cookies, get_csrf_token
+from flask_jwt_extended import create_access_token, set_access_cookies, unset_jwt_cookies, get_csrf_token, get_jwt_identity, verify_jwt_in_request
 from models import User, Role, SubscriptionPlan
 
 auth_bp = Blueprint('auth', __name__)
@@ -66,9 +66,10 @@ def login():
                 flash('تم تعطيل حسابك من قبل المسؤول. يرجى التواصل مع الدعم الفني / Your account has been deactivated by administrator. Please contact support', 'danger')
                 return redirect(url_for('auth.login'))
             
-            # Update last login time
+            # Update last login time and online status
             from datetime import datetime
             user.last_login = datetime.utcnow()
+            user.is_online = True
             db.session.commit()
             
             # Create access token
@@ -109,6 +110,20 @@ def login():
 
 @auth_bp.route('/logout')
 def logout():
+    # Update user's online status
+    try:
+        verify_jwt_in_request(optional=True)
+        user_id = get_jwt_identity()
+        if user_id:
+            db = current_app.extensions['sqlalchemy']
+            user = db.session.query(User).get(int(user_id))
+            if user:
+                user.is_online = False
+                db.session.commit()
+    except Exception as e:
+        # Log error but don't fail logout
+        print(f"Error updating online status on logout: {e}")
+    
     response = make_response(redirect(url_for('main.index')))
     unset_jwt_cookies(response)
     flash('تم تسجيل الخروج بنجاح / Logged out successfully', 'info')

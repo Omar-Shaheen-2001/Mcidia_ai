@@ -54,6 +54,7 @@ class User(db.Model):
     phone = db.Column(db.String(20))
     company_name = db.Column(db.String(200))
     is_active = db.Column(db.Boolean, default=True)
+    is_online = db.Column(db.Boolean, default=False)
     last_login = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -105,6 +106,8 @@ class User(db.Model):
             'subscription_plan': self.subscription_plan,
             'subscription_status': self.subscription_status,
             'ai_credits_used': self.ai_credits_used,
+            'is_online': self.is_online,
+            'last_login': self.last_login.isoformat() if self.last_login else None,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 

@@ -22,6 +22,7 @@ from .notifications_admin import notifications_admin_bp
 from .settings import settings_bp
 from .logs import logs_bp
 from .support import support_bp
+from .projects import projects_bp
 
 # Register sub-blueprints
 admin_bp.register_blueprint(dashboard_bp)
@@ -37,3 +38,4 @@ admin_bp.register_blueprint(notifications_admin_bp)
 admin_bp.register_blueprint(settings_bp)
 admin_bp.register_blueprint(logs_bp)
 admin_bp.register_blueprint(support_bp)
+admin_bp.register_blueprint(projects_bp)

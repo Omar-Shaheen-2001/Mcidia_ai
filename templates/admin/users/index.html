@@ -82,6 +82,7 @@
                     <th>{{ 'الدور' if lang == 'ar' else 'Role' }}</th>
                     <th>{{ 'الخطة' if lang == 'ar' else 'Plan' }}</th>
                     <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                    <th>{{ 'الاتصال' if lang == 'ar' else 'Connection' }}</th>
                     <th>{{ 'تاريخ التسجيل' if lang == 'ar' else 'Join Date' }}</th>
                     <th>{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</th>
                 </tr>
@@ -108,6 +109,24 @@
                         <span class="badge bg-success">{{ 'نشط' if lang == 'ar' else 'Active' }}</span>
                         {% else %}
                         <span class="badge bg-secondary">{{ 'غير نشط' if lang == 'ar' else 'Inactive' }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.is_online %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-circle fa-xs {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {{ 'متصل الآن' if lang == 'ar' else 'Online' }}
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-circle fa-xs {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {{ 'غير متصل' if lang == 'ar' else 'Offline' }}
+                        </span>
+                        {% endif %}
+                        {% if user.last_login %}
+                        <br><small class="text-muted">
+                            {{ 'آخر دخول:' if lang == 'ar' else 'Last login:' }} {{ user.last_login.strftime('%Y-%m-%d %H:%M') }}
+                        </small>
                         {% endif %}
                     </td>
                     <td><small class="text-muted">{{ user.created_at.strftime('%Y-%m-%d') }}</small></td>
