@@ -263,12 +263,27 @@ def api_generate_content(service_slug, offering_slug):
 
 {"معلومات إضافية / Additional info: " + form_data.get('additional_context', '') if form_data.get('additional_context') else ''}
 
-يرجى تقديم استشارة شاملة ومفصلة / Please provide comprehensive consultation."""
+يرجى تقديم استشارة شاملة ومفصلة / Please provide comprehensive consultation.
+
+**مهم جداً: قم بتنسيق الرد باستخدام Markdown مع:**
+- استخدم العناوين (#, ##, ###) لتنظيم المحتوى
+- استخدم القوائم غير المرقمة (- ) للنقاط المهمة (3 نقاط على الأقل)
+- استخدم القوائم المرقمة (1. ) للخطوات والمراحل
+- استخدم الجداول (|) لعرض البيانات المنظمة
+- استخدم **النص الغامق** للتأكيد على النقاط الهامة
+- نسق الأرقام والإحصائيات بصيغة: "رقم - وصف" (مثال: "75% - معدل النجاح")"""
     else:
         # Default prompt (fallback)
         system_prompt = f"""أنت مستشار خبير في {service.title_ar if lang == 'ar' else service.title_en}.
 مهمتك تقديم استشارات احترافية وشاملة في مجال {offering.title_ar if lang == 'ar' else offering.title_en}.
-قدم تحليلاً دقيقاً وتوصيات عملية بناءً على المعلومات المقدمة."""
+قدم تحليلاً دقيقاً وتوصيات عملية بناءً على المعلومات المقدمة.
+
+**تعليمات التنسيق:**
+- استخدم تنسيق Markdown للرد
+- استخدم العناوين (#, ##, ###) لتنظيم المحتوى
+- استخدم القوائم للنقاط المهمة
+- استخدم الجداول لعرض البيانات المنظمة
+- نسق الأرقام والإحصائيات بوضوح"""
         
         user_message = f"""المشروع: {form_data.get('project_name', 'غير محدد')}
 
@@ -277,7 +292,7 @@ def api_generate_content(service_slug, offering_slug):
 
 {f"معلومات إضافية: {form_data.get('additional_context', '')}" if form_data.get('additional_context') else ''}
 
-يرجى تقديم استشارة شاملة ومفصلة."""
+يرجى تقديم استشارة شاملة ومفصلة منسقة بـ Markdown."""
     
     try:
         # Use HuggingFace AI via AIManager (same as Strategic Planning)
