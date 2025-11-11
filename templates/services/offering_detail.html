@@ -432,5 +432,315 @@ document.addEventListener('DOMContentLoaded', function() {
 .sidebar-overlay.show {
     display: block;
 }
+
+/* ===== تنسيقات محتوى الاستشارة الذكية ===== */
+.ai-output-content {
+    font-size: 1.05rem;
+    line-height: 2.0;
+    color: var(--color-text);
+}
+
+.ai-output-content p {
+    margin-bottom: 1.5rem;
+}
+
+/* تنسيق القوائم */
+.ai-output-content ul,
+.ai-output-content ol {
+    margin-bottom: 1.5rem;
+}
+
+[dir="rtl"] .ai-output-content ul,
+[dir="rtl"] .ai-output-content ol {
+    padding-right: 2rem;
+    padding-left: 0;
+}
+
+[dir="ltr"] .ai-output-content ul,
+[dir="ltr"] .ai-output-content ol {
+    padding-left: 2rem;
+    padding-right: 0;
+}
+
+.ai-output-content li {
+    margin-bottom: 0.8rem;
+    line-height: 1.8;
+}
+
+/* تنسيق العناوين داخل المحتوى */
+.ai-output-content h1,
+.ai-output-content h2,
+.ai-output-content h3,
+.ai-output-content h4 {
+    color: var(--color-primary);
+    font-weight: 700;
+    margin-top: 2rem;
+    margin-bottom: 1.2rem;
+}
+
+.ai-output-content h1 {
+    font-size: 1.8rem;
+    border-bottom: 2px solid var(--color-primary);
+    padding-bottom: 0.5rem;
+}
+
+.ai-output-content h2 {
+    font-size: 1.5rem;
+}
+
+[dir="rtl"] .ai-output-content h2 {
+    border-right: 4px solid var(--color-primary);
+    padding-right: 1rem;
+}
+
+[dir="ltr"] .ai-output-content h2 {
+    border-left: 4px solid var(--color-primary);
+    padding-left: 1rem;
+}
+
+.ai-output-content h3 {
+    font-size: 1.3rem;
+}
+
+.ai-output-content h4 {
+    font-size: 1.1rem;
+}
+
+/* تنسيق الأكواد */
+.ai-output-content code {
+    background-color: var(--color-bg-subtle);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.ai-output-content pre {
+    background-color: var(--color-bg-subtle);
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+}
+
+.ai-output-content pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+/* تنسيق الجداول */
+.ai-output-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.ai-output-content table th,
+.ai-output-content table td {
+    border: 1px solid #dee2e6;
+    padding: 0.75rem;
+}
+
+[dir="rtl"] .ai-output-content table th,
+[dir="rtl"] .ai-output-content table td {
+    text-align: right;
+}
+
+[dir="ltr"] .ai-output-content table th,
+[dir="ltr"] .ai-output-content table td {
+    text-align: left;
+}
+
+.ai-output-content table thead {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+}
+
+.ai-output-content table th {
+    background: transparent;
+    color: white;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    padding: 1rem 0.75rem;
+}
+
+.ai-output-content table td {
+    padding: 1rem 0.75rem;
+}
+
+.ai-output-content table tbody tr {
+    transition: background-color 0.2s;
+}
+
+.ai-output-content table tbody tr:nth-child(even) {
+    background-color: rgba(0,0,0,0.02);
+}
+
+.ai-output-content table tbody tr:hover {
+    background-color: rgba(var(--color-primary-rgb), 0.05);
+}
+
+/* تنسيق الاقتباسات */
+.ai-output-content blockquote {
+    margin-bottom: 1.5rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+[dir="rtl"] .ai-output-content blockquote {
+    border-right: 4px solid var(--color-primary);
+    padding-right: 1.5rem;
+    margin-right: 0;
+}
+
+[dir="ltr"] .ai-output-content blockquote {
+    border-left: 4px solid var(--color-primary);
+    padding-left: 1.5rem;
+    margin-left: 0;
+}
+
+/* تنسيق الخطوط المهمة */
+.ai-output-content strong,
+.ai-output-content b {
+    color: var(--color-text);
+    font-weight: 700;
+}
+
+.ai-output-content em,
+.ai-output-content i {
+    font-style: italic;
+}
+
+/* تنسيق الروابط */
+.ai-output-content a {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.ai-output-content a:hover {
+    color: var(--color-primary-dark);
+}
+
+/* فواصل أفقية */
+.ai-output-content hr {
+    border: none;
+    border-top: 2px solid var(--color-border);
+    margin: 2rem 0;
+}
+
+/* Info Grid */
+.ai-output-content .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.ai-output-content .info-grid-item {
+    background: white;
+    border: 1px solid var(--color-border);
+    padding: 1.2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ai-output-content .info-grid-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.ai-output-content .info-grid-item strong {
+    display: block;
+    color: var(--color-primary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ai-output-content .info-grid-item p {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Card Lists */
+.ai-output-content .card-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+    list-style: none;
+    padding: 0;
+}
+
+.ai-output-content .card-list li {
+    background: white;
+    border: 1px solid var(--color-border);
+    border-right: 4px solid var(--color-primary);
+    padding: 1.2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.ai-output-content .card-list li:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    border-right-color: var(--color-primary-dark);
+}
+
+.ai-output-content .card-list li::before {
+    content: '✓';
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
+    margin-left: 0.5rem;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+/* Stat Boxes */
+.ai-output-content .stat-box {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    margin: 1rem 0;
+}
+
+.ai-output-content .stat-box .stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.ai-output-content .stat-box .stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
 </style>
+
+<!-- Marked.js Library for Markdown Parsing -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<!-- DOMPurify for XSS Protection -->
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
 {% endblock %}
