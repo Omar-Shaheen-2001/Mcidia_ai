@@ -245,7 +245,11 @@ function removeField(fieldId) {
         const message = document.createElement('div');
         message.className = 'alert alert-info';
         message.id = 'noFieldsMessage';
-        message.innerHTML = '<i class="fas fa-info-circle {{ "ms-1" if lang == "ar" else "me-1" }}"></i> {{ "لم يتم إضافة حقول بعد. اضغط \\"إضافة حقل\\" لتخصيص الحقول." if lang == "ar" else "No fields added yet. Click \\"Add Field\\" to customize fields." }}';
+        {% if lang == 'ar' %}
+        message.innerHTML = '<i class="fas fa-info-circle ms-1"></i> لم يتم إضافة حقول بعد. اضغط "إضافة حقل" لتخصيص الحقول.';
+        {% else %}
+        message.innerHTML = '<i class="fas fa-info-circle me-1"></i> No fields added yet. Click "Add Field" to customize fields.';
+        {% endif %}
         document.getElementById('fieldsContainer').appendChild(message);
     }
     
