@@ -58,3 +58,69 @@ AI-powered KPI generation automatically creates 3-5 KPIs per strategic objective
 -   **FontAwesome 6**: Icon library.
 -   **Google Fonts**: Cairo and Poppins.
 -   **Chart.js**: For interactive data visualization.
+-   **Marked.js**: Markdown to HTML conversion for AI consultation output.
+-   **DOMPurify**: HTML sanitization library for XSS protection.
+
+## Recent Enhancements (November 2025)
+
+### Enhanced AI Consultation Display
+A comprehensive visualization system transforms AI consultation outputs from plain text into professionally formatted displays with cards, grids, tables, and stat boxes.
+
+**Implementation Details:**
+
+1. **Markdown Processing** (`templates/services/project_view.html`):
+   - **Marked.js (v4.x)**: Converts AI output from Markdown to HTML
+   - **DOMPurify (v3.0.6)**: Sanitizes generated HTML to prevent XSS attacks
+   - Whitelist-based security: Only allows safe HTML tags (headings, lists, tables, emphasis)
+   - No event handlers or data attributes permitted
+
+2. **Dynamic Content Transformation** (JavaScript):
+   - **Card Lists**: Converts bullet lists (3+ items) into interactive card grids
+   - **Info Grids**: Transforms key-value pairs into responsive grid layouts
+   - **Stat Boxes**: Identifies numeric patterns (e.g., "75% - Success Rate") and renders them as highlighted statistics
+   - **Table Enhancement**: Wraps tables in responsive containers for mobile compatibility
+
+3. **Visual Styling** (CSS):
+   - **Cards**: Gradient backgrounds, colored borders, hover elevation effects
+   - **Tables**: Gradient headers (primary color), alternating row colors, hover highlighting
+   - **Stat Boxes**: Purple gradient backgrounds, large numbers, descriptive labels
+   - **Grid Items**: White backgrounds, subtle shadows, hover animations
+   - **Typography**: Enhanced line-height (2.0), larger font size (1.05rem), hierarchical headings
+
+4. **AI Prompt Enhancement** (`blueprints/services_bp.py`):
+   - Markdown instructions appended to all system prompts (custom + default)
+   - Requests structured output with:
+     - Headings (#, ##, ###) for content organization
+     - Unordered lists (3+ items) for key points
+     - Numbered lists for steps/phases
+     - Tables for structured data
+     - **Bold text** for emphasis
+     - Formatted statistics (e.g., "number - description")
+
+5. **Security Measures**:
+   - **XSS Prevention**: DOMPurify sanitizes all AI output before DOM injection
+   - **Allowed Tags**: Limited to semantic HTML (h1-h6, p, lists, tables, emphasis, links)
+   - **Allowed Attributes**: Only href, target, class, id
+   - **No Scripts**: Event handlers and inline scripts blocked
+   - **Fallback Safety**: Even plain text rendering routes through sanitizer
+
+6. **RTL/LTR Support**:
+   - Directional CSS rules for Arabic (RTL) and English (LTR)
+   - Proper padding/margins for lists, blockquotes, tables
+   - Adaptive text alignment based on language
+
+**Benefits:**
+- **Professional Presentation**: Consultations appear polished and easy to digest
+- **Improved Readability**: Visual hierarchy through cards, grids, and color coding
+- **User Engagement**: Interactive elements with hover effects and animations
+- **Mobile Responsive**: All components adapt to smaller screens
+- **Secure**: XSS protection ensures safe rendering of AI-generated content
+- **Print-Ready**: Optimized CSS for printing consultation reports
+
+**User Flow:**
+1. AI generates consultation in Markdown format
+2. JavaScript parses Markdown → HTML via Marked.js
+3. DOMPurify sanitizes HTML (XSS protection)
+4. JavaScript identifies patterns (lists, stats, grids)
+5. Transforms patterns into visual components
+6. Renders final formatted consultation with cards/tables/grids
