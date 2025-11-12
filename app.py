@@ -153,6 +153,22 @@ def create_app():
     with app.app_context():
         db.create_all()
         seed_database()
+        
+        # Auto-setup database if empty (for production deployment)
+        from models import User, Service
+        user_count = db.session.query(User).count()
+        service_count = db.session.query(Service).count()
+        
+        if user_count == 0 or service_count == 0:
+            print("\n" + "=" * 60)
+            print("🚀 First time setup detected - initializing database...")
+            print("=" * 60)
+            try:
+                from setup_database import run_initial_setup
+                run_initial_setup(db)
+            except Exception as e:
+                print(f"⚠️ Auto-setup failed: {e}")
+                print("Please run: python setup_database.py")
     
     return app
 

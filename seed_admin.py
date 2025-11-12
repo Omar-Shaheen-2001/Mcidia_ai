@@ -24,10 +24,10 @@ def seed_admin():
             print("✅ Password updated to: admin123")
             return
         
-        # Get admin role
-        admin_role = db.session.query(Role).filter_by(name='admin').first()
+        # Get system_admin role
+        admin_role = db.session.query(Role).filter_by(name='system_admin').first()
         if not admin_role:
-            print("❌ Admin role not found. Please run seed_database first.")
+            print("❌ System admin role not found. Please run seed_database first.")
             return
         
         # Get free plan
@@ -36,15 +36,16 @@ def seed_admin():
             print("❌ Free plan not found. Please run seed_database first.")
             return
         
-        # Create admin user with unique username
+        # Create admin user with unique username and role field
         admin_user = User(
-            username='testadmin',
+            username='Admin',
             email='admin@example.com',
-            company_name='Mcidia Admin',
-            role_id=admin_role.id,
+            company_name='Mcidia Platform',
+            role='system_admin',
             subscription_plan_id=free_plan.id,
             subscription_status='active',
-            ai_credits_used=0
+            ai_credits_used=0,
+            is_online=False
         )
         admin_user.set_password('admin123')
         
