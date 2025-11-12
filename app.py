@@ -151,24 +151,48 @@ def create_app():
     
     # Create tables and seed default data
     with app.app_context():
+        # Step 1: Create all database tables
+        print("\n📋 Creating database tables...")
         db.create_all()
-        seed_database()
+        print("✅ Database tables created")
         
-        # Auto-setup database if empty (for production deployment)
+        # Step 2: Seed basic data (roles and subscription plans)
+        print("\n📋 Seeding roles and subscription plans...")
+        seed_database()
+        print("✅ Basic data seeded")
+        
+        # Step 3: Auto-initialize production database if empty
         from models import User, Service
         user_count = db.session.query(User).count()
         service_count = db.session.query(Service).count()
         
+        print(f"\n📊 Database Status: {user_count} users, {service_count} services")
+        
         if user_count == 0 or service_count == 0:
-            print("\n" + "=" * 60)
-            print("🚀 First time setup detected - initializing database...")
-            print("=" * 60)
+            print("\n" + "=" * 70)
+            print("🔍 FIRST TIME DEPLOYMENT DETECTED!")
+            print("   Initializing production database...")
+            print("=" * 70)
+            
             try:
-                from setup_database import run_initial_setup
-                run_initial_setup(db)
+                from init_production_db import initialize_production_database
+                success = initialize_production_database()
+                
+                if not success:
+                    print("\n⚠️  WARNING: Automatic initialization failed!")
+                    print("   Please run manually: python init_production_db.py")
+                    print("=" * 70)
+                    
             except Exception as e:
-                print(f"⚠️ Auto-setup failed: {e}")
-                print("Please run: python setup_database.py")
+                print(f"\n❌ ERROR: Auto-initialization failed: {e}")
+                print("\n📝 MANUAL SETUP REQUIRED:")
+                print("   Run: python init_production_db.py")
+                print("=" * 70)
+                import traceback
+                traceback.print_exc()
+        else:
+            print("✅ Database already initialized")
+            print(f"   Users: {user_count}, Services: {service_count}")
     
     return app
 
