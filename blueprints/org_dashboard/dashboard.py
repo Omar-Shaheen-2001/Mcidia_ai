@@ -32,7 +32,7 @@ def index():
         is_active=True
     ).first()
     
-    if membership and membership.org_role in ['owner', 'admin']:
+    if membership and membership.membership_role in ['owner', 'admin']:
         # Redirect to organization dashboard
         return redirect(url_for('org_dashboard.dashboard', org_id=membership.organization_id))
     else:

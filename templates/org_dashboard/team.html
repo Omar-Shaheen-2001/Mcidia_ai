@@ -35,8 +35,8 @@
                         <td>{{ member.username }}</td>
                         <td>{{ member.email }}</td>
                         <td>
-                            <span class="badge {% if member_membership.org_role == 'owner' %}bg-primary{% elif member_membership.org_role == 'admin' %}bg-success{% else %}bg-secondary{% endif %}">
-                                {{ member_membership.org_role|upper if member_membership else 'MEMBER' }}
+                            <span class="badge {% if member_membership.membership_role == 'owner' %}bg-primary{% elif member_membership.membership_role == 'admin' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ member_membership.membership_role|upper if member_membership else 'MEMBER' }}
                             </span>
                         </td>
                         <td>
@@ -45,7 +45,7 @@
                             </span>
                         </td>
                         <td>
-                            {% if membership.org_role == 'owner' and member_membership.org_role != 'owner' %}
+                            {% if membership.membership_role == 'owner' and member_membership.membership_role != 'owner' %}
                             <button class="btn btn-sm btn-outline-primary">
                                 <i class="fas fa-edit"></i>
                             </button>
