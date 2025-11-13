@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'تعديل بيانات موظف' if lang == 'ar' else 'Edit Employee' }} - Mcidia{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2>
+                <i class="fas fa-user-edit me-2"></i>
+                {{ 'تعديل بيانات موظف' if lang == 'ar' else 'Edit Employee' }}
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('hr_module.edit_employee', employee_id=employee.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'الاسم الكامل' if lang == 'ar' else 'Full Name' }} *</label>
+                                <input type="text" class="form-control" name="full_name" value="{{ employee.full_name }}" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'رقم الهوية' if lang == 'ar' else 'National ID' }}</label>
+                                <input type="text" class="form-control" name="national_id" value="{{ employee.national_id or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</label>
+                                <input type="email" class="form-control" name="email" value="{{ employee.email or '' }}">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'رقم الجوال' if lang == 'ar' else 'Phone' }}</label>
+                                <input type="tel" class="form-control" name="phone" value="{{ employee.phone or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ 'القسم' if lang == 'ar' else 'Department' }} *</label>
+                                <select class="form-select" name="department" required>
+                                    {% for dept in departments %}
+                                    <option value="{{ dept }}" {% if employee.department == dept %}selected{% endif %}>{{ dept }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ 'المسمى الوظيفي' if lang == 'ar' else 'Job Title' }} *</label>
+                                <input type="text" class="form-control" name="job_title" value="{{ employee.job_title }}" required>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ 'تاريخ التعيين' if lang == 'ar' else 'Hire Date' }} *</label>
+                                <input type="date" class="form-control" name="hire_date" value="{{ employee.hire_date.strftime('%Y-%m-%d') if employee.hire_date else '' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ 'نوع العقد' if lang == 'ar' else 'Contract Type' }} *</label>
+                                <select class="form-select" name="contract_type" required>
+                                    <option value="permanent" {% if employee.contract_type == 'permanent' %}selected{% endif %}>{{ 'دائم' if lang == 'ar' else 'Permanent' }}</option>
+                                    <option value="temporary" {% if employee.contract_type == 'temporary' %}selected{% endif %}>{{ 'مؤقت' if lang == 'ar' else 'Temporary' }}</option>
+                                    <option value="part_time" {% if employee.contract_type == 'part_time' %}selected{% endif %}>{{ 'جزئي' if lang == 'ar' else 'Part Time' }}</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ 'الراتب الأساسي' if lang == 'ar' else 'Base Salary' }} *</label>
+                                <input type="number" class="form-control" name="base_salary" step="0.01" value="{{ employee.base_salary }}" required>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ 'الحالة' if lang == 'ar' else 'Status' }}</label>
+                                <select class="form-select" name="status">
+                                    <option value="active" {% if employee.status == 'active' %}selected{% endif %}>{{ 'نشط' if lang == 'ar' else 'Active' }}</option>
+                                    <option value="on_leave" {% if employee.status == 'on_leave' %}selected{% endif %}>{{ 'إجازة' if lang == 'ar' else 'On Leave' }}</option>
+                                    <option value="terminated" {% if employee.status == 'terminated' %}selected{% endif %}>{{ 'موقوف' if lang == 'ar' else 'Terminated' }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">{{ 'العنوان' if lang == 'ar' else 'Address' }}</label>
+                                <textarea class="form-control" name="address" rows="2">{{ employee.address or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'جهة الاتصال في حالة الطوارئ' if lang == 'ar' else 'Emergency Contact' }}</label>
+                                <input type="text" class="form-control" name="emergency_contact" value="{{ employee.emergency_contact or '' }}">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'ملاحظات' if lang == 'ar' else 'Notes' }}</label>
+                                <textarea class="form-control" name="notes" rows="2">{{ employee.notes or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-2"></i>
+                                    {{ 'حفظ التغييرات' if lang == 'ar' else 'Save Changes' }}
+                                </button>
+                                <a href="{{ url_for('hr_module.view_employee', employee_id=employee.id) }}" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times me-2"></i>
+                                    {{ 'إلغاء' if lang == 'ar' else 'Cancel' }}
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -165,6 +165,51 @@ def add_employee():
     
     if request.method == 'POST':
         try:
+            # Validate required fields
+            full_name = request.form.get('full_name', '').strip()
+            if not full_name:
+                flash('الاسم الكامل مطلوب / Full name is required', 'error')
+                return redirect(url_for('hr_module.add_employee'))
+            
+            # Validate department
+            valid_departments = ['HR', 'Finance', 'Operations', 'IT', 'Sales', 'Marketing', 'Admin']
+            department = request.form.get('department')
+            if not department or department not in valid_departments:
+                flash('القسم غير صالح / Invalid department', 'error')
+                return redirect(url_for('hr_module.add_employee'))
+            
+            job_title = request.form.get('job_title', '').strip()
+            if not job_title:
+                flash('المسمى الوظيفي مطلوب / Job title is required', 'error')
+                return redirect(url_for('hr_module.add_employee'))
+            
+            # Validate and parse hire_date
+            hire_date_str = request.form.get('hire_date', '').strip()
+            if not hire_date_str:
+                flash('تاريخ التعيين مطلوب / Hire date is required', 'error')
+                return redirect(url_for('hr_module.add_employee'))
+            
+            try:
+                hire_date = datetime.strptime(hire_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash('تاريخ التعيين غير صالح / Invalid hire date', 'error')
+                return redirect(url_for('hr_module.add_employee'))
+            
+            # Validate and parse base_salary
+            salary_str = request.form.get('base_salary', '').strip()
+            if not salary_str:
+                flash('الراتب الأساسي مطلوب / Base salary is required', 'error')
+                return redirect(url_for('hr_module.add_employee'))
+            
+            try:
+                base_salary = float(salary_str)
+                if base_salary < 0:
+                    flash('الراتب يجب أن يكون موجباً / Salary must be positive', 'error')
+                    return redirect(url_for('hr_module.add_employee'))
+            except ValueError:
+                flash('الراتب غير صالح / Invalid salary', 'error')
+                return redirect(url_for('hr_module.add_employee'))
+            
             # Generate unique employee number
             last_employee = db.session.query(HREmployee).filter_by(
                 organization_id=org_id
@@ -176,23 +221,23 @@ def add_employee():
             else:
                 new_num = "EMP-0001"
             
-            # Create new employee
+            # Create new employee with validated data
             new_employee = HREmployee(
                 organization_id=org_id,
                 employee_number=new_num,
-                full_name=request.form.get('full_name'),
-                national_id=request.form.get('national_id'),
-                email=request.form.get('email'),
-                phone=request.form.get('phone'),
-                department=request.form.get('department'),
-                job_title=request.form.get('job_title'),
-                hire_date=datetime.strptime(request.form.get('hire_date'), '%Y-%m-%d').date(),
+                full_name=full_name,
+                national_id=request.form.get('national_id', '').strip(),
+                email=request.form.get('email', '').strip(),
+                phone=request.form.get('phone', '').strip(),
+                department=department,
+                job_title=job_title,
+                hire_date=hire_date,
                 contract_type=request.form.get('contract_type', 'permanent'),
-                base_salary=float(request.form.get('base_salary', 0)),
+                base_salary=base_salary,
                 status=request.form.get('status', 'active'),
-                address=request.form.get('address'),
-                emergency_contact=request.form.get('emergency_contact'),
-                notes=request.form.get('notes')
+                address=request.form.get('address', '').strip(),
+                emergency_contact=request.form.get('emergency_contact', '').strip(),
+                notes=request.form.get('notes', '').strip()
             )
             
             db.session.add(new_employee)
@@ -212,3 +257,197 @@ def add_employee():
                          departments=departments,
                          lang=lang,
                          current_user=user)
+
+
+@hr_module_bp.route('/employees/<int:employee_id>')
+@jwt_required(locations=['cookies'])
+def view_employee(employee_id):
+    """View employee details"""
+    db = current_app.extensions['sqlalchemy']
+    user_id = int(get_jwt_identity())
+    user = db.session.get(User, user_id)
+    lang = session.get('language', 'ar')
+    
+    org_id = user.organization_id
+    if not org_id:
+        flash('لم يتم العثور على المؤسسة / Organization not found', 'error')
+        return redirect(url_for('dashboard.index'))
+    
+    # Get employee - ensure it belongs to user's organization
+    employee = db.session.query(HREmployee).filter_by(
+        id=employee_id,
+        organization_id=org_id
+    ).first()
+    
+    if not employee:
+        flash('لم يتم العثور على الموظف / Employee not found', 'error')
+        return redirect(url_for('hr_module.employees_list'))
+    
+    # Get employee's contracts - MUST filter by organization_id for security
+    contracts = db.session.query(HRContract).filter_by(
+        employee_id=employee_id,
+        organization_id=org_id
+    ).order_by(HRContract.start_date.desc()).all()
+    
+    # Get employee's recent attendance - MUST filter by organization_id for security
+    recent_attendance = db.session.query(HRAttendance).filter_by(
+        employee_id=employee_id,
+        organization_id=org_id
+    ).order_by(HRAttendance.date.desc()).limit(10).all()
+    
+    # Get employee's leaves - MUST filter by organization_id for security
+    leaves = db.session.query(HRLeave).filter_by(
+        employee_id=employee_id,
+        organization_id=org_id
+    ).order_by(HRLeave.start_date.desc()).all()
+    
+    return render_template('hr_module/view_employee.html',
+                         employee=employee,
+                         contracts=contracts,
+                         recent_attendance=recent_attendance,
+                         leaves=leaves,
+                         lang=lang,
+                         current_user=user)
+
+
+@hr_module_bp.route('/employees/<int:employee_id>/edit', methods=['GET', 'POST'])
+@jwt_required(locations=['cookies'])
+def edit_employee(employee_id):
+    """Edit employee details"""
+    db = current_app.extensions['sqlalchemy']
+    user_id = int(get_jwt_identity())
+    user = db.session.get(User, user_id)
+    lang = session.get('language', 'ar')
+    
+    org_id = user.organization_id
+    if not org_id:
+        flash('لم يتم العثور على المؤسسة / Organization not found', 'error')
+        return redirect(url_for('dashboard.index'))
+    
+    # Get employee - ensure it belongs to user's organization
+    employee = db.session.query(HREmployee).filter_by(
+        id=employee_id,
+        organization_id=org_id
+    ).first()
+    
+    if not employee:
+        flash('لم يتم العثور على الموظف / Employee not found', 'error')
+        return redirect(url_for('hr_module.employees_list'))
+    
+    if request.method == 'POST':
+        try:
+            # Validate required fields
+            full_name = request.form.get('full_name', '').strip()
+            if not full_name:
+                flash('الاسم الكامل مطلوب / Full name is required', 'error')
+                return redirect(url_for('hr_module.edit_employee', employee_id=employee.id))
+            
+            # Validate department
+            valid_departments = ['HR', 'Finance', 'Operations', 'IT', 'Sales', 'Marketing', 'Admin']
+            department = request.form.get('department')
+            if department not in valid_departments:
+                flash('القسم غير صالح / Invalid department', 'error')
+                return redirect(url_for('hr_module.edit_employee', employee_id=employee.id))
+            
+            # Validate job_title
+            job_title = request.form.get('job_title', '').strip()
+            if not job_title:
+                flash('المسمى الوظيفي مطلوب / Job title is required', 'error')
+                return redirect(url_for('hr_module.edit_employee', employee_id=employee.id))
+            
+            # Validate and parse hire_date
+            hire_date_str = request.form.get('hire_date', '').strip()
+            if not hire_date_str:
+                flash('تاريخ التعيين مطلوب / Hire date is required', 'error')
+                return redirect(url_for('hr_module.edit_employee', employee_id=employee.id))
+            
+            try:
+                hire_date = datetime.strptime(hire_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash('تاريخ التعيين غير صالح / Invalid hire date', 'error')
+                return redirect(url_for('hr_module.edit_employee', employee_id=employee.id))
+            
+            # Validate and parse base_salary
+            salary_str = request.form.get('base_salary', '').strip()
+            if not salary_str:
+                flash('الراتب الأساسي مطلوب / Base salary is required', 'error')
+                return redirect(url_for('hr_module.edit_employee', employee_id=employee.id))
+            
+            try:
+                base_salary = float(salary_str)
+                if base_salary < 0:
+                    flash('الراتب يجب أن يكون موجباً / Salary must be positive', 'error')
+                    return redirect(url_for('hr_module.edit_employee', employee_id=employee.id))
+            except ValueError:
+                flash('الراتب غير صالح / Invalid salary', 'error')
+                return redirect(url_for('hr_module.edit_employee', employee_id=employee.id))
+            
+            # Update employee data with validated values
+            employee.full_name = full_name
+            employee.national_id = request.form.get('national_id', '').strip()
+            employee.email = request.form.get('email', '').strip()
+            employee.phone = request.form.get('phone', '').strip()
+            employee.department = department
+            employee.job_title = job_title
+            employee.hire_date = hire_date
+            employee.contract_type = request.form.get('contract_type', 'permanent')
+            employee.base_salary = base_salary
+            employee.status = request.form.get('status', 'active')
+            employee.address = request.form.get('address', '').strip()
+            employee.emergency_contact = request.form.get('emergency_contact', '').strip()
+            employee.notes = request.form.get('notes', '').strip()
+            employee.updated_at = datetime.utcnow()
+            
+            db.session.commit()
+            
+            flash(f'✅ تم تحديث بيانات الموظف {employee.full_name} بنجاح / Employee updated successfully', 'success')
+            return redirect(url_for('hr_module.view_employee', employee_id=employee.id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'حدث خطأ: {str(e)} / Error: {str(e)}', 'error')
+            return redirect(url_for('hr_module.edit_employee', employee_id=employee.id))
+    
+    # GET - Show form
+    departments = ['HR', 'Finance', 'Operations', 'IT', 'Sales', 'Marketing', 'Admin']
+    return render_template('hr_module/edit_employee.html',
+                         employee=employee,
+                         departments=departments,
+                         lang=lang,
+                         current_user=user)
+
+
+@hr_module_bp.route('/employees/<int:employee_id>/delete', methods=['POST'])
+@jwt_required(locations=['cookies'])
+def delete_employee(employee_id):
+    """Delete employee"""
+    db = current_app.extensions['sqlalchemy']
+    user_id = int(get_jwt_identity())
+    user = db.session.get(User, user_id)
+    
+    org_id = user.organization_id
+    if not org_id:
+        flash('لم يتم العثور على المؤسسة / Organization not found', 'error')
+        return redirect(url_for('dashboard.index'))
+    
+    # Get employee - ensure it belongs to user's organization
+    employee = db.session.query(HREmployee).filter_by(
+        id=employee_id,
+        organization_id=org_id
+    ).first()
+    
+    if not employee:
+        flash('لم يتم العثور على الموظف / Employee not found', 'error')
+        return redirect(url_for('hr_module.employees_list'))
+    
+    try:
+        employee_name = employee.full_name
+        db.session.delete(employee)
+        db.session.commit()
+        
+        flash(f'✅ تم حذف الموظف {employee_name} بنجاح / Employee deleted successfully', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'حدث خطأ: {str(e)} / Error: {str(e)}', 'error')
+    
+    return redirect(url_for('hr_module.employees_list'))

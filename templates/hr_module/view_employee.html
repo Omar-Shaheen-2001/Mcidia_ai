@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}{{ employee.full_name }} - {{ 'تفاصيل الموظف' if lang == 'ar' else 'Employee Details' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    <i class="fas fa-user me-2"></i>
+                    {{ 'تفاصيل الموظف' if lang == 'ar' else 'Employee Details' }}
+                </h2>
+                <div>
+                    <a href="{{ url_for('hr_module.employees_list') }}" class="btn btn-secondary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        {{ 'رجوع' if lang == 'ar' else 'Back' }}
+                    </a>
+                    <a href="{{ url_for('hr_module.edit_employee', employee_id=employee.id) }}" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>
+                        {{ 'تعديل' if lang == 'ar' else 'Edit' }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Info Card -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{{ 'المعلومات الأساسية' if lang == 'ar' else 'Basic Information' }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="avatar-circle bg-primary text-white mx-auto" style="width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
+                            {{ employee.full_name[0] if employee.full_name else 'E' }}
+                        </div>
+                        <h4 class="mt-3">{{ employee.full_name }}</h4>
+                        <p class="text-muted">{{ employee.employee_number }}</p>
+                        <span class="badge bg-{{ 'success' if employee.status == 'active' else 'secondary' }}">
+                            {{ employee.status }}
+                        </span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="info-row mb-2">
+                        <strong>{{ 'القسم' if lang == 'ar' else 'Department' }}:</strong>
+                        <span class="float-end">{{ employee.department }}</span>
+                    </div>
+                    <div class="info-row mb-2">
+                        <strong>{{ 'المسمى الوظيفي' if lang == 'ar' else 'Job Title' }}:</strong>
+                        <span class="float-end">{{ employee.job_title }}</span>
+                    </div>
+                    <div class="info-row mb-2">
+                        <strong>{{ 'تاريخ التعيين' if lang == 'ar' else 'Hire Date' }}:</strong>
+                        <span class="float-end">{{ employee.hire_date.strftime('%Y-%m-%d') if employee.hire_date else '-' }}</span>
+                    </div>
+                    <div class="info-row mb-2">
+                        <strong>{{ 'نوع العقد' if lang == 'ar' else 'Contract Type' }}:</strong>
+                        <span class="float-end">{{ employee.contract_type }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <!-- Contact Information -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">{{ 'معلومات الاتصال' if lang == 'ar' else 'Contact Information' }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <strong><i class="fas fa-id-card me-2"></i>{{ 'رقم الهوية' if lang == 'ar' else 'National ID' }}:</strong>
+                            <p>{{ employee.national_id or '-' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <strong><i class="fas fa-envelope me-2"></i>{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}:</strong>
+                            <p>{{ employee.email or '-' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <strong><i class="fas fa-phone me-2"></i>{{ 'رقم الجوال' if lang == 'ar' else 'Phone' }}:</strong>
+                            <p>{{ employee.phone or '-' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <strong><i class="fas fa-phone-alt me-2"></i>{{ 'الطوارئ' if lang == 'ar' else 'Emergency' }}:</strong>
+                            <p>{{ employee.emergency_contact or '-' }}</p>
+                        </div>
+                        <div class="col-md-12">
+                            <strong><i class="fas fa-map-marker-alt me-2"></i>{{ 'العنوان' if lang == 'ar' else 'Address' }}:</strong>
+                            <p>{{ employee.address or '-' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salary Information -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">{{ 'المعلومات المالية' if lang == 'ar' else 'Financial Information' }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3 class="text-success">{{ "{:,.0f}".format(employee.base_salary) }} {{ 'ريال' if lang == 'ar' else 'SAR' }}</h3>
+                            <p class="text-muted">{{ 'الراتب الأساسي شهرياً' if lang == 'ar' else 'Base Salary (Monthly)' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Tabs -->
+    <div class="row">
+        <div class="col-md-12">
+            <ul class="nav nav-tabs" id="employeeTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="contracts-tab" data-bs-toggle="tab" data-bs-target="#contracts" type="button" role="tab">
+                        <i class="fas fa-file-contract me-2"></i>{{ 'العقود' if lang == 'ar' else 'Contracts' }}
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance" type="button" role="tab">
+                        <i class="fas fa-clock me-2"></i>{{ 'الحضور' if lang == 'ar' else 'Attendance' }}
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="leaves-tab" data-bs-toggle="tab" data-bs-target="#leaves" type="button" role="tab">
+                        <i class="fas fa-umbrella-beach me-2"></i>{{ 'الإجازات' if lang == 'ar' else 'Leaves' }}
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="employeeTabContent">
+                <!-- Contracts Tab -->
+                <div class="tab-pane fade show active p-3" id="contracts" role="tabpanel">
+                    {% if contracts %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{{ 'تاريخ البداية' if lang == 'ar' else 'Start Date' }}</th>
+                                        <th>{{ 'تاريخ النهاية' if lang == 'ar' else 'End Date' }}</th>
+                                        <th>{{ 'نوع العقد' if lang == 'ar' else 'Contract Type' }}</th>
+                                        <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for contract in contracts %}
+                                    <tr>
+                                        <td>{{ contract.start_date.strftime('%Y-%m-%d') if contract.start_date else '-' }}</td>
+                                        <td>{{ contract.end_date.strftime('%Y-%m-%d') if contract.end_date else '{{ "مفتوح" if lang == "ar" else "Open" }}' }}</td>
+                                        <td>{{ contract.contract_type }}</td>
+                                        <td><span class="badge bg-{{ 'success' if contract.status == 'active' else 'secondary' }}">{{ contract.status }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">{{ 'لا توجد عقود' if lang == 'ar' else 'No contracts found' }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Attendance Tab -->
+                <div class="tab-pane fade p-3" id="attendance" role="tabpanel">
+                    {% if recent_attendance %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                                        <th>{{ 'الحضور' if lang == 'ar' else 'Check In' }}</th>
+                                        <th>{{ 'الانصراف' if lang == 'ar' else 'Check Out' }}</th>
+                                        <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for att in recent_attendance %}
+                                    <tr>
+                                        <td>{{ att.date.strftime('%Y-%m-%d') if att.date else '-' }}</td>
+                                        <td>{{ att.check_in.strftime('%H:%M') if att.check_in else '-' }}</td>
+                                        <td>{{ att.check_out.strftime('%H:%M') if att.check_out else '-' }}</td>
+                                        <td><span class="badge bg-{{ 'success' if att.status == 'present' else 'warning' }}">{{ att.status }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">{{ 'لا توجد سجلات حضور' if lang == 'ar' else 'No attendance records' }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Leaves Tab -->
+                <div class="tab-pane fade p-3" id="leaves" role="tabpanel">
+                    {% if leaves %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{{ 'نوع الإجازة' if lang == 'ar' else 'Leave Type' }}</th>
+                                        <th>{{ 'من' if lang == 'ar' else 'From' }}</th>
+                                        <th>{{ 'إلى' if lang == 'ar' else 'To' }}</th>
+                                        <th>{{ 'الأيام' if lang == 'ar' else 'Days' }}</th>
+                                        <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for leave in leaves %}
+                                    <tr>
+                                        <td>{{ leave.leave_type }}</td>
+                                        <td>{{ leave.start_date.strftime('%Y-%m-%d') if leave.start_date else '-' }}</td>
+                                        <td>{{ leave.end_date.strftime('%Y-%m-%d') if leave.end_date else '-' }}</td>
+                                        <td>{{ leave.days_count }}</td>
+                                        <td><span class="badge bg-{{ 'success' if leave.status == 'approved' else 'warning' if leave.status == 'pending' else 'danger' }}">{{ leave.status }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">{{ 'لا توجد إجازات' if lang == 'ar' else 'No leave records' }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes Section -->
+    {% if employee.notes %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{{ 'ملاحظات' if lang == 'ar' else 'Notes' }}</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ employee.notes }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
