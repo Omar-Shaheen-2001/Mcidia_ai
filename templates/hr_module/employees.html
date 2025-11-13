@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'قائمة الموظفين' if lang == 'ar' else 'Employees List' }} - Mcidia{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    <i class="fas fa-users me-2"></i>
+                    {{ 'قائمة الموظفين' if lang == 'ar' else 'Employees List' }}
+                </h2>
+                <div>
+                    <a href="{{ url_for('hr_module.index') }}" class="btn btn-secondary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        {{ 'رجوع' if lang == 'ar' else 'Back' }}
+                    </a>
+                    <a href="{{ url_for('hr_module.add_employee') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        {{ 'إضافة موظف' if lang == 'ar' else 'Add Employee' }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{{ 'رقم الموظف' if lang == 'ar' else 'Employee #' }}</th>
+                                    <th>{{ 'الاسم' if lang == 'ar' else 'Full Name' }}</th>
+                                    <th>{{ 'القسم' if lang == 'ar' else 'Department' }}</th>
+                                    <th>{{ 'المنصب' if lang == 'ar' else 'Job Title' }}</th>
+                                    <th>{{ 'تاريخ التعيين' if lang == 'ar' else 'Hire Date' }}</th>
+                                    <th>{{ 'الراتب' if lang == 'ar' else 'Salary' }}</th>
+                                    <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                                    <th>{{ 'إجراءات' if lang == 'ar' else 'Actions' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if employees %}
+                                    {% for emp in employees %}
+                                    <tr>
+                                        <td><strong>{{ emp.employee_number }}</strong></td>
+                                        <td>{{ emp.full_name }}</td>
+                                        <td>{{ emp.department }}</td>
+                                        <td>{{ emp.job_title }}</td>
+                                        <td>{{ emp.hire_date.strftime('%Y-%m-%d') if emp.hire_date else '-' }}</td>
+                                        <td>{{ "{:,.0f}".format(emp.base_salary) }} {{ 'ريال' if lang == 'ar' else 'SAR' }}</td>
+                                        <td>
+                                            {% if emp.status == 'active' %}
+                                                <span class="badge bg-success">{{ 'نشط' if lang == 'ar' else 'Active' }}</span>
+                                            {% elif emp.status == 'on_leave' %}
+                                                <span class="badge bg-warning">{{ 'إجازة' if lang == 'ar' else 'On Leave' }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ emp.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="#" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="#" class="btn btn-sm btn-warning">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="#" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted py-4">
+                                            <i class="fas fa-users fa-3x mb-3 d-block"></i>
+                                            {{ 'لا يوجد موظفون حالياً' if lang == 'ar' else 'No employees found' }}
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

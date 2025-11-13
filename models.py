@@ -932,3 +932,260 @@ class StrategicInitiative(db.Model):
             'completion_percentage': self.completion_percentage,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+
+# ============================================================================
+# HR Module Models
+# ============================================================================
+
+class HREmployee(db.Model):
+    """HR Employee - جدول الموظفين"""
+    __tablename__ = 'hr_employees'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Linked to system user if exists
+    
+    # Basic Info
+    employee_number = db.Column(db.String(50), unique=True, nullable=False)  # EMP-0001
+    full_name = db.Column(db.String(200), nullable=False)
+    national_id = db.Column(db.String(50))
+    email = db.Column(db.String(120))
+    phone = db.Column(db.String(20))
+    
+    # Employment Details
+    department = db.Column(db.String(100))  # HR, Finance, Operations, etc.
+    job_title = db.Column(db.String(150))
+    hire_date = db.Column(db.Date, nullable=False)
+    contract_type = db.Column(db.String(50), default='permanent')  # permanent, temporary, part_time
+    base_salary = db.Column(db.Float, default=0)
+    status = db.Column(db.String(50), default='active')  # active, on_leave, terminated
+    
+    # Additional Info
+    address = db.Column(db.Text)
+    emergency_contact = db.Column(db.String(200))
+    notes = db.Column(db.Text)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    contracts = db.relationship('HRContract', backref='employee', lazy=True, cascade='all, delete-orphan')
+    attendances = db.relationship('HRAttendance', backref='employee', lazy=True, cascade='all, delete-orphan')
+    leaves = db.relationship('HRLeave', backref='employee', lazy=True, cascade='all, delete-orphan')
+    payrolls = db.relationship('HRPayroll', backref='employee', lazy=True, cascade='all, delete-orphan')
+    rewards = db.relationship('HRReward', backref='employee', lazy=True, cascade='all, delete-orphan')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'employee_number': self.employee_number,
+            'full_name': self.full_name,
+            'department': self.department,
+            'job_title': self.job_title,
+            'status': self.status,
+            'base_salary': self.base_salary,
+            'hire_date': self.hire_date.isoformat() if self.hire_date else None
+        }
+
+
+class HRContract(db.Model):
+    """HR Contracts - جدول العقود"""
+    __tablename__ = 'hr_contracts'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    employee_id = db.Column(db.Integer, db.ForeignKey('hr_employees.id'), nullable=False)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
+    
+    contract_type = db.Column(db.String(50), nullable=False)  # permanent, temporary, part_time
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date)  # NULL for permanent contracts
+    salary = db.Column(db.Float, nullable=False)
+    terms = db.Column(db.Text)  # Contract terms and conditions
+    status = db.Column(db.String(50), default='active')  # active, expired, terminated
+    
+    # Notification flags
+    expiry_notified = db.Column(db.Boolean, default=False)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'contract_type': self.contract_type,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'end_date': self.end_date.isoformat() if self.end_date else None,
+            'salary': self.salary,
+            'status': self.status
+        }
+
+
+class HRAttendance(db.Model):
+    """HR Attendance - جدول الحضور والانصراف"""
+    __tablename__ = 'hr_attendance'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    employee_id = db.Column(db.Integer, db.ForeignKey('hr_employees.id'), nullable=False)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
+    
+    date = db.Column(db.Date, nullable=False)
+    check_in = db.Column(db.Time)
+    check_out = db.Column(db.Time)
+    total_hours = db.Column(db.Float, default=0)  # Calculated automatically
+    status = db.Column(db.String(50), default='present')  # present, absent, late, half_day
+    notes = db.Column(db.Text)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'employee_id': self.employee_id,
+            'date': self.date.isoformat() if self.date else None,
+            'check_in': self.check_in.isoformat() if self.check_in else None,
+            'check_out': self.check_out.isoformat() if self.check_out else None,
+            'total_hours': self.total_hours,
+            'status': self.status
+        }
+
+
+class HRLeave(db.Model):
+    """HR Leaves - جدول الإجازات"""
+    __tablename__ = 'hr_leaves'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    employee_id = db.Column(db.Integer, db.ForeignKey('hr_employees.id'), nullable=False)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
+    
+    leave_type = db.Column(db.String(50), nullable=False)  # annual, sick, emergency, unpaid
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date, nullable=False)
+    days_count = db.Column(db.Integer, default=1)
+    reason = db.Column(db.Text)
+    status = db.Column(db.String(50), default='pending')  # pending, approved, rejected
+    approved_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    approval_date = db.Column(db.DateTime)
+    rejection_reason = db.Column(db.Text)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'employee_id': self.employee_id,
+            'leave_type': self.leave_type,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'end_date': self.end_date.isoformat() if self.end_date else None,
+            'days_count': self.days_count,
+            'status': self.status
+        }
+
+
+class HRPayroll(db.Model):
+    """HR Payroll - جدول الرواتب"""
+    __tablename__ = 'hr_payroll'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    employee_id = db.Column(db.Integer, db.ForeignKey('hr_employees.id'), nullable=False)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
+    
+    month = db.Column(db.Integer, nullable=False)  # 1-12
+    year = db.Column(db.Integer, nullable=False)
+    base_salary = db.Column(db.Float, nullable=False)
+    
+    # Additions
+    rewards = db.Column(db.Float, default=0)
+    overtime = db.Column(db.Float, default=0)
+    bonus = db.Column(db.Float, default=0)
+    
+    # Deductions
+    absence_deduction = db.Column(db.Float, default=0)
+    late_deduction = db.Column(db.Float, default=0)
+    other_deductions = db.Column(db.Float, default=0)
+    
+    # Totals
+    total_additions = db.Column(db.Float, default=0)
+    total_deductions = db.Column(db.Float, default=0)
+    net_salary = db.Column(db.Float, default=0)
+    
+    # Days calculation
+    working_days = db.Column(db.Integer, default=0)
+    absent_days = db.Column(db.Integer, default=0)
+    late_days = db.Column(db.Integer, default=0)
+    
+    status = db.Column(db.String(50), default='draft')  # draft, calculated, paid
+    payment_date = db.Column(db.DateTime)
+    notes = db.Column(db.Text)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'employee_id': self.employee_id,
+            'month': self.month,
+            'year': self.year,
+            'base_salary': self.base_salary,
+            'total_additions': self.total_additions,
+            'total_deductions': self.total_deductions,
+            'net_salary': self.net_salary,
+            'status': self.status
+        }
+
+
+class HRReward(db.Model):
+    """HR Rewards - جدول المكافآت والحوافز"""
+    __tablename__ = 'hr_rewards'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    employee_id = db.Column(db.Integer, db.ForeignKey('hr_employees.id'), nullable=False)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
+    
+    reward_type = db.Column(db.String(50), nullable=False)  # performance, achievement, bonus
+    amount = db.Column(db.Float, nullable=False)
+    reason = db.Column(db.Text, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    given_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    status = db.Column(db.String(50), default='approved')  # approved, pending, cancelled
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'employee_id': self.employee_id,
+            'reward_type': self.reward_type,
+            'amount': self.amount,
+            'reason': self.reason,
+            'date': self.date.isoformat() if self.date else None,
+            'status': self.status
+        }
+
+
+class HRDepartment(db.Model):
+    """HR Departments - جدول الأقسام"""
+    __tablename__ = 'hr_departments'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
+    
+    name = db.Column(db.String(100), nullable=False)
+    name_ar = db.Column(db.String(100))
+    description = db.Column(db.Text)
+    manager_id = db.Column(db.Integer, db.ForeignKey('hr_employees.id'))
+    is_active = db.Column(db.Boolean, default=True)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'name_ar': self.name_ar,
+            'description': self.description,
+            'is_active': self.is_active
+        }

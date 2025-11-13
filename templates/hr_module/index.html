@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'نظام الموارد البشرية' if lang == 'ar' else 'HR Management System' }} - Mcidia{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="page-title">
+                    <i class="fas fa-users me-2"></i>
+                    {{ 'نظام الموارد البشرية' if lang == 'ar' else 'HR Management System' }}
+                </h2>
+                <a href="{{ url_for('hr_module.add_employee') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    {{ 'إضافة موظف جديد' if lang == 'ar' else 'Add New Employee' }}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs Row -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">{{ 'إجمالي الموظفين' if lang == 'ar' else 'Total Employees' }}</h6>
+                            <h2 class="mb-0">{{ kpis.total_employees }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">{{ 'موظفون في إجازة' if lang == 'ar' else 'On Leave Today' }}</h6>
+                            <h2 class="mb-0">{{ kpis.employees_on_leave }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-umbrella-beach fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">{{ 'طلبات الإجازات المعلقة' if lang == 'ar' else 'Pending Leave Requests' }}</h6>
+                            <h2 class="mb-0">{{ kpis.pending_leaves }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">{{ 'عقود تنتهي قريباً' if lang == 'ar' else 'Expiring Contracts (30 days)' }}</h6>
+                            <h2 class="mb-0">{{ kpis.expiring_contracts }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-file-contract fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">{{ 'معدل الحضور هذا الشهر' if lang == 'ar' else 'Attendance Rate This Month' }}</h6>
+                            <h2 class="mb-0">{{ kpis.attendance_rate }}%</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-chart-line fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-secondary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">{{ 'إجمالي الرواتب (هذا الشهر)' if lang == 'ar' else 'Total Payroll This Month' }}</h6>
+                            <h2 class="mb-0">{{ "{:,.0f}".format(kpis.total_payroll) }} {{ 'ريال' if lang == 'ar' else 'SAR' }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-money-bill-wave fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{{ 'الإجراءات السريعة' if lang == 'ar' else 'Quick Actions' }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('hr_module.employees_list') }}" class="btn btn-outline-primary btn-lg w-100">
+                                <i class="fas fa-users fa-2x d-block mb-2"></i>
+                                {{ 'إدارة الموظفين' if lang == 'ar' else 'Manage Employees' }}
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="#" class="btn btn-outline-info btn-lg w-100">
+                                <i class="fas fa-clock fa-2x d-block mb-2"></i>
+                                {{ 'الحضور والانصراف' if lang == 'ar' else 'Attendance' }}
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="#" class="btn btn-outline-warning btn-lg w-100">
+                                <i class="fas fa-umbrella-beach fa-2x d-block mb-2"></i>
+                                {{ 'إدارة الإجازات' if lang == 'ar' else 'Leave Management' }}
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="#" class="btn btn-outline-success btn-lg w-100">
+                                <i class="fas fa-money-check-alt fa-2x d-block mb-2"></i>
+                                {{ 'الرواتب والمكافآت' if lang == 'ar' else 'Payroll & Rewards' }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">{{ 'أحدث الموظفين' if lang == 'ar' else 'Recent Employees' }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_employees %}
+                    <div class="list-group list-group-flush">
+                        {% for emp in recent_employees %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">{{ emp.full_name }}</h6>
+                                    <small class="text-muted">{{ emp.employee_number }} - {{ emp.department }}</small>
+                                </div>
+                                <span class="badge bg-success align-self-center">{{ emp.status }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">{{ 'لا يوجد موظفون' if lang == 'ar' else 'No employees found' }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">{{ 'طلبات الإجازات المعلقة' if lang == 'ar' else 'Pending Leave Requests' }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_leaves %}
+                    <div class="list-group list-group-flush">
+                        {% for leave in recent_leaves %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">{{ leave.employee.full_name }}</h6>
+                                    <small class="text-muted">{{ leave.leave_type }} - {{ leave.days_count }} {{ 'أيام' if lang == 'ar' else 'days' }}</small>
+                                </div>
+                                <span class="badge bg-warning align-self-center">{{ leave.status }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">{{ 'لا توجد طلبات معلقة' if lang == 'ar' else 'No pending requests' }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-title {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.opacity-50 {
+    opacity: 0.5;
+}
+
+.btn-lg {
+    padding: 15px;
+    transition: all 0.3s;
+}
+
+.btn-lg:hover {
+    transform: scale(1.05);
+}
+</style>
+{% endblock %}
