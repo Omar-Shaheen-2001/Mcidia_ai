@@ -21,7 +21,14 @@ Flask-SQLAlchemy with a PostgreSQL database (Neon) is used. Core models manage u
 A pluggable multi-provider AI system uses an abstract `AIProvider` interface, primarily HuggingFace (Llama3, Mistral, Mixtral) with OpenAI as an optional fallback. `AIManager` simplifies AI access for various use cases, and `AILog` tracks usage. The system supports AI-powered KPI generation and dynamic consultation.
 
 ### Authorization & Access Control
-A hierarchical role system enforced by custom Flask decorators (`@login_required`, `@role_required`, `@organization_role_required`) manages global and organization-scoped roles, ensuring multi-tenant permission isolation.
+A hierarchical role system enforced by custom Flask decorators (`@login_required`, `@role_required`, `@organization_role_required`, `@require_org_context`) manages global and organization-scoped roles, ensuring multi-tenant permission isolation.
+
+### Centralized Tenancy & Auto-Provisioning
+The platform features a centralized tenancy system that automatically provisions organizations for users on their first module access:
+- **Tenancy Utility** (`utils/tenant.py`): Provides `get_or_create_user_org(session, user)` function that idempotently creates organizations with race-condition guards and transaction safety.
+- **Auto-Provisioning Decorator** (`@require_org_context`): Automatically creates organizations and memberships for users without existing organizations, enabling immediate access to organization-scoped modules like HR.
+- **User Flow**: Registration creates User only (no org); organization provisioning happens automatically on first module access with membership_role='owner'.
+- **Benefits**: DRY code, consistent org creation, no manual setup required for new users.
 
 ### Dynamic Form Builder & Custom AI Prompts
 Admins can customize service offerings with dynamic form fields and personalized AI prompts. This includes a visual form builder with bilingual field support, custom prompt templates with variable substitution, and dynamic form rendering for flexible offering creation and personalized AI responses.
