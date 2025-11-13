@@ -92,6 +92,7 @@ def create_app():
         from flask_wtf.csrf import generate_csrf
         from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
         from models import User
+        from flask import current_app as app_instance
         
         # Generate CSRF token for forms
         csrf_token = generate_csrf()
@@ -99,10 +100,11 @@ def create_app():
         # Try to get current user if logged in
         current_user = None
         try:
-            verify_jwt_in_request(optional=True)
+            verify_jwt_in_request(optional=True, locations=['cookies'])
             user_id = get_jwt_identity()
             if user_id:
-                current_user = db.session.get(User, int(user_id))
+                db_instance = app_instance.extensions['sqlalchemy']
+                current_user = db_instance.session.get(User, int(user_id))
         except:
             pass
         
