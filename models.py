@@ -179,6 +179,88 @@ class Transaction(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
+# ==================== ERP System Models ====================
+
+class ERPPlan(db.Model):
+    """ERP Subscription Plans"""
+    __tablename__ = 'erp_plans'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)  # free, pro, enterprise
+    name_ar = db.Column(db.String(100))
+    name_en = db.Column(db.String(100))
+    price = db.Column(db.Float, nullable=False, default=0)
+    billing_period = db.Column(db.String(20))  # monthly, yearly
+    max_users = db.Column(db.Integer)  # NULL = unlimited
+    features_ar = db.Column(db.Text)  # JSON or text features in Arabic
+    features_en = db.Column(db.Text)  # JSON or text features in English
+    is_active = db.Column(db.Boolean, default=True)
+    display_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    modules = db.relationship('ERPModule', secondary='erp_plan_modules', back_populates='plans')
+    subscriptions = db.relationship('UserERPSubscription', backref='plan', lazy=True)
+
+
+class ERPModule(db.Model):
+    """ERP Modules (HR, Finance, Inventory, etc.)"""
+    __tablename__ = 'erp_modules'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(100), unique=True, nullable=False)
+    name_ar = db.Column(db.String(200), nullable=False)
+    name_en = db.Column(db.String(200), nullable=False)
+    description_ar = db.Column(db.Text)
+    description_en = db.Column(db.Text)
+    icon = db.Column(db.String(100))  # FontAwesome icon class
+    color = db.Column(db.String(20))  # Hex color code
+    is_active = db.Column(db.Boolean, default=True)
+    display_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    plans = db.relationship('ERPPlan', secondary='erp_plan_modules', back_populates='modules')
+    user_modules = db.relationship('UserERPModule', backref='module', lazy=True)
+
+
+# Association table for ERPPlan and ERPModule many-to-many relationship
+erp_plan_modules = db.Table('erp_plan_modules',
+    db.Column('plan_id', db.Integer, db.ForeignKey('erp_plans.id'), primary_key=True),
+    db.Column('module_id', db.Integer, db.ForeignKey('erp_modules.id'), primary_key=True)
+)
+
+
+class UserERPSubscription(db.Model):
+    """User's ERP subscription"""
+    __tablename__ = 'user_erp_subscriptions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    plan_id = db.Column(db.Integer, db.ForeignKey('erp_plans.id'), nullable=False)
+    status = db.Column(db.String(20), default='active')  # active, cancelled, expired
+    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref='erp_subscription')
+
+
+class UserERPModule(db.Model):
+    """User's activated ERP modules"""
+    __tablename__ = 'user_erp_modules'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    module_id = db.Column(db.Integer, db.ForeignKey('erp_modules.id'), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    activated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref='erp_modules')
+
+
 class AILog(db.Model):
     __tablename__ = 'ai_logs'
     

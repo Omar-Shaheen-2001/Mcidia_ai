@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}{{ module.name_ar if lang == 'ar' else module.name_en }} - ERP Module{% endblock %}
+
+{% block extra_css %}
+<style>
+    .module-header {
+        background: linear-gradient(135deg, {{ module.color }}, {{ module.color }}dd);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 1.5rem 1.5rem;
+    }
+    
+    .feature-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        transition: all 0.3s ease;
+    }
+    
+    .feature-section:hover {
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .feature-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        background: linear-gradient(135deg, {{ module.color }}22, {{ module.color }}11);
+        color: {{ module.color }};
+    }
+    
+    .coming-soon-badge {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Module Header -->
+<div class="module-header">
+    <div class="container text-center">
+        <div class="feature-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2.5rem; background: rgba(255,255,255,0.2);">
+            <i class="{{ module.icon }}"></i>
+        </div>
+        <h1 class="display-5 fw-bold mb-3">
+            {{ module.name_ar if lang == 'ar' else module.name_en }}
+        </h1>
+        <p class="lead mb-0">
+            {{ module.description_ar if lang == 'ar' else module.description_en }}
+        </p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="alert alert-info mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle fa-2x me-3"></i>
+                    <div>
+                        <h5 class="mb-1">{{ 'قريباً' if lang == 'ar' else 'Coming Soon' }}</h5>
+                        <p class="mb-0">
+                            {{ 'نحن نعمل على تطوير هذه الوحدة. سيتم إطلاقها قريباً بميزات متقدمة.' if lang == 'ar' else 'We are working on developing this module. It will be launched soon with advanced features.' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            {% if module.slug == 'hr-module' %}
+            <!-- HR Module Features -->
+            <div class="feature-section">
+                <h4 class="fw-bold mb-3">
+                    <i class="fas fa-user-friends me-2" style="color: {{ module.color }};"></i>
+                    {{ 'إدارة الموظفين' if lang == 'ar' else 'Employee Management' }}
+                </h4>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'إضافة وإدارة بيانات الموظفين' if lang == 'ar' else 'Add and manage employee data' }}</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'تتبع العقود والمناصب' if lang == 'ar' else 'Track contracts and positions' }}</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'إدارة الإجازات والغيابات' if lang == 'ar' else 'Manage leaves and absences' }}</li>
+                </ul>
+            </div>
+            
+            <div class="feature-section">
+                <h4 class="fw-bold mb-3">
+                    <i class="fas fa-clock me-2" style="color: {{ module.color }};"></i>
+                    {{ 'الحضور والانصراف' if lang == 'ar' else 'Attendance Tracking' }}
+                </h4>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'تسجيل ساعات العمل' if lang == 'ar' else 'Log working hours' }}</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'تقارير الحضور الشهرية' if lang == 'ar' else 'Monthly attendance reports' }}</li>
+                </ul>
+            </div>
+            
+            <div class="feature-section">
+                <h4 class="fw-bold mb-3">
+                    <i class="fas fa-money-bill-wave me-2" style="color: {{ module.color }};"></i>
+                    {{ 'الرواتب والمكافآت' if lang == 'ar' else 'Payroll & Bonuses' }}
+                </h4>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'حساب الرواتب تلقائياً' if lang == 'ar' else 'Automatic payroll calculation' }}</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'إدارة المكافآت والحوافز' if lang == 'ar' else 'Manage bonuses and incentives' }}</li>
+                </ul>
+            </div>
+            
+            {% elif module.slug == 'finance-module' %}
+            <!-- Finance Module Features -->
+            <div class="feature-section">
+                <h4 class="fw-bold mb-3">
+                    <i class="fas fa-book me-2" style="color: {{ module.color }};"></i>
+                    {{ 'دفتر الأستاذ العام' if lang == 'ar' else 'General Ledger' }}
+                </h4>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'تسجيل جميع المعاملات المالية' if lang == 'ar' else 'Record all financial transactions' }}</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'التقارير المالية الشاملة' if lang == 'ar' else 'Comprehensive financial reports' }}</li>
+                </ul>
+            </div>
+            
+            <div class="feature-section">
+                <h4 class="fw-bold mb-3">
+                    <i class="fas fa-file-invoice-dollar me-2" style="color: {{ module.color }};"></i>
+                    {{ 'الفواتير والمصروفات' if lang == 'ar' else 'Invoices & Expenses' }}
+                </h4>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'إنشاء الفواتير بسهولة' if lang == 'ar' else 'Easy invoice creation' }}</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'تتبع المصروفات' if lang == 'ar' else 'Track expenses' }}</li>
+                </ul>
+            </div>
+            
+            {% elif module.slug == 'inventory-module' %}
+            <!-- Inventory Module Features -->
+            <div class="feature-section">
+                <h4 class="fw-bold mb-3">
+                    <i class="fas fa-boxes me-2" style="color: {{ module.color }};"></i>
+                    {{ 'إدارة المخزون' if lang == 'ar' else 'Inventory Management' }}
+                </h4>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'تتبع الأصناف والكميات' if lang == 'ar' else 'Track items and quantities' }}</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'الحد الأدنى والأقصى للمخزون' if lang == 'ar' else 'Min/max stock levels' }}</li>
+                </ul>
+            </div>
+            
+            {% elif module.slug == 'ai-insights-module' %}
+            <!-- AI Insights Module Features -->
+            <div class="feature-section">
+                <h4 class="fw-bold mb-3">
+                    <i class="fas fa-chart-pie me-2" style="color: {{ module.color }};"></i>
+                    {{ 'التحليلات الذكية' if lang == 'ar' else 'Smart Analytics' }}
+                </h4>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'لوحة تحكم مؤشرات الأداء KPI' if lang == 'ar' else 'KPI Dashboard' }}</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ 'التنبؤ بالاحتياجات' if lang == 'ar' else 'Demand forecasting' }}</li>
+                </ul>
+            </div>
+            
+            {% else %}
+            <!-- Generic Module Features -->
+            <div class="feature-section">
+                <h4 class="fw-bold mb-3">
+                    <i class="{{ module.icon }} me-2" style="color: {{ module.color }};"></i>
+                    {{ 'ميزات الوحدة' if lang == 'ar' else 'Module Features' }}
+                </h4>
+                <p class="text-muted">
+                    {{ module.description_ar if lang == 'ar' else module.description_en }}
+                </p>
+            </div>
+            {% endif %}
+            
+            <div class="text-center mt-4">
+                <a href="{{ url_for('erp.index') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>
+                    {{ 'العودة إلى قسم ERP' if lang == 'ar' else 'Back to ERP Section' }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

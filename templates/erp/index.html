@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'قسم ERP - نظام تخطيط موارد المؤسسة' if lang == 'ar' else 'ERP Section - Enterprise Resource Planning' }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .erp-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+        border-radius: 0 0 2rem 2rem;
+    }
+    
+    .module-card {
+        border: none;
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        height: 100%;
+        overflow: hidden;
+    }
+    
+    .module-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+    
+    .module-card.locked {
+        opacity: 0.7;
+        background: rgba(240, 240, 240, 0.9);
+    }
+    
+    .module-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, var(--module-color-light, #f0f0f0), var(--module-color, #ddd));
+    }
+    
+    .module-badge {
+        position: absolute;
+        top: 1rem;
+        {{ 'right' if lang == 'ar' else 'left' }}: 1rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .badge-active {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+    
+    .badge-locked {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+    
+    .plan-card {
+        border: 2px solid #e5e7eb;
+        border-radius: 1.5rem;
+        padding: 2rem;
+        transition: all 0.3s ease;
+        background: white;
+        height: 100%;
+    }
+    
+    .plan-card:hover {
+        border-color: #667eea;
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(102, 126, 234, 0.15);
+    }
+    
+    .plan-card.current-plan {
+        border-color: #10b981;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(5, 150, 105, 0.05));
+    }
+    
+    .plan-price {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 1rem 0;
+    }
+    
+    .plan-price small {
+        font-size: 1.2rem;
+        color: #6b7280;
+    }
+    
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 1.5rem 0;
+    }
+    
+    .feature-list li {
+        padding: 0.75rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .feature-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .feature-list i {
+        color: #10b981;
+        font-size: 1.2rem;
+    }
+    
+    .btn-gradient {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-gradient:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+    
+    .btn-outline-gradient {
+        border: 2px solid #667eea;
+        background: transparent;
+        color: #667eea;
+        padding: 0.75rem 2rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-gradient:hover {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-color: transparent;
+    }
+    
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #1f2937;
+    }
+    
+    .section-subtitle {
+        font-size: 1.1rem;
+        color: #6b7280;
+        margin-bottom: 3rem;
+    }
+    
+    @media (max-width: 768px) {
+        .module-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+        
+        .plan-price {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="erp-hero">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">
+            <i class="fas fa-cogs me-3"></i>
+            {{ 'نظام تخطيط موارد المؤسسة' if lang == 'ar' else 'Enterprise Resource Planning System' }}
+        </h1>
+        <p class="lead mb-0">
+            {{ 'إدارة شاملة ومتكاملة لجميع موارد وعمليات مؤسستك' if lang == 'ar' else 'Comprehensive and integrated management of all your organization resources and operations' }}
+        </p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- ERP Modules Section -->
+    <div class="mb-5">
+        <div class="text-center mb-4">
+            <h2 class="section-title">
+                {{ 'وحدات النظام' if lang == 'ar' else 'System Modules' }}
+            </h2>
+            <p class="section-subtitle">
+                {{ 'اختر الوحدات التي تحتاجها لإدارة مؤسستك بكفاءة' if lang == 'ar' else 'Choose the modules you need to manage your organization efficiently' }}
+            </p>
+        </div>
+        
+        <div class="row g-4">
+            {% for module in modules %}
+            <div class="col-md-6 col-lg-4">
+                <div class="module-card {{ 'locked' if not module.is_activated }}" style="--module-color: {{ module.color }}; --module-color-light: {{ module.color }}22;">
+                    <div class="card-body p-4 position-relative">
+                        <!-- Status Badge -->
+                        <span class="module-badge {{ 'badge-active' if module.is_activated else 'badge-locked' }}">
+                            {% if module.is_activated %}
+                                <i class="fas fa-check-circle me-1"></i>
+                                {{ 'مفعّل' if lang == 'ar' else 'Active' }}
+                            {% else %}
+                                <i class="fas fa-lock me-1"></i>
+                                {{ 'مقفل' if lang == 'ar' else 'Locked' }}
+                            {% endif %}
+                        </span>
+                        
+                        <!-- Module Icon -->
+                        <div class="module-icon mx-auto" style="color: {{ module.color }};">
+                            <i class="{{ module.icon }}"></i>
+                        </div>
+                        
+                        <!-- Module Info -->
+                        <h5 class="card-title fw-bold text-center mb-3">
+                            {{ module.name }}
+                        </h5>
+                        <p class="card-text text-muted text-center mb-4" style="min-height: 60px;">
+                            {{ module.description }}
+                        </p>
+                        
+                        <!-- Action Button -->
+                        <div class="text-center">
+                            {% if module.is_activated %}
+                                <a href="{{ url_for('erp.module_detail', slug=module.slug) }}" 
+                                   class="btn btn-gradient w-100">
+                                    <i class="fas fa-arrow-{{ 'left' if lang == 'ar' else 'right' }} me-2"></i>
+                                    {{ 'فتح الوحدة' if lang == 'ar' else 'Open Module' }}
+                                </a>
+                            {% else %}
+                                <button type="button" 
+                                        class="btn btn-outline-gradient w-100"
+                                        onclick="showUpgradeMessage()">
+                                    <i class="fas fa-lock me-2"></i>
+                                    {{ 'تفعيل الوحدة' if lang == 'ar' else 'Activate Module' }}
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Subscription Plans Section -->
+    <div class="mt-5 pt-5">
+        <div class="text-center mb-5">
+            <h2 class="section-title">
+                {{ 'خطط الاشتراك' if lang == 'ar' else 'Subscription Plans' }}
+            </h2>
+            <p class="section-subtitle">
+                {{ 'اختر الخطة المناسبة لاحتياجات مؤسستك' if lang == 'ar' else 'Choose the right plan for your organization needs' }}
+            </p>
+        </div>
+        
+        <div class="row g-4">
+            {% for plan in plans %}
+            <div class="col-md-6 col-lg-4">
+                <div class="plan-card {{ 'current-plan' if plan.is_current }}">
+                    {% if plan.is_current %}
+                    <div class="badge bg-success mb-3">
+                        <i class="fas fa-check-circle me-1"></i>
+                        {{ 'خطتك الحالية' if lang == 'ar' else 'Current Plan' }}
+                    </div>
+                    {% endif %}
+                    
+                    <h3 class="h4 fw-bold mb-2">{{ plan.name_display }}</h3>
+                    
+                    <div class="plan-price">
+                        {% if plan.price == 0 %}
+                            {{ 'مجاناً' if lang == 'ar' else 'Free' }}
+                        {% elif plan.name == 'enterprise' %}
+                            {{ 'مخصص' if lang == 'ar' else 'Custom' }}
+                        {% else %}
+                            ${{ plan.price }}
+                            <small>/{{ 'شهر' if plan.billing_period == 'monthly' and lang == 'ar' else 'month' if plan.billing_period == 'monthly' else 'سنة' if lang == 'ar' else 'year' }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-cubes me-2"></i>
+                        {{ plan.module_count }} {{ 'وحدات' if lang == 'ar' else 'modules' }}
+                    </p>
+                    
+                    <ul class="feature-list">
+                        {% set features = plan.features.split('\n') if plan.features else [] %}
+                        {% for feature in features %}
+                            {% if feature.strip() %}
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <span>{{ feature.strip() }}</span>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        <li>
+                            <i class="fas fa-users"></i>
+                            <span>
+                                {% if plan.max_users %}
+                                    {{ 'حتى' if lang == 'ar' else 'Up to' }} {{ plan.max_users }} {{ 'مستخدمين' if lang == 'ar' else 'users' }}
+                                {% else %}
+                                    {{ 'مستخدمين غير محدود' if lang == 'ar' else 'Unlimited users' }}
+                                {% endif %}
+                            </span>
+                        </li>
+                    </ul>
+                    
+                    {% if plan.is_current %}
+                        <button class="btn btn-outline-secondary w-100" disabled>
+                            <i class="fas fa-check me-2"></i>
+                            {{ 'مفعّل حالياً' if lang == 'ar' else 'Currently Active' }}
+                        </button>
+                    {% else %}
+                        <form method="POST" action="{{ url_for('erp.subscribe', plan_id=plan.id) }}" class="subscribe-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-gradient w-100">
+                                <i class="fas fa-rocket me-2"></i>
+                                {{ 'اشترك الآن' if lang == 'ar' else 'Subscribe Now' }}
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+function showUpgradeMessage() {
+    const message = {{ ('\'الرجاء الاشتراك في خطة مناسبة لتفعيل هذه الوحدة\'' if lang == 'ar' else '\'Please subscribe to a suitable plan to activate this module\'') }};
+    alert(message);
+    // Scroll to plans section
+    document.querySelector('.mt-5.pt-5').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Handle subscription forms with AJAX
+document.querySelectorAll('.subscribe-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const button = this.querySelector('button[type="submit"]');
+        const originalText = button.innerHTML;
+        
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ 'جاري الاشتراك...' if lang == 'ar' else 'Subscribing...' }}';
+        
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                alert(data.message || {{ ('\'حدث خطأ أثناء الاشتراك\'' if lang == 'ar' else '\'An error occurred during subscription\'') }});
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert({{ ('\'حدث خطأ في الاتصال\'' if lang == 'ar' else '\'A connection error occurred\'') }});
+            button.disabled = false;
+            button.innerHTML = originalText;
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -90,6 +90,14 @@
                             {{ 'الوحدات الاستشارية' if lang == 'ar' else 'Consulting Modules' }}
                         </a>
                     </li>
+                    {% if current_user %}
+                    <li class="nav-item">
+                        <a class="navbar__link nav-link" href="{{ url_for('erp.index') }}">
+                            <i class="fas fa-cogs me-1"></i>
+                            {{ 'قسم ERP' if lang == 'ar' else 'ERP Section' }}
+                        </a>
+                    </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="navbar__link nav-link" href="{{ url_for('billing.pricing') }}">
                             <i class="fas fa-box me-1"></i>
