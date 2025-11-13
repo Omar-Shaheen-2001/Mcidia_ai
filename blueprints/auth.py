@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response, session, current_app
 from flask_jwt_extended import create_access_token, set_access_cookies, unset_jwt_cookies, get_csrf_token, get_jwt_identity, verify_jwt_in_request
-from models import User, Role, SubscriptionPlan
+from models import User, Role, SubscriptionPlan, Organization, OrganizationMembership
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -31,22 +31,49 @@ def register():
         
         free_plan = db.session.query(SubscriptionPlan).filter_by(name='free').first()
         
-        # Create new user
-        user = User(
-            username=username,
-            email=email,
-            company_name=company_name,
-            role_id=role.id,
-            subscription_plan_id=free_plan.id if free_plan else None,
-            subscription_status='active'
-        )
-        user.set_password(password)
-        
-        db.session.add(user)
-        db.session.commit()
-        
-        flash('تم التسجيل بنجاح! يمكنك الآن تسجيل الدخول / Registration successful! You can now login', 'success')
-        return redirect(url_for('auth.login'))
+        try:
+            # Create organization for new user
+            organization = Organization(
+                name=company_name if company_name else f"{username}'s Organization",
+                email=email,
+                is_active=True
+            )
+            db.session.add(organization)
+            db.session.flush()  # Get organization ID
+            
+            # Create new user linked to organization
+            user = User(
+                username=username,
+                email=email,
+                company_name=company_name,
+                role_id=role.id,
+                organization_id=organization.id,
+                subscription_plan_id=free_plan.id if free_plan else None,
+                subscription_status='active'
+            )
+            user.set_password(password)
+            
+            db.session.add(user)
+            db.session.flush()  # Get user ID
+            
+            # Create organization membership - user is the owner
+            membership = OrganizationMembership(
+                user_id=user.id,
+                organization_id=organization.id,
+                membership_role='owner',
+                is_active=True
+            )
+            db.session.add(membership)
+            
+            db.session.commit()
+            
+            flash('تم التسجيل بنجاح! يمكنك الآن تسجيل الدخول / Registration successful! You can now login', 'success')
+            return redirect(url_for('auth.login'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'حدث خطأ أثناء التسجيل: {str(e)} / Registration error: {str(e)}', 'danger')
+            return redirect(url_for('auth.register'))
     
     lang = session.get('language', 'ar')
     return render_template('auth/register.html', lang=lang)
