@@ -161,7 +161,7 @@ def subscribe(plan_id):
 @erp_bp.route('/module/<slug>')
 @jwt_required(locations=['cookies'])
 def module_detail(slug):
-    """Show ERP module details"""
+    """Show ERP module details or redirect to module blueprint"""
     db = current_app.extensions['sqlalchemy']
     user_id_str = get_jwt_identity()
     if not user_id_str:
@@ -192,9 +192,20 @@ def module_detail(slug):
         flash(message, 'warning')
         return redirect(url_for('erp.index'))
     
-    return render_template('erp/module_detail.html',
-                         module=module,
-                         lang=lang)
+    # Redirect to specific module blueprint if available
+    if slug == 'hr-module':
+        return redirect(url_for('hr_module.index'))
+    elif slug == 'finance-module':
+        flash('الوحدة المالية قيد التطوير' if lang == 'ar' else 'Finance module is under development', 'info')
+        return redirect(url_for('erp.index'))
+    elif slug == 'inventory-module':
+        flash('وحدة المخزون قيد التطوير' if lang == 'ar' else 'Inventory module is under development', 'info')
+        return redirect(url_for('erp.index'))
+    else:
+        # For other modules, show generic module detail page
+        return render_template('erp/module_detail.html',
+                             module=module,
+                             lang=lang)
 
 
 @erp_bp.route('/api/user-subscription')

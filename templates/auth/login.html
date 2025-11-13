@@ -23,7 +23,7 @@
                         
                         <!-- Login Form -->
                         <form method="POST" action="{{ url_for('auth.login') }}">
-                            {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             
                             <div class="mb-4">
                                 <label class="form-label">
