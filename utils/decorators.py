@@ -1,6 +1,5 @@
 from functools import wraps
 from flask import redirect, url_for, flash, session, request
-from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 from models import User, OrganizationMembership, Organization
 
 def login_required(f):
@@ -8,6 +7,9 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         try:
+            # Import here to avoid conflicts
+            from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+            
             # Try to verify JWT in cookies
             verify_jwt_in_request(optional=False, locations=['cookies'])
             identity = get_jwt_identity()
@@ -34,9 +36,11 @@ def role_required(*roles):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             try:
+                from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+                from flask import current_app
+                
                 verify_jwt_in_request(optional=False)
                 user_id = int(get_jwt_identity())
-                from flask import current_app
                 db = current_app.extensions['sqlalchemy']
                 user = db.session.query(User).get(user_id)
                 
@@ -80,10 +84,12 @@ def organization_role_required(*allowed_roles, org_id_param='id'):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             try:
+                from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+                from flask import current_app
+                
                 verify_jwt_in_request(optional=False)
                 user_id = int(get_jwt_identity())
                 
-                from flask import current_app
                 db = current_app.extensions['sqlalchemy']
                 user = db.session.query(User).get(user_id)
                 
