@@ -206,13 +206,22 @@ def add_employee():
                 return redirect(url_for('hr_module.add_employee'))
             
             # Generate unique employee number
-            last_employee = db.session.query(HREmployee).filter_by(
+            # Get the highest employee number for this organization
+            employees = db.session.query(HREmployee).filter_by(
                 organization_id=org_id
-            ).order_by(HREmployee.id.desc()).first()
+            ).all()
             
-            if last_employee and last_employee.employee_number:
-                last_num = int(last_employee.employee_number.split('-')[1])
-                new_num = f"EMP-{str(last_num + 1).zfill(4)}"
+            if employees:
+                # Extract all employee numbers and find the maximum
+                max_num = 0
+                for emp in employees:
+                    if emp.employee_number and emp.employee_number.startswith('EMP-'):
+                        try:
+                            num = int(emp.employee_number.split('-')[1])
+                            max_num = max(max_num, num)
+                        except (ValueError, IndexError):
+                            continue
+                new_num = f"EMP-{str(max_num + 1).zfill(4)}"
             else:
                 new_num = "EMP-0001"
             
