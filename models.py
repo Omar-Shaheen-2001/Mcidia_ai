@@ -940,13 +940,16 @@ class StrategicInitiative(db.Model):
 class HREmployee(db.Model):
     """HR Employee - جدول الموظفين"""
     __tablename__ = 'hr_employees'
+    __table_args__ = (
+        db.UniqueConstraint('organization_id', 'employee_number', name='uq_org_employee_number'),
+    )
     
     id = db.Column(db.Integer, primary_key=True)
     organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Linked to system user if exists
     
     # Basic Info
-    employee_number = db.Column(db.String(50), unique=True, nullable=False)  # EMP-0001
+    employee_number = db.Column(db.String(50), nullable=False)  # EMP-0001 (unique per organization)
     full_name = db.Column(db.String(200), nullable=False)
     national_id = db.Column(db.String(50))
     email = db.Column(db.String(120))

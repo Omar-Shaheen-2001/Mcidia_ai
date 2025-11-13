@@ -205,47 +205,65 @@ def add_employee():
                 flash('الراتب غير صالح / Invalid salary', 'error')
                 return redirect(url_for('hr_module.add_employee'))
             
-            # Generate unique employee number
-            # Get the highest employee number for this organization
-            employees = db.session.query(HREmployee).filter_by(
-                organization_id=org_id
-            ).all()
+            # Generate unique employee number using sequence table with row-level locking
+            from sqlalchemy.exc import IntegrityError
+            from sqlalchemy import text
             
-            if employees:
-                # Extract all employee numbers and find the maximum
-                max_num = 0
-                for emp in employees:
-                    if emp.employee_number and emp.employee_number.startswith('EMP-'):
-                        try:
-                            num = int(emp.employee_number.split('-')[1])
-                            max_num = max(max_num, num)
-                        except (ValueError, IndexError):
-                            continue
-                new_num = f"EMP-{str(max_num + 1).zfill(4)}"
-            else:
-                new_num = "EMP-0001"
-            
-            # Create new employee with validated data
-            new_employee = HREmployee(
-                organization_id=org_id,
-                employee_number=new_num,
-                full_name=full_name,
-                national_id=request.form.get('national_id', '').strip(),
-                email=request.form.get('email', '').strip(),
-                phone=request.form.get('phone', '').strip(),
-                department=department,
-                job_title=job_title,
-                hire_date=hire_date,
-                contract_type=request.form.get('contract_type', 'permanent'),
-                base_salary=base_salary,
-                status=request.form.get('status', 'active'),
-                address=request.form.get('address', '').strip(),
-                emergency_contact=request.form.get('emergency_contact', '').strip(),
-                notes=request.form.get('notes', '').strip()
-            )
-            
-            db.session.add(new_employee)
-            db.session.commit()
+            try:
+                # Atomically get and increment employee number using dedicated sequence table
+                # This works even for first employee and handles unlimited concurrent requests
+                
+                # Insert or update sequence for this organization (upsert)
+                db.session.execute(
+                    text("""
+                        INSERT INTO employee_number_sequences (organization_id, last_number)
+                        VALUES (:org_id, 0)
+                        ON CONFLICT (organization_id) DO NOTHING
+                    """),
+                    {"org_id": org_id}
+                )
+                
+                # Lock the sequence row and increment counter atomically
+                result = db.session.execute(
+                    text("""
+                        UPDATE employee_number_sequences
+                        SET last_number = last_number + 1,
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE organization_id = :org_id
+                        RETURNING last_number
+                    """),
+                    {"org_id": org_id}
+                ).fetchone()
+                
+                new_num_value = result[0]
+                new_num = f"EMP-{str(new_num_value).zfill(4)}"
+                
+                # Create new employee with validated data
+                new_employee = HREmployee(
+                    organization_id=org_id,
+                    employee_number=new_num,
+                    full_name=full_name,
+                    national_id=request.form.get('national_id', '').strip(),
+                    email=request.form.get('email', '').strip(),
+                    phone=request.form.get('phone', '').strip(),
+                    department=department,
+                    job_title=job_title,
+                    hire_date=hire_date,
+                    contract_type=request.form.get('contract_type', 'permanent'),
+                    base_salary=base_salary,
+                    status=request.form.get('status', 'active'),
+                    address=request.form.get('address', '').strip(),
+                    emergency_contact=request.form.get('emergency_contact', '').strip(),
+                    notes=request.form.get('notes', '').strip()
+                )
+                
+                db.session.add(new_employee)
+                db.session.commit()
+                
+            except Exception as e:
+                db.session.rollback()
+                flash(f'حدث خطأ في إضافة الموظف / Error adding employee: {str(e)}', 'error')
+                return redirect(url_for('hr_module.add_employee'))
             
             flash(f'✅ تم إضافة الموظف {new_employee.full_name} بنجاح / Employee added successfully', 'success')
             return redirect(url_for('hr_module.employees_list'))
