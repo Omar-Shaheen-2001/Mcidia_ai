@@ -4,7 +4,6 @@ Handles ERP modules, subscriptions, and plan management
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app
-from flask_jwt_extended import get_jwt_identity
 from models import User, ERPModule, ERPPlan, UserERPSubscription, UserERPModule
 from utils.decorators import login_required
 from datetime import datetime, timedelta
