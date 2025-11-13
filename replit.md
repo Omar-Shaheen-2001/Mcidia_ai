@@ -17,6 +17,14 @@ Built with Flask, the backend features a Blueprint-based modular architecture. I
 ### Database & ORM
 Flask-SQLAlchemy with a PostgreSQL database (Neon) is used. Core models manage users, roles, subscriptions, projects, and AI logs. A hierarchical role system supports multi-tenancy and robust access control.
 
+### HR Employee Numbering System
+The platform implements atomic employee number generation with full concurrency safety:
+- **Multi-Tenant Constraint**: `employee_number` is unique per organization (composite constraint on `organization_id, employee_number`), allowing different organizations to use the same employee numbers independently.
+- **Sequence Table**: Dedicated `employee_number_sequences` table stores the last used number for each organization, enabling atomic number allocation via `UPDATE ... RETURNING`.
+- **Concurrency Safety**: Database-level row locking ensures no race conditions even under unlimited concurrent employee creation requests.
+- **Pattern**: `INSERT ... ON CONFLICT DO NOTHING` + `UPDATE ... RETURNING last_number` provides atomic, wait-free number generation.
+- **Migration**: See `migrations/001_fix_employee_number_constraints.sql` for schema changes.
+
 ### AI Integration
 A pluggable multi-provider AI system uses an abstract `AIProvider` interface, primarily HuggingFace (Llama3, Mistral, Mixtral) with OpenAI as an optional fallback. `AIManager` simplifies AI access for various use cases, and `AILog` tracks usage. The system supports AI-powered KPI generation and dynamic consultation.
 
