@@ -167,3 +167,48 @@ def organization_role_required(*allowed_roles, org_id_param='id'):
                 return redirect(url_for('dashboard.index'))
         return decorated_function
     return decorator
+
+
+def require_org_context(f):
+    """
+    Decorator that ensures user has organization context.
+    Auto-creates organization if user doesn't have one.
+    Provides organization_id via kwargs['org_id'].
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        try:
+            from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+            from flask import current_app, g
+            from utils.tenant import get_or_create_user_org
+            
+            # Verify JWT
+            verify_jwt_in_request(optional=False, locations=['cookies'])
+            user_id = int(get_jwt_identity())
+            
+            db = current_app.extensions['sqlalchemy']
+            user = db.session.query(User).get(user_id)
+            
+            if not user:
+                raise Exception("User not found")
+            
+            # Get or create organization for user
+            org_id = get_or_create_user_org(db.session, user)
+            
+            # Store in Flask g for access in route
+            g.organization_id = org_id
+            g.user = user
+            
+            # Add to kwargs for route function
+            kwargs['org_id'] = org_id
+            
+            return f(*args, **kwargs)
+            
+        except Exception as e:
+            print(f"[require_org_context] Exception: {type(e).__name__}: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            lang = session.get('language', 'ar')
+            flash('حدث خطأ في إنشاء السياق التنظيمي / Error creating organization context' if lang == 'ar' else 'Error creating organization context', 'danger')
+            return redirect(url_for('dashboard.index'))
+    return decorated_function

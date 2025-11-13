@@ -9,23 +9,18 @@ from datetime import datetime, timedelta, date
 from sqlalchemy import func, extract, and_
 from . import hr_module_bp
 from models import (User, HREmployee, HRContract, HRAttendance, HRLeave, 
-                   HRPayroll, HRReward, HRDepartment, Organization)
+                   HRPayroll, HRReward, HRDepartment, Organization, OrganizationMembership)
+from utils.decorators import require_org_context
 
 
 @hr_module_bp.route('/')
-@jwt_required(locations=['cookies'])
-def index():
+@require_org_context
+def index(org_id):
     """HR Module Dashboard with KPIs"""
+    from flask import g
     db = current_app.extensions['sqlalchemy']
-    user_id = int(get_jwt_identity())
-    user = db.session.get(User, user_id)
+    user = g.user  # Provided by decorator
     lang = session.get('language', 'ar')
-    
-    # Get user's organization
-    org_id = user.organization_id
-    if not org_id:
-        flash('لم يتم العثور على المؤسسة / Organization not found', 'error')
-        return redirect(url_for('dashboard.index'))
     
     # Calculate KPIs
     today = date.today()
