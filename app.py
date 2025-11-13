@@ -94,9 +94,6 @@ def create_app():
         from models import User
         from flask import current_app as app_instance
         
-        # Generate CSRF token for forms
-        csrf_token = generate_csrf()
-        
         # Try to get current user if logged in
         current_user = None
         try:
@@ -108,7 +105,8 @@ def create_app():
         except:
             pass
         
-        return dict(csrf_token=csrf_token, current_user=current_user)
+        # Pass csrf_token as a function so templates can call {{ csrf_token() }}
+        return dict(csrf_token=generate_csrf, current_user=current_user)
     
     # Register blueprints
     from blueprints.auth import auth_bp

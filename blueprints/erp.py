@@ -4,20 +4,19 @@ Handles ERP modules, subscriptions, and plan management
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import User, ERPModule, ERPPlan, UserERPSubscription, UserERPModule
-from utils.decorators import login_required
 from datetime import datetime, timedelta
 
 erp_bp = Blueprint('erp', __name__, url_prefix='/erp')
 
 
 @erp_bp.route('/')
-@login_required
+@jwt_required(locations=['cookies'])
 def index():
     """ERP Dashboard - Show modules and subscription plans"""
-    from flask_jwt_extended import get_jwt_identity as jwt_get_identity
     db = current_app.extensions['sqlalchemy']
-    user_id_str = jwt_get_identity()
+    user_id_str = get_jwt_identity()
     if not user_id_str:
         flash('Please login to access ERP system', 'error')
         return redirect(url_for('auth.login'))
@@ -88,12 +87,11 @@ def index():
 
 
 @erp_bp.route('/subscribe/<int:plan_id>', methods=['POST'])
-@login_required
+@jwt_required(locations=['cookies'])
 def subscribe(plan_id):
     """Subscribe to an ERP plan"""
-    from flask_jwt_extended import get_jwt_identity as jwt_get_identity
     db = current_app.extensions['sqlalchemy']
-    user_id_str = jwt_get_identity()
+    user_id_str = get_jwt_identity()
     if not user_id_str:
         return jsonify({'success': False, 'message': 'Please login first'}), 401
     
@@ -161,12 +159,11 @@ def subscribe(plan_id):
 
 
 @erp_bp.route('/module/<slug>')
-@login_required
+@jwt_required(locations=['cookies'])
 def module_detail(slug):
     """Show ERP module details"""
-    from flask_jwt_extended import get_jwt_identity as jwt_get_identity
     db = current_app.extensions['sqlalchemy']
-    user_id_str = jwt_get_identity()
+    user_id_str = get_jwt_identity()
     if not user_id_str:
         flash('Please login to access this module', 'error')
         return redirect(url_for('auth.login'))
@@ -201,12 +198,11 @@ def module_detail(slug):
 
 
 @erp_bp.route('/api/user-subscription')
-@login_required
+@jwt_required(locations=['cookies'])
 def get_user_subscription():
     """API endpoint to get user's current subscription"""
-    from flask_jwt_extended import get_jwt_identity as jwt_get_identity
     db = current_app.extensions['sqlalchemy']
-    user_id_str = jwt_get_identity()
+    user_id_str = get_jwt_identity()
     if not user_id_str:
         return jsonify({'success': False, 'message': 'Not authenticated'}), 401
     
