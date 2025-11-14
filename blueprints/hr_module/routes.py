@@ -439,6 +439,120 @@ def edit_employee(employee_id):
                          current_user=user)
 
 
+@hr_module_bp.route('/employees/<int:employee_id>/terminate', methods=['POST'])
+@jwt_required(locations=['cookies'])
+def terminate_employee(employee_id):
+    """Terminate employee service"""
+    from models import TerminationRecord
+    
+    db = current_app.extensions['sqlalchemy']
+    user_id = int(get_jwt_identity())
+    user = db.session.get(User, user_id)
+    
+    org_id = user.organization_id
+    if not org_id:
+        return jsonify({'success': False, 'message': 'لم يتم العثور على المؤسسة / Organization not found'}), 400
+    
+    # Get employee - ensure it belongs to user's organization
+    employee = db.session.query(HREmployee).filter_by(
+        id=employee_id,
+        organization_id=org_id
+    ).first()
+    
+    if not employee:
+        return jsonify({'success': False, 'message': 'لم يتم العثور على الموظف / Employee not found'}), 404
+    
+    try:
+        # Get termination data from request
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'message': 'بيانات غير صالحة / Invalid data'}), 400
+        
+        termination_type_code = data.get('termination_type')
+        reason = data.get('reason', '')
+        notes = data.get('notes', '')
+        termination_date_str = data.get('termination_date')
+        
+        # Validate termination type code
+        valid_type_codes = [
+            'admin_action',
+            'contract_expiry',
+            'resignation',
+            'mutual_agreement',
+            'retirement',
+            'death',
+            'transfer',
+            'performance'
+        ]
+        
+        if not termination_type_code or termination_type_code not in valid_type_codes:
+            return jsonify({'success': False, 'message': 'نوع الإنهاء غير صالح / Invalid termination type'}), 400
+        
+        # Map codes to Arabic labels for storage
+        type_labels = {
+            'admin_action': 'إجراء إداري نهائي',
+            'contract_expiry': 'انتهاء العقد',
+            'resignation': 'الاستقالة',
+            'mutual_agreement': 'انهاء خدمة بالاتفاق',
+            'retirement': 'التقاعد',
+            'death': 'الوفاة',
+            'transfer': 'الاعارة او النقل',
+            'performance': 'انهاء بسبب الاداء'
+        }
+        
+        termination_type = type_labels[termination_type_code]
+        
+        # Parse termination date
+        try:
+            termination_date = datetime.strptime(termination_date_str, '%Y-%m-%d').date()
+        except (ValueError, TypeError):
+            termination_date = date.today()
+        
+        # Create termination record
+        termination_record = TerminationRecord(
+            organization_id=org_id,
+            employee_id=employee.id,
+            employee_number=employee.employee_number,
+            employee_name=employee.full_name,
+            department=employee.department,
+            job_title=employee.job_title,
+            termination_type=termination_type,
+            termination_date=termination_date,
+            reason=reason,
+            notes=notes,
+            created_by=user_id
+        )
+        
+        # Update employee status
+        employee.status = 'terminated'
+        employee.updated_at = datetime.utcnow()
+        
+        db.session.add(termination_record)
+        db.session.commit()
+        
+        # TODO: Notify finance department to stop salary (when finance module is ready)
+        
+        return jsonify({
+            'success': True,
+            'message': f'تم إنهاء خدمة الموظف {employee.full_name} بنجاح / Employee service terminated successfully',
+            'employee_name': employee.full_name,
+            'termination_date': termination_date.isoformat()
+        }), 200
+        
+    except ValueError as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': 'بيانات غير صالحة / Invalid data provided'}), 400
+    except KeyError as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': 'حقل مطلوب مفقود / Required field missing'}), 400
+    except Exception as e:
+        db.session.rollback()
+        # Log the actual error for debugging but don't expose it to client
+        current_app.logger.error(f'Termination error: {str(e)}')
+        return jsonify({'success': False, 'message': 'حدث خطأ في النظام / System error occurred'}), 500
+
+
 @hr_module_bp.route('/employees/<int:employee_id>/delete', methods=['POST'])
 @jwt_required(locations=['cookies'])
 def delete_employee(employee_id):

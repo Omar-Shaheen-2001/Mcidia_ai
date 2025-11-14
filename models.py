@@ -978,6 +978,7 @@ class HREmployee(db.Model):
     leaves = db.relationship('HRLeave', backref='employee', lazy=True, cascade='all, delete-orphan')
     payrolls = db.relationship('HRPayroll', backref='employee', lazy=True, cascade='all, delete-orphan')
     rewards = db.relationship('HRReward', backref='employee', lazy=True, cascade='all, delete-orphan')
+    termination_records = db.relationship('TerminationRecord', backref='employee', lazy=True, cascade='all, delete-orphan')
     
     def to_dict(self):
         return {
@@ -1191,4 +1192,46 @@ class HRDepartment(db.Model):
             'name_ar': self.name_ar,
             'description': self.description,
             'is_active': self.is_active
+        }
+
+
+class TerminationRecord(db.Model):
+    """Employee Termination Records - سجلات إنهاء الخدمة"""
+    __tablename__ = 'termination_records'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
+    employee_id = db.Column(db.Integer, db.ForeignKey('hr_employees.id'), nullable=False)
+    
+    # Employee info (snapshot at termination)
+    employee_number = db.Column(db.String(50), nullable=False)
+    employee_name = db.Column(db.String(200), nullable=False)
+    department = db.Column(db.String(100))
+    job_title = db.Column(db.String(150))
+    
+    # Termination details
+    termination_type = db.Column(db.String(100), nullable=False)
+    termination_date = db.Column(db.Date, nullable=False)
+    reason = db.Column(db.Text)
+    notes = db.Column(db.Text)
+    
+    # Finance notification
+    finance_notified = db.Column(db.Boolean, default=False)
+    finance_notified_at = db.Column(db.DateTime)
+    
+    # Audit
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'employee_number': self.employee_number,
+            'employee_name': self.employee_name,
+            'department': self.department,
+            'job_title': self.job_title,
+            'termination_type': self.termination_type,
+            'termination_date': self.termination_date.isoformat() if self.termination_date else None,
+            'reason': self.reason,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }

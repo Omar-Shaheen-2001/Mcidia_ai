@@ -2,6 +2,12 @@
 
 {% block title %}{{ 'قائمة الموظفين' if lang == 'ar' else 'Employees List' }} - Mcidia{% endblock %}
 
+{% block extra_head %}
+<!-- SweetAlert2 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid mt-4">
     <div class="row mb-4">
@@ -58,6 +64,8 @@
                                                 <span class="badge bg-success">{{ 'نشط' if lang == 'ar' else 'Active' }}</span>
                                             {% elif emp.status == 'on_leave' %}
                                                 <span class="badge bg-warning">{{ 'إجازة' if lang == 'ar' else 'On Leave' }}</span>
+                                            {% elif emp.status == 'terminated' %}
+                                                <span class="badge bg-danger">{{ 'منتهي الخدمة' if lang == 'ar' else 'Terminated' }}</span>
                                             {% else %}
                                                 <span class="badge bg-secondary">{{ emp.status }}</span>
                                             {% endif %}
@@ -70,6 +78,11 @@
                                                 <a href="{{ url_for('hr_module.edit_employee', employee_id=emp.id) }}" class="btn btn-sm btn-warning" title="{{ 'تعديل' if lang == 'ar' else 'Edit' }}">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
+                                                {% if emp.status == 'active' %}
+                                                <button type="button" class="btn btn-sm btn-secondary" title="{{ 'إنهاء الخدمة' if lang == 'ar' else 'Terminate' }}" onclick="terminateEmployee({{ emp.id }}, '{{ emp.full_name }}', '{{ emp.employee_number }}')">
+                                                    <i class="fas fa-user-times"></i>
+                                                </button>
+                                                {% endif %}
                                                 <button type="button" class="btn btn-sm btn-danger" title="{{ 'حذف' if lang == 'ar' else 'Delete' }}" onclick="deleteEmployee({{ emp.id }}, '{{ emp.full_name }}')">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
@@ -100,9 +113,110 @@
 </div>
 
 <script>
+const lang = '{{ lang }}';
+
 function deleteEmployee(empId, empName) {
-    if (confirm('{{ "هل أنت متأكد من حذف الموظف" if lang == "ar" else "Are you sure you want to delete employee" }} ' + empName + '?')) {
+    if (confirm((lang === 'ar' ? 'هل أنت متأكد من حذف الموظف ' : 'Are you sure you want to delete employee ') + empName + '?')) {
         document.getElementById('delete-form-' + empId).submit();
+    }
+}
+
+async function terminateEmployee(empId, empName, empNumber) {
+    const { value: formValues } = await Swal.fire({
+        title: lang === 'ar' ? 'إنهاء خدمة الموظف' : 'Terminate Employee',
+        html: `
+            <div class="text-start" style="direction: ${lang === 'ar' ? 'rtl' : 'ltr'}">
+                <p class="mb-3"><strong>${lang === 'ar' ? 'الموظف:' : 'Employee:'}</strong> ${empName} (${empNumber})</p>
+                
+                <div class="mb-3">
+                    <label class="form-label"><strong>${lang === 'ar' ? 'نوع الإنهاء' : 'Termination Type'}</strong> <span class="text-danger">*</span></label>
+                    <select id="swal-termination-type" class="form-select">
+                        <option value="">${lang === 'ar' ? '-- اختر نوع الإنهاء --' : '-- Select Type --'}</option>
+                        <option value="admin_action">${lang === 'ar' ? 'إجراء إداري نهائي' : 'Final Administrative Action'}</option>
+                        <option value="contract_expiry">${lang === 'ar' ? 'انتهاء العقد' : 'Contract Expiry'}</option>
+                        <option value="resignation">${lang === 'ar' ? 'الاستقالة' : 'Resignation'}</option>
+                        <option value="mutual_agreement">${lang === 'ar' ? 'انهاء خدمة بالاتفاق' : 'Termination by Agreement'}</option>
+                        <option value="retirement">${lang === 'ar' ? 'التقاعد' : 'Retirement'}</option>
+                        <option value="death">${lang === 'ar' ? 'الوفاة' : 'Death'}</option>
+                        <option value="transfer">${lang === 'ar' ? 'الاعارة او النقل' : 'Transfer or Secondment'}</option>
+                        <option value="performance">${lang === 'ar' ? 'انهاء بسبب الاداء' : 'Termination due to Performance'}</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label"><strong>${lang === 'ar' ? 'تاريخ الإنهاء' : 'Termination Date'}</strong></label>
+                    <input type="date" id="swal-termination-date" class="form-control" value="${new Date().toISOString().split('T')[0]}">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label"><strong>${lang === 'ar' ? 'السبب' : 'Reason'}</strong></label>
+                    <textarea id="swal-reason" class="form-control" rows="2" placeholder="${lang === 'ar' ? 'اذكر السبب التفصيلي' : 'Enter detailed reason'}"></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label"><strong>${lang === 'ar' ? 'ملاحظات إضافية' : 'Additional Notes'}</strong></label>
+                    <textarea id="swal-notes" class="form-control" rows="2" placeholder="${lang === 'ar' ? 'ملاحظات إضافية (اختياري)' : 'Additional notes (optional)'}"></textarea>
+                </div>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: lang === 'ar' ? 'تأكيد الإنهاء' : 'Confirm Termination',
+        cancelButtonText: lang === 'ar' ? 'إلغاء' : 'Cancel',
+        confirmButtonColor: '#dc3545',
+        showLoaderOnConfirm: true,
+        preConfirm: async () => {
+            const terminationType = document.getElementById('swal-termination-type').value;
+            const terminationDate = document.getElementById('swal-termination-date').value;
+            const reason = document.getElementById('swal-reason').value;
+            const notes = document.getElementById('swal-notes').value;
+            
+            if (!terminationType) {
+                Swal.showValidationMessage(lang === 'ar' ? 'الرجاء اختيار نوع الإنهاء' : 'Please select termination type');
+                return false;
+            }
+            
+            try {
+                const response = await fetch(`/org/hr/employees/${empId}/terminate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        termination_type: terminationType,
+                        termination_date: terminationDate,
+                        reason: reason,
+                        notes: notes
+                    })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    Swal.showValidationMessage(data.message || (lang === 'ar' ? 'حدث خطأ في النظام' : 'System error occurred'));
+                    return false;
+                }
+
+                return await response.json();
+            } catch (error) {
+                Swal.showValidationMessage(error.message || (lang === 'ar' ? 'حدث خطأ في الاتصال' : 'Connection error'));
+                return false;
+            }
+        },
+        allowOutsideClick: () => !Swal.isLoading(),
+        width: '600px'
+    });
+
+    if (formValues && formValues.success) {
+        // Success - show message and reload
+        await Swal.fire({
+            icon: 'success',
+            title: lang === 'ar' ? 'تم إنهاء الخدمة' : 'Service Terminated',
+            text: formValues.message,
+            confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+        });
+        
+        // Reload page to show updated status
+        window.location.reload();
     }
 }
 </script>
