@@ -1,0 +1,37 @@
+/* Flexible Layout for Footer */
+html {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.navbar {
+    flex-shrink: 0;
+}
+
+.main-content {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer {
+    flex-shrink: 0;
+    margin-top: auto;
+}
+
+/* Additional responsive adjustments */
+@media (max-width: 767px) {
+    .navbar-collapse {
+        margin-top: 1rem;
+    }
+    .navbar-nav .btn {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+}
