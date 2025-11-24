@@ -266,17 +266,38 @@ class AILog(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
+    
+    # Request details
     module = db.Column(db.String(50), nullable=False)  # strategy, hr, finance, etc.
+    service_type = db.Column(db.String(50))  # SWOT, KPI, Strategy, Consulting, etc.
+    provider_type = db.Column(db.String(50), default='openai')  # openai, huggingface
+    model_name = db.Column(db.String(100))  # gpt-4, claude-3, etc.
+    
+    # Content
     prompt = db.Column(db.Text)
     response = db.Column(db.Text)
-    tokens_used = db.Column(db.Integer)
+    
+    # Metrics
+    tokens_used = db.Column(db.Integer, default=0)
+    estimated_cost = db.Column(db.Float, default=0)  # in USD
+    execution_time_ms = db.Column(db.Integer, default=0)  # milliseconds
+    status = db.Column(db.String(20), default='success')  # success, failed, timeout
+    error_message = db.Column(db.Text)  # if status is failed
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
         return {
             'id': self.id,
+            'user_id': self.user_id,
             'module': self.module,
+            'service_type': self.service_type,
+            'provider_type': self.provider_type,
             'tokens_used': self.tokens_used,
+            'estimated_cost': self.estimated_cost,
+            'execution_time_ms': self.execution_time_ms,
+            'status': self.status,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 

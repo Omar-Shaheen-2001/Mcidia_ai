@@ -1,0 +1,311 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'تفاصيل سجل AI' if lang == 'ar' else 'AI Log Details' }} #{{ log.id }} - Mcidia{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-brain me-2" style="color: #6366f1;"></i>
+                {{ 'تفاصيل سجل AI' if lang == 'ar' else 'AI Log Details' }} #{{ log.id }}
+            </h2>
+            <p class="text-muted">{{ 'عرض التفاصيل الكاملة لطلب الذكاء الاصطناعي' if lang == 'ar' else 'View full AI request details' }}</p>
+        </div>
+        <a href="{{ url_for('ai_management.index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>{{ 'العودة' if lang == 'ar' else 'Back' }}
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Request Info Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-info-circle me-2" style="color: #6366f1;"></i>
+                        {{ 'معلومات الطلب' if lang == 'ar' else 'Request Information' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="text-muted small mb-1">{{ 'المعرّف' if lang == 'ar' else 'ID' }}</p>
+                            <p class="fw-semibold">#{{ log.id }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted small mb-1">{{ 'المستخدم' if lang == 'ar' else 'User' }}</p>
+                            <p class="fw-semibold">{{ log.user.username if log.user else 'Unknown' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="text-muted small mb-1">{{ 'المؤسسة' if lang == 'ar' else 'Organization' }}</p>
+                            <p class="fw-semibold">{{ log.organization.name if log.organization else 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted small mb-1">{{ 'التاريخ والوقت' if lang == 'ar' else 'Date & Time' }}</p>
+                            <p class="fw-semibold">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else 'N/A' }}</p>
+                        </div>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="text-muted small mb-1">{{ 'نوع الخدمة' if lang == 'ar' else 'Service Type' }}</p>
+                            <p class="fw-semibold">
+                                <span class="badge bg-primary">{{ log.service_type or log.module }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted small mb-1">{{ 'الحالة' if lang == 'ar' else 'Status' }}</p>
+                            <p class="fw-semibold">
+                                {% if log.status == 'success' %}
+                                <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ 'ناجح' if lang == 'ar' else 'Success' }}</span>
+                                {% elif log.status == 'failed' %}
+                                <span class="badge bg-danger"><i class="fas fa-times me-1"></i>{{ 'فاشل' if lang == 'ar' else 'Failed' }}</span>
+                                {% else %}
+                                <span class="badge bg-warning">{{ 'انتظار' if lang == 'ar' else log.status }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-chart-bar me-2" style="color: #f59e0b;"></i>
+                        {{ 'المقاييس' if lang == 'ar' else 'Metrics' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                                <div>
+                                    <p class="text-muted small mb-1">{{ 'المزود' if lang == 'ar' else 'Provider' }}</p>
+                                    <p class="fw-semibold">{{ log.provider_type or 'openai' }}</p>
+                                </div>
+                                <div class="badge bg-secondary">{{ log.model_name or 'default' }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                                <div>
+                                    <p class="text-muted small mb-1">{{ 'الرموز المستخدمة' if lang == 'ar' else 'Tokens Used' }}</p>
+                                    <p class="fw-semibold">{{ log.tokens_used or 0 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                                <div>
+                                    <p class="text-muted small mb-1">{{ 'التكلفة المقدرة' if lang == 'ar' else 'Estimated Cost' }}</p>
+                                    <p class="fw-semibold">${{ "%.6f" % log.estimated_cost }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                                <div>
+                                    <p class="text-muted small mb-1">{{ 'وقت التنفيذ' if lang == 'ar' else 'Execution Time' }}</p>
+                                    <p class="fw-semibold">{{ log.execution_time_ms or 0 }}ms</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prompt Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-arrow-right me-2" style="color: #10b981;"></i>
+                        {{ 'الطلب (Prompt)' if lang == 'ar' else 'Prompt' }}
+                    </h5>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('promptContent')">
+                        <i class="fas fa-copy me-1"></i>{{ 'نسخ' if lang == 'ar' else 'Copy' }}
+                    </button>
+                </div>
+                <div class="card-body">
+                    <pre id="promptContent" class="bg-light p-3 rounded mb-0" style="max-height: 400px; overflow-y: auto; border-left: 3px solid #10b981;">{{ log.prompt or 'N/A' }}</pre>
+                </div>
+            </div>
+
+            <!-- Response Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-arrow-left me-2" style="color: #6366f1;"></i>
+                        {{ 'الرد (Response)' if lang == 'ar' else 'Response' }}
+                    </h5>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('responseContent')">
+                        <i class="fas fa-copy me-1"></i>{{ 'نسخ' if lang == 'ar' else 'Copy' }}
+                    </button>
+                </div>
+                <div class="card-body">
+                    <pre id="responseContent" class="bg-light p-3 rounded mb-0" style="max-height: 400px; overflow-y: auto; border-left: 3px solid #6366f1;">{{ log.response or 'N/A' }}</pre>
+                </div>
+            </div>
+
+            <!-- Error Card (if applicable) -->
+            {% if log.error_message %}
+            <div class="card border-0 shadow-sm mb-4 border-danger">
+                <div class="card-header bg-danger bg-opacity-10 border-bottom py-3">
+                    <h5 class="mb-0 fw-bold text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ 'رسالة الخطأ' if lang == 'ar' else 'Error Message' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <pre class="bg-light p-3 rounded mb-0 border-left-3 border-danger">{{ log.error_message }}</pre>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Status Summary -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-chart-pie me-2" style="color: #8b5cf6;"></i>
+                        {{ 'الملخص' if lang == 'ar' else 'Summary' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if log.status == 'success' %}
+                    <div class="alert alert-success border-0 mb-3">
+                        <i class="fas fa-check-circle me-2"></i>
+                        {{ 'الطلب نجح بنجاح' if lang == 'ar' else 'Request completed successfully' }}
+                    </div>
+                    {% elif log.status == 'failed' %}
+                    <div class="alert alert-danger border-0 mb-3">
+                        <i class="fas fa-times-circle me-2"></i>
+                        {{ 'فشل الطلب' if lang == 'ar' else 'Request failed' }}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning border-0 mb-3">
+                        <i class="fas fa-hourglass-half me-2"></i>
+                        {{ 'انتظار النتيجة' if lang == 'ar' else 'Awaiting result' }}
+                    </div>
+                    {% endif %}
+
+                    <div class="info-item mb-3 pb-3 border-bottom">
+                        <p class="text-muted small mb-1">{{ 'معرّف المستخدم' if lang == 'ar' else 'User ID' }}</p>
+                        <p class="fw-semibold">{{ log.user_id }}</p>
+                    </div>
+
+                    <div class="info-item mb-3 pb-3 border-bottom">
+                        <p class="text-muted small mb-1">{{ 'الوحدة' if lang == 'ar' else 'Module' }}</p>
+                        <p class="fw-semibold"><code>{{ log.module }}</code></p>
+                    </div>
+
+                    <div class="info-item mb-3 pb-3 border-bottom">
+                        <p class="text-muted small mb-1">{{ 'نوع المزود' if lang == 'ar' else 'Provider Type' }}</p>
+                        <p class="fw-semibold">
+                            <span class="badge bg-secondary">{{ log.provider_type or 'openai' }}</span>
+                        </p>
+                    </div>
+
+                    <div class="info-item">
+                        <p class="text-muted small mb-1">{{ 'اسم النموذج' if lang == 'ar' else 'Model Name' }}</p>
+                        <p class="fw-semibold">{{ log.model_name or 'default' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-link me-2" style="color: #06b6d4;"></i>
+                        {{ 'روابط سريعة' if lang == 'ar' else 'Quick Links' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('admin.users_detail', user_id=log.user_id) }}" class="btn btn-outline-primary btn-sm w-100 mb-2" target="_blank">
+                        <i class="fas fa-user me-1"></i>{{ 'عرض ملف المستخدم' if lang == 'ar' else 'View User Profile' }}
+                    </a>
+                    {% if log.organization %}
+                    <a href="{{ url_for('admin.organizations_detail', org_id=log.organization_id) }}" class="btn btn-outline-primary btn-sm w-100 mb-2" target="_blank">
+                        <i class="fas fa-building me-1"></i>{{ 'عرض المؤسسة' if lang == 'ar' else 'View Organization' }}
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('ai_management.index', user_id=log.user_id) }}" class="btn btn-outline-secondary btn-sm w-100">
+                        <i class="fas fa-history me-1"></i>{{ 'سجلات هذا المستخدم' if lang == 'ar' else 'User\'s AI Logs' }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyToClipboard(elementId) {
+        const element = document.getElementById(elementId);
+        const text = element.innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            // Show success message
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: '{{ "تم النسخ" if lang == "ar" else "Copied" }}',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            } else {
+                alert('{{ "تم النسخ للحافظة" if lang == "ar" else "Copied to clipboard" }}');
+            }
+        }).catch(() => {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: '{{ "فشل النسخ" if lang == "ar" else "Copy failed" }}',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            }
+        });
+    }
+</script>
+
+<style>
+    pre {
+        font-family: 'Monaco', 'Courier New', monospace;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        word-break: break-word;
+        white-space: pre-wrap;
+    }
+
+    .info-item p:last-child {
+        margin-bottom: 0;
+    }
+
+    code {
+        background-color: rgba(99, 102, 241, 0.1);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        color: #6366f1;
+    }
+
+    .btn-outline-primary, .btn-outline-secondary {
+        font-size: 0.875rem;
+    }
+</style>
+
+{% endblock %}

@@ -354,17 +354,29 @@ def api_generate_content(service_slug, offering_slug):
 يرجى تقديم استشارة شاملة ومفصلة منسقة بـ Markdown."""
     
     try:
+        import time
+        start_time = time.time()
+        
         # Use HuggingFace AI via AIManager (same as Strategic Planning)
         ai_manager = AIManager.for_use_case('custom_consultation')
         response_text = ai_manager.chat(system_prompt, user_message)
         
-        # Log AI usage
+        execution_time_ms = int((time.time() - start_time) * 1000)
+        
+        # Log AI usage with comprehensive details
         ai_log = AILog(
             user_id=int(user_id),
+            organization_id=user.organization_id,
             module=f"{service_slug}_{offering_slug}",
+            service_type=offering.title_ar if lang == 'ar' else offering.title_en,
+            provider_type='huggingface',
+            model_name='mistral',
             prompt=f"{system_prompt}\n\nUser: {user_message}",
             response=response_text,
-            tokens_used=offering.ai_credits_cost or 1
+            tokens_used=offering.ai_credits_cost or 1,
+            estimated_cost=0.0,  # Will be calculated based on tokens
+            execution_time_ms=execution_time_ms,
+            status='success'
         )
         db.session.add(ai_log)
         
@@ -404,6 +416,27 @@ def api_generate_content(service_slug, offering_slug):
         
     except Exception as e:
         db.session.rollback()
+        
+        import time
+        execution_time_ms = int((time.time() - start_time) * 1000) if 'start_time' in locals() else 0
+        
+        # Log failed AI usage
+        failed_log = AILog(
+            user_id=int(user_id),
+            organization_id=user.organization_id,
+            module=f"{service_slug}_{offering_slug}",
+            service_type=offering.title_ar if lang == 'ar' else offering.title_en,
+            provider_type='huggingface',
+            model_name='mistral',
+            prompt=user_message,
+            response='',
+            status='failed',
+            error_message=str(e),
+            execution_time_ms=execution_time_ms
+        )
+        db.session.add(failed_log)
+        db.session.commit()
+        
         # Return user-friendly error messages
         error_msg = str(e)
         

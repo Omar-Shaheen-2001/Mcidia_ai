@@ -1,10 +1,340 @@
 {% extends "admin/base.html" %}
 
+{% block title %}{{ 'سجل طلبات الذكاء الاصطناعي' if lang == 'ar' else 'AI Requests Log' }} - Mcidia{% endblock %}
+
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h2>{{ module_title }}</h2>
-        <p class="text-muted">{{ 'قيد التطوير' if lang == 'ar' else 'Under Development' }}</p>
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-brain me-2" style="color: #6366f1;"></i>
+                {{ 'سجل طلبات الذكاء الاصطناعي' if lang == 'ar' else 'AI Requests Log' }}
+            </h2>
+            <p class="text-muted">{{ 'تتبع وإدارة جميع طلبات الذكاء الاصطناعي' if lang == 'ar' else 'Track and manage all AI requests' }}</p>
+        </div>
     </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small fw-semibold">{{ 'إجمالي الطلبات' if lang == 'ar' else 'Total Requests' }}</p>
+                            <h3 class="mb-0" style="color: #6366f1;">{{ total_requests }}</h3>
+                        </div>
+                        <div class="icon-box" style="background-color: rgba(99, 102, 241, 0.1); width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                            <i class="fas fa-chart-line" style="color: #6366f1; font-size: 20px;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small fw-semibold">{{ 'الطلبات الناجحة' if lang == 'ar' else 'Successful' }}</p>
+                            <h3 class="mb-0" style="color: #10b981;">
+                                {{ success_count }}
+                                <small class="text-muted ms-2">{{ "%.1f%%" % ((success_count / total_requests * 100) if total_requests > 0 else 0) }}</small>
+                            </h3>
+                        </div>
+                        <div class="icon-box" style="background-color: rgba(16, 185, 129, 0.1); width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                            <i class="fas fa-check-circle" style="color: #10b981; font-size: 20px;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small fw-semibold">{{ 'الطلبات الفاشلة' if lang == 'ar' else 'Failed' }}</p>
+                            <h3 class="mb-0" style="color: #ef4444;">{{ failed_count }}</h3>
+                        </div>
+                        <div class="icon-box" style="background-color: rgba(239, 68, 68, 0.1); width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                            <i class="fas fa-times-circle" style="color: #ef4444; font-size: 20px;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small fw-semibold">{{ 'إجمالي التكلفة' if lang == 'ar' else 'Total Cost' }}</p>
+                            <h3 class="mb-0" style="color: #f59e0b;">${{ "%.2f" % total_cost }}</h3>
+                        </div>
+                        <div class="icon-box" style="background-color: rgba(245, 158, 11, 0.1); width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                            <i class="fas fa-dollar-sign" style="color: #f59e0b; font-size: 20px;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <h6 class="card-title fw-bold mb-3">
+                <i class="fas fa-filter me-2"></i>
+                {{ 'الفلاتر' if lang == 'ar' else 'Filters' }}
+            </h6>
+            <form method="get" class="row g-3">
+                <!-- User Filter -->
+                <div class="col-lg-2 col-md-4">
+                    <label class="form-label small fw-semibold">{{ 'المستخدم' if lang == 'ar' else 'User' }}</label>
+                    <select class="form-select form-select-sm" name="user_id">
+                        <option value="">{{ 'الكل' if lang == 'ar' else 'All' }}</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}" {% if filters.user_id == user.id %}selected{% endif %}>{{ user.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Organization Filter -->
+                <div class="col-lg-2 col-md-4">
+                    <label class="form-label small fw-semibold">{{ 'المؤسسة' if lang == 'ar' else 'Organization' }}</label>
+                    <select class="form-select form-select-sm" name="org_id">
+                        <option value="">{{ 'الكل' if lang == 'ar' else 'All' }}</option>
+                        {% for org in organizations %}
+                        <option value="{{ org.id }}" {% if filters.org_id == org.id %}selected{% endif %}>{{ org.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Service Type Filter -->
+                <div class="col-lg-2 col-md-4">
+                    <label class="form-label small fw-semibold">{{ 'نوع الخدمة' if lang == 'ar' else 'Service Type' }}</label>
+                    <select class="form-select form-select-sm" name="service_type">
+                        <option value="">{{ 'الكل' if lang == 'ar' else 'All' }}</option>
+                        {% for st in service_types %}
+                        {% if st[0] %}
+                        <option value="{{ st[0] }}" {% if filters.service_type == st[0] %}selected{% endif %}>{{ st[0] }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Provider Filter -->
+                <div class="col-lg-2 col-md-4">
+                    <label class="form-label small fw-semibold">{{ 'المزود' if lang == 'ar' else 'Provider' }}</label>
+                    <select class="form-select form-select-sm" name="provider_type">
+                        <option value="">{{ 'الكل' if lang == 'ar' else 'All' }}</option>
+                        {% for prov in providers %}
+                        {% if prov[0] %}
+                        <option value="{{ prov[0] }}" {% if filters.provider_type == prov[0] %}selected{% endif %}>{{ prov[0] }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="col-lg-2 col-md-4">
+                    <label class="form-label small fw-semibold">{{ 'الحالة' if lang == 'ar' else 'Status' }}</label>
+                    <select class="form-select form-select-sm" name="status">
+                        <option value="">{{ 'الكل' if lang == 'ar' else 'All' }}</option>
+                        <option value="success" {% if filters.status == 'success' %}selected{% endif %}>{{ 'ناجح' if lang == 'ar' else 'Success' }}</option>
+                        <option value="failed" {% if filters.status == 'failed' %}selected{% endif %}>{{ 'فاشل' if lang == 'ar' else 'Failed' }}</option>
+                        <option value="timeout" {% if filters.status == 'timeout' %}selected{% endif %}>{{ 'انتهت المهلة الزمنية' if lang == 'ar' else 'Timeout' }}</option>
+                    </select>
+                </div>
+
+                <div class="col-lg-2 col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <i class="fas fa-search me-1"></i>
+                        {{ 'بحث' if lang == 'ar' else 'Search' }}
+                    </button>
+                </div>
+
+                <!-- Date Filters (next row) -->
+                <div class="col-lg-2 col-md-4">
+                    <label class="form-label small fw-semibold">{{ 'من التاريخ' if lang == 'ar' else 'From Date' }}</label>
+                    <input type="date" class="form-control form-control-sm" name="date_from" value="{{ filters.date_from }}">
+                </div>
+
+                <div class="col-lg-2 col-md-4">
+                    <label class="form-label small fw-semibold">{{ 'إلى التاريخ' if lang == 'ar' else 'To Date' }}</label>
+                    <input type="date" class="form-control form-control-sm" name="date_to" value="{{ filters.date_to }}">
+                </div>
+
+                <!-- Search Text -->
+                <div class="col-lg-4 col-md-4">
+                    <label class="form-label small fw-semibold">{{ 'بحث في النص' if lang == 'ar' else 'Search Text' }}</label>
+                    <input type="text" class="form-control form-control-sm" name="search" placeholder="{{ 'ابحث في الطلبات والردود' if lang == 'ar' else 'Search prompts and responses' }}" value="{{ filters.search }}">
+                </div>
+
+                <div class="col-lg-2 col-md-4 d-flex align-items-end">
+                    <a href="{{ url_for('ai_management.index') }}" class="btn btn-secondary btn-sm w-100">
+                        <i class="fas fa-redo me-1"></i>
+                        {{ 'إعادة تعيين' if lang == 'ar' else 'Reset' }}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Info -->
+    <div class="alert alert-info mb-3">
+        <i class="fas fa-info-circle me-2"></i>
+        {{ 'يتم عرض %d من %d سجل' % (logs|length, total_count) if lang == 'ar' else 'Showing %d of %d records' % (logs|length, total_count) }}
+    </div>
+
+    <!-- Logs Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="small fw-semibold">{{ 'المعرّف' if lang == 'ar' else 'ID' }}</th>
+                        <th class="small fw-semibold">{{ 'المستخدم' if lang == 'ar' else 'User' }}</th>
+                        <th class="small fw-semibold">{{ 'نوع الخدمة' if lang == 'ar' else 'Service Type' }}</th>
+                        <th class="small fw-semibold">{{ 'المزود' if lang == 'ar' else 'Provider' }}</th>
+                        <th class="small fw-semibold">{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                        <th class="small fw-semibold">{{ 'التكلفة' if lang == 'ar' else 'Cost' }}</th>
+                        <th class="small fw-semibold">{{ 'الوقت' if lang == 'ar' else 'Time (ms)' }}</th>
+                        <th class="small fw-semibold">{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                        <th class="small fw-semibold">{{ 'الإجراء' if lang == 'ar' else 'Action' }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if logs %}
+                        {% for log in logs %}
+                        <tr>
+                            <td class="small">
+                                <code class="text-info">#{{ log.id }}</code>
+                            </td>
+                            <td class="small">
+                                <strong>{{ log.user.username if log.user else 'Unknown' }}</strong>
+                                {% if log.organization %}
+                                <br>
+                                <small class="text-muted">{{ log.organization.name }}</small>
+                                {% endif %}
+                            </td>
+                            <td class="small">
+                                <span class="badge bg-primary">{{ log.service_type or log.module }}</span>
+                            </td>
+                            <td class="small">
+                                <span class="badge bg-secondary">{{ log.provider_type or 'openai' }}</span>
+                            </td>
+                            <td class="small">
+                                {% if log.status == 'success' %}
+                                <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ 'ناجح' if lang == 'ar' else 'Success' }}</span>
+                                {% elif log.status == 'failed' %}
+                                <span class="badge bg-danger"><i class="fas fa-times me-1"></i>{{ 'فاشل' if lang == 'ar' else 'Failed' }}</span>
+                                {% else %}
+                                <span class="badge bg-warning"><i class="fas fa-hourglass-half me-1"></i>{{ 'انتظار' if lang == 'ar' else log.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-end">
+                                <strong>${{ "%.3f" % log.estimated_cost }}</strong>
+                            </td>
+                            <td class="small text-end">
+                                <span class="text-muted">{{ log.execution_time_ms or 0 }}ms</span>
+                            </td>
+                            <td class="small">
+                                <span class="text-muted" title="{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '' }}">
+                                    {{ log.created_at.strftime('%Y-%m-%d') if log.created_at else '' }}
+                                </span>
+                            </td>
+                            <td class="small">
+                                <a href="{{ url_for('ai_management.view_log', log_id=log.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i>{{ 'عرض' if lang == 'ar' else 'View' }}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4 text-muted">
+                            <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                            {{ 'لا توجد سجلات' if lang == 'ar' else 'No records found' }}
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if current_page > 1 %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('ai_management.index', page=1, **filters) }}">{{ '«' if lang == 'ar' else '«' }}</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('ai_management.index', page=current_page-1, **filters) }}">{{ '‹' if lang == 'ar' else '‹' }}</a>
+            </li>
+            {% endif %}
+
+            {% for page_num in range(max(1, current_page-2), min(total_pages+1, current_page+3)) %}
+                {% if page_num == current_page %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page_num }}</span>
+                </li>
+                {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('ai_management.index', page=page_num, **filters) }}">{{ page_num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if current_page < total_pages %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('ai_management.index', page=current_page+1, **filters) }}">{{ '›' if lang == 'ar' else '›' }}</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('ai_management.index', page=total_pages, **filters) }}">{{ '»' if lang == 'ar' else '»' }}</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
+
+<style>
+    .icon-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(99, 102, 241, 0.05);
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+        font-weight: 500;
+    }
+
+    .form-select-sm, .form-control-sm {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+
+    code {
+        background-color: rgba(99, 102, 241, 0.1);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+    }
+</style>
+
 {% endblock %}

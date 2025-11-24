@@ -56,6 +56,19 @@ AI-powered KPI generation automatically creates 3-5 KPIs per strategic objective
 ### Enhanced AI Consultation Display
 AI consultation outputs are transformed into professionally formatted displays with cards, grids, tables, and stat boxes using Marked.js for Markdown to HTML conversion and DOMPurify for XSS protection. This includes dynamic content transformation via JavaScript for visual components and enhanced styling with CSS. AI prompts are designed to encourage structured Markdown output for optimal visualization.
 
+### Comprehensive AI Logs Admin Panel (/admin/ai/)
+A fully-featured administrative dashboard for tracking all AI interactions with:
+- **Core Metrics**: Total requests, success rate, failed requests, total cost
+- **Request Details**: User, organization, service type, AI provider (OpenAI/HuggingFace), model name, execution time
+- **Content Tracking**: Full prompt and response logging with code highlighting
+- **Status Tracking**: Success/failed/timeout with error messages for debugging
+- **Cost Calculation**: Estimated costs per request based on tokens and provider pricing
+- **Advanced Filtering**: Filter by user, organization, service type, provider, status, date range, and full-text search
+- **Pagination**: 50 records per page with navigation
+- **Statistics API**: `/api/stats` endpoint for daily stats, provider breakdown, service breakdown
+- **Detailed View**: Individual log details page with copy-to-clipboard functionality
+- **Bilingual**: Full Arabic/English support with RTL/LTR layouts
+
 ## External Dependencies
 
 ### Third-Party Services
