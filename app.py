@@ -77,6 +77,18 @@ def create_app():
     csrf.init_app(app)
     CORS(app)
     
+    # Add Jinja filters
+    import json
+    @app.template_filter('from_json')
+    def from_json_filter(value):
+        """Convert JSON string to Python object"""
+        if not value:
+            return []
+        try:
+            return json.loads(value) if isinstance(value, str) else value
+        except:
+            return []
+    
     # Enable CSRF only for form pages (HTML POST requests)
     # API endpoints are protected by JWT instead
     @app.before_request
