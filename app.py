@@ -1,5 +1,6 @@
 import os
-from flask import Flask, redirect, url_for, render_template
+from datetime import timedelta
+from flask import Flask, redirect, url_for, render_template, request, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
@@ -66,12 +67,24 @@ def create_app():
     app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable JWT CSRF, use Flask-WTF instead
     app.config['JWT_ACCESS_COOKIE_PATH'] = '/'
     app.config['JWT_COOKIE_SAMESITE'] = 'Lax'  # Important for cookie handling
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)  # Keep tokens valid for 7 days
+    app.config['WTF_CSRF_CHECK_DEFAULT'] = False  # Disable CSRF by default, enable manually where needed
     
     # Initialize extensions
     db.init_app(app)
     jwt.init_app(app)
     csrf.init_app(app)
     CORS(app)
+    
+    # Enable CSRF only for form pages (HTML POST requests)
+    # API endpoints are protected by JWT instead
+    @app.before_request
+    def apply_csrf_protection():
+        """Only protect HTML forms from CSRF, not JSON API requests"""
+        if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+            # Skip CSRF for API endpoints and JSON requests
+            if '/api' not in request.path and request.content_type != 'application/json':
+                csrf.protect()
     
     # JWT error handlers for HTML pages
     @jwt.unauthorized_loader

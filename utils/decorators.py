@@ -25,9 +25,12 @@ def login_required(f):
             print(f"JWT Verification Error: {type(e).__name__}: {str(e)}")
             
             # Check if this is an API request (looking for JSON)
-            if request.path.endswith('/api') or 'application/json' in request.headers.get('Accept', ''):
+            # API paths can be anywhere, not just ending with /api
+            is_api_request = '/api' in request.path or 'application/json' in request.headers.get('Accept', '') or request.method in ['POST', 'PUT', 'DELETE', 'PATCH']
+            
+            if is_api_request:
                 from flask import jsonify
-                return jsonify({'success': False, 'error': 'Authentication required'}), 401
+                return jsonify({'success': False, 'error': 'Authentication required', 'type': type(e).__name__}), 401
             
             # Fail closed - always redirect to login on any JWT error
             lang = session.get('language', 'ar')
