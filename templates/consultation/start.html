@@ -2,6 +2,11 @@
 
 {% block title %}{{ 'استشارة فورية جديدة' if lang == 'ar' else 'New Consultation' }} - Mcidia{% endblock %}
 
+{% block extra_js_head %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .consultation-container {
@@ -114,9 +119,117 @@
     }
     
     .assistant .message-content {
-        background: #f0f0f0;
+        background: #f9f9f9;
         color: #333;
         border-bottom-left-radius: 0;
+        border: 1px solid #e8e8e8;
+    }
+    
+    /* Markdown styling for assistant messages */
+    .assistant .message-content h1,
+    .assistant .message-content h2,
+    .assistant .message-content h3 {
+        margin: 12px 0 8px 0;
+        color: #0A2756;
+        font-weight: 700;
+    }
+    
+    .assistant .message-content h1 {
+        font-size: 18px;
+        border-bottom: 2px solid #0A2756;
+        padding-bottom: 6px;
+    }
+    
+    .assistant .message-content h2 {
+        font-size: 16px;
+    }
+    
+    .assistant .message-content h3 {
+        font-size: 14px;
+    }
+    
+    .assistant .message-content p {
+        margin: 8px 0;
+        line-height: 1.6;
+    }
+    
+    .assistant .message-content ul,
+    .assistant .message-content ol {
+        margin: 8px 0 8px 20px;
+        line-height: 1.8;
+    }
+    
+    .assistant .message-content li {
+        margin: 4px 0;
+    }
+    
+    .assistant .message-content code {
+        background: #e8e8e8;
+        color: #d63384;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+    }
+    
+    .assistant .message-content pre {
+        background: #2d2d2d;
+        color: #f8f8f2;
+        padding: 12px;
+        border-radius: 6px;
+        overflow-x: auto;
+        margin: 8px 0;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+    
+    .assistant .message-content pre code {
+        background: none;
+        color: inherit;
+        padding: 0;
+        border-radius: 0;
+    }
+    
+    .assistant .message-content blockquote {
+        border-left: 4px solid #0A2756;
+        margin: 8px 0;
+        padding-left: 12px;
+        color: #666;
+        font-style: italic;
+    }
+    
+    .assistant .message-content strong {
+        color: #0A2756;
+        font-weight: 700;
+    }
+    
+    .assistant .message-content em {
+        font-style: italic;
+        color: #2C8C56;
+    }
+    
+    .assistant .message-content a {
+        color: #0A2756;
+        text-decoration: underline;
+    }
+    
+    .assistant .message-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 8px 0;
+        font-size: 13px;
+    }
+    
+    .assistant .message-content table th,
+    .assistant .message-content table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    
+    .assistant .message-content table th {
+        background: #0A2756;
+        color: white;
     }
     
     .message-time {
@@ -466,20 +579,28 @@
         
         const content_div = document.createElement('div');
         content_div.className = 'message-content';
-        content_div.textContent = content;
         
-        if (role === 'user') {
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(content_div);
-        } else {
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(content_div);
-            if (cost) {
-                const costSpan = document.createElement('div');
-                costSpan.className = 'message-cost';
-                costSpan.textContent = `💰 $${cost.toFixed(4)}`;
-                messageDiv.appendChild(costSpan);
+        if (role === 'assistant') {
+            // Render markdown for assistant messages
+            try {
+                const htmlContent = marked.parse(content);
+                content_div.innerHTML = DOMPurify.sanitize(htmlContent);
+            } catch (e) {
+                content_div.textContent = content;
             }
+        } else {
+            // Plain text for user messages
+            content_div.textContent = content;
+        }
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(content_div);
+        
+        if (role === 'assistant' && cost) {
+            const costSpan = document.createElement('div');
+            costSpan.className = 'message-cost';
+            costSpan.textContent = `💰 $${cost.toFixed(4)}`;
+            messageDiv.appendChild(costSpan);
         }
         
         messagesDiv.appendChild(messageDiv);
