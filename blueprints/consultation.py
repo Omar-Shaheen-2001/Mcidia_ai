@@ -10,10 +10,9 @@ import time
 
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
-consultation_bp = Blueprint('consultation', __name__, url_prefix='/consultation')
+consultation_bp = Blueprint('consultation', __name__)
 
 @consultation_bp.route('/')
-@login_required
 def index():
     lang = session.get('language', 'ar')
     db = current_app.extensions['sqlalchemy']
