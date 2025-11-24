@@ -6,12 +6,7 @@ from sqlalchemy import func
 from datetime import datetime
 import json
 from io import BytesIO
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import mm, inch
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
-from reportlab.lib import colors
-from reportlab.pdfgen import canvas
+from weasyprint import HTML, CSS
 
 consultations_bp = Blueprint('consultations_admin', __name__, url_prefix='/consultations')
 
@@ -175,141 +170,224 @@ def export_session_pdf(session_id):
     total_consultations = db.session.query(ChatSession).filter_by(user_id=session_obj.user_id).count()
     session_cost = (user_consultation_cost / total_consultations) if total_consultations > 0 else 0
     
-    # Create PDF
-    pdf_buffer = BytesIO()
-    doc = SimpleDocTemplate(pdf_buffer, pagesize=A4, rightMargin=15*mm, leftMargin=15*mm, topMargin=15*mm, bottomMargin=15*mm)
+    # Parse messages
+    messages = json.loads(session_obj.messages) if session_obj.messages else []
+    message_count = len(messages)
     
-    # Define styles
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        'CustomTitle',
-        parent=styles['Heading1'],
-        fontSize=18,
-        textColor=colors.HexColor('#0d6efd'),
-        spaceAfter=12,
-        alignment=1 if lang == 'ar' else 0
-    )
+    # Build HTML content
+    direction = 'rtl' if lang == 'ar' else 'ltr'
+    text_align = 'right' if lang == 'ar' else 'left'
+    border_side = 'right' if lang == 'ar' else 'left'
     
-    heading_style = ParagraphStyle(
-        'CustomHeading',
-        parent=styles['Heading2'],
-        fontSize=14,
-        textColor=colors.HexColor('#28a745'),
-        spaceAfter=10,
-        spaceBefore=10,
-        alignment=1 if lang == 'ar' else 0
-    )
-    
-    normal_style = ParagraphStyle(
-        'CustomNormal',
-        parent=styles['Normal'],
-        fontSize=10,
-        alignment=1 if lang == 'ar' else 0,
-        textColor=colors.HexColor('#333333')
-    )
-    
-    label_style = ParagraphStyle(
-        'Label',
-        parent=styles['Normal'],
-        fontSize=9,
-        textColor=colors.HexColor('#666666'),
-        alignment=1 if lang == 'ar' else 0
-    )
-    
-    # Build PDF content
-    story = []
-    
-    # Title
-    title = 'تقرير تفاصيل جلسة الاستشارة' if lang == 'ar' else 'Consultation Session Report'
-    story.append(Paragraph(f'🔹 {title}', title_style))
-    story.append(Spacer(1, 10*mm))
-    
-    # Session Information
-    story.append(Paragraph('📋 معلومات الجلسة' if lang == 'ar' else '📋 Session Information', heading_style))
-    
-    info_data = [
-        ['معرّف الجلسة:', str(session_obj.id)] if lang == 'ar' else ['Session ID:', str(session_obj.id)],
-        ['المستخدم:', user.username] if lang == 'ar' else ['User:', user.username],
-        ['البريد الإلكتروني:', user.email] if lang == 'ar' else ['Email:', user.email],
-        ['المجال:', session_obj.domain or 'General'] if lang == 'ar' else ['Domain:', session_obj.domain or 'General'],
-        ['التاريخ:', session_obj.created_at.strftime('%d/%m/%Y %H:%M:%S')] if lang == 'ar' else ['Date:', session_obj.created_at.strftime('%d/%m/%Y %H:%M:%S')],
-    ]
-    
-    info_table = Table(info_data, colWidths=[60*mm, 110*mm])
-    info_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f0f0f0')),
-        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-        ('ALIGN', (0, 0), (-1, -1), 'RIGHT' if lang == 'ar' else 'LEFT'),
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('GRID', (0, 0), (-1, -1), 1, colors.grey),
-    ]))
-    story.append(info_table)
-    story.append(Spacer(1, 8*mm))
-    
-    # Statistics
-    story.append(Paragraph('📊 الإحصائيات' if lang == 'ar' else '📊 Statistics', heading_style))
-    
-    stats_data = [
-        ['التكلفة المقدرة:', f'${session_cost:.4f}'] if lang == 'ar' else ['Estimated Cost:', f'${session_cost:.4f}'],
-        ['عدد الرسائل:', str((json.loads(session_obj.messages) if session_obj.messages else []).__len__())] if lang == 'ar' else ['Message Count:', str((json.loads(session_obj.messages) if session_obj.messages else []).__len__())],
-    ]
-    
-    stats_table = Table(stats_data, colWidths=[60*mm, 110*mm])
-    stats_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#e7f3ff')),
-        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-        ('ALIGN', (0, 0), (-1, -1), 'RIGHT' if lang == 'ar' else 'LEFT'),
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('GRID', (0, 0), (-1, -1), 1, colors.grey),
-    ]))
-    story.append(stats_table)
-    story.append(Spacer(1, 12*mm))
-    
-    # Conversation
-    if session_obj.messages:
-        story.append(Paragraph('💬 محادثة الجلسة' if lang == 'ar' else '💬 Session Conversation', heading_style))
+    html_content = f"""
+    <!DOCTYPE html>
+    <html dir="{direction}" lang="{lang}">
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            * {{
+                font-family: Arial, sans-serif;
+            }}
+            body {{
+                direction: {direction};
+                text-align: {text_align};
+                margin: 0;
+                padding: 20px;
+                background: #fff;
+                line-height: 1.6;
+            }}
+            .header {{
+                background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 8px;
+                margin-bottom: 30px;
+                text-align: center;
+            }}
+            .header h1 {{
+                margin: 0;
+                font-size: 24px;
+                font-weight: 700;
+            }}
+            .section {{
+                margin-bottom: 25px;
+            }}
+            .section-title {{
+                font-size: 16px;
+                font-weight: 700;
+                color: #28a745;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #28a745;
+            }}
+            .info-table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 15px;
+            }}
+            .info-table tr {{
+                border-bottom: 1px solid #e0e0e0;
+            }}
+            .info-table td {{
+                padding: 12px;
+                text-align: {text_align};
+            }}
+            .info-table td:first-child {{
+                background: #f5f5f5;
+                font-weight: 600;
+                width: 25%;
+            }}
+            .stats-table {{
+                width: 100%;
+                background: #e7f3ff;
+                border-collapse: collapse;
+                margin-bottom: 15px;
+            }}
+            .stats-table tr {{
+                border-bottom: 1px solid #b0d4ff;
+            }}
+            .stats-table td {{
+                padding: 12px;
+                text-align: {text_align};
+            }}
+            .stats-table td:first-child {{
+                background: #cce5ff;
+                font-weight: 600;
+                width: 25%;
+            }}
+            .message {{
+                margin-bottom: 15px;
+                padding: 12px;
+                border-radius: 8px;
+                border-{border_side}: 4px solid;
+            }}
+            .message-user {{
+                background: #f9f9f9;
+                border-color: #0d6efd;
+            }}
+            .message-assistant {{
+                background: #e7f3ff;
+                border-color: #28a745;
+            }}
+            .message-header {{
+                font-weight: 600;
+                margin-bottom: 8px;
+                font-size: 12px;
+            }}
+            .message-user .message-header {{
+                color: #0d6efd;
+            }}
+            .message-assistant .message-header {{
+                color: #28a745;
+            }}
+            .message-content {{
+                color: #333;
+                word-wrap: break-word;
+            }}
+            .footer {{
+                text-align: center;
+                margin-top: 30px;
+                padding-top: 15px;
+                border-top: 1px solid #e0e0e0;
+                color: #999;
+                font-size: 12px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>📋 {'تقرير تفاصيل جلسة الاستشارة' if lang == 'ar' else 'Consultation Session Report'}</h1>
+        </div>
         
-        messages = json.loads(session_obj.messages) if session_obj.messages else []
-        for msg in messages:
-            role = msg.get('role', 'user') if isinstance(msg, dict) else 'user'
-            content = msg.get('content', msg) if isinstance(msg, dict) else msg
-            timestamp = msg.get('timestamp', '') if isinstance(msg, dict) else ''
-            
-            sender = 'المستخدم' if lang == 'ar' else 'User' if role == 'user' else 'المستشار الذكي' if lang == 'ar' else 'AI Assistant'
-            
-            header = f'👤 {sender}'
-            if timestamp:
-                ts = timestamp[:19] if len(timestamp) > 19 else timestamp
-                header += f' ({ts})'
-            
-            story.append(Paragraph(header, ParagraphStyle(
-                'MsgHeader',
-                parent=styles['Normal'],
-                fontSize=9,
-                textColor=colors.HexColor('#0d6efd' if role == 'user' else '#28a745'),
-                spaceAfter=4,
-                alignment=1 if lang == 'ar' else 0
-            )))
-            
-            story.append(Paragraph(content, normal_style))
-            story.append(Spacer(1, 6*mm))
+        <div class="section">
+            <h2 class="section-title">📋 {'معلومات الجلسة' if lang == 'ar' else 'Session Information'}</h2>
+            <table class="info-table">
+                <tr>
+                    <td>{'معرّف الجلسة:' if lang == 'ar' else 'Session ID:'}</td>
+                    <td>{session_obj.id}</td>
+                </tr>
+                <tr>
+                    <td>{'المستخدم:' if lang == 'ar' else 'User:'}</td>
+                    <td>{user.username}</td>
+                </tr>
+                <tr>
+                    <td>{'البريد الإلكتروني:' if lang == 'ar' else 'Email:'}</td>
+                    <td>{user.email}</td>
+                </tr>
+                <tr>
+                    <td>{'المجال:' if lang == 'ar' else 'Domain:'}</td>
+                    <td>{session_obj.domain or 'General'}</td>
+                </tr>
+                <tr>
+                    <td>{'التاريخ:' if lang == 'ar' else 'Date:'}</td>
+                    <td>{session_obj.created_at.strftime('%d/%m/%Y %H:%M:%S') if session_obj.created_at else '-'}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">📊 {'الإحصائيات' if lang == 'ar' else 'Statistics'}</h2>
+            <table class="stats-table">
+                <tr>
+                    <td>{'التكلفة المقدرة:' if lang == 'ar' else 'Estimated Cost:'}</td>
+                    <td>${session_cost:.4f}</td>
+                </tr>
+                <tr>
+                    <td>{'عدد الرسائل:' if lang == 'ar' else 'Message Count:'}</td>
+                    <td>{message_count}</td>
+                </tr>
+            </table>
+        </div>
+        
+        {'<div class="section"><h2 class="section-title">💬 ' + ('محادثة الجلسة' if lang == 'ar' else 'Session Conversation') + '</h2>' if messages else ''}
+    """
     
-    # Build PDF
-    doc.build(story)
-    pdf_buffer.seek(0)
+    # Add messages
+    for msg in messages:
+        role = msg.get('role', 'user') if isinstance(msg, dict) else 'user'
+        content = msg.get('content', msg) if isinstance(msg, dict) else msg
+        timestamp = msg.get('timestamp', '') if isinstance(msg, dict) else ''
+        
+        # Escape HTML in content
+        content = str(content).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br>')
+        
+        sender = ('المستخدم' if lang == 'ar' else 'User') if role == 'user' else ('المستشار الذكي' if lang == 'ar' else 'AI Assistant')
+        timestamp_str = f'({timestamp[:19]})' if timestamp else ''
+        
+        msg_class = 'message-user' if role == 'user' else 'message-assistant'
+        icon = '👤' if role == 'user' else '🤖'
+        
+        html_content += f"""
+        <div class="message {msg_class}">
+            <div class="message-header">{icon} {sender} {timestamp_str}</div>
+            <div class="message-content">{content}</div>
+        </div>
+        """
     
-    # Generate filename
-    filename = f'consultation-session-{session_id}-{datetime.utcnow().strftime("%Y%m%d-%H%M%S")}.pdf'
+    if messages:
+        html_content += "</div>"
     
-    return send_file(
-        pdf_buffer,
-        mimetype='application/pdf',
-        as_attachment=True,
-        download_name=filename
-    )
+    html_content += f"""
+        <div class="footer">
+            {'تم التصدير في:' if lang == 'ar' else 'Exported on:'} {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}
+        </div>
+    </body>
+    </html>
+    """
+    
+    # Convert HTML to PDF using WeasyPrint
+    try:
+        pdf_bytes = HTML(string=html_content).write_pdf()
+        pdf_buffer = BytesIO(pdf_bytes)
+        
+        # Generate filename
+        filename = f'consultation-session-{session_id}-{datetime.utcnow().strftime("%Y%m%d-%H%M%S")}.pdf'
+        
+        return send_file(
+            pdf_buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=filename
+        )
+    except Exception as e:
+        return jsonify({'error': f'PDF generation failed: {str(e)}'}), 500
