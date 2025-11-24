@@ -234,33 +234,62 @@
 
 <!-- Recent Sessions Section -->
 {% if current_user %}
-<div class="container mb-5">
+<div class="container mb-5 pb-5">
     <div class="row">
         <div class="col-lg-8 offset-lg-2">
             <div class="sessions-card">
-                <h5 class="sessions-header">
-                    <i class="fas fa-history me-2"></i>
-                    {{ 'آخر الجلسات' if lang == 'ar' else 'Recent Sessions' }}
-                </h5>
-                <div id="sessionsContainer">
-                    <div class="empty-sessions">
-                        <i class="fas fa-inbox"></i>
-                        <p>{{ 'لا توجد جلسات سابقة' if lang == 'ar' else 'No previous sessions' }}</p>
-                    </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #0A2756 0%, #2767B1 100%); color: white; padding: 20px; border-radius: 12px 12px 0 0; margin: 0;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        {{ 'آخر الجلسات' if lang == 'ar' else 'Recent Sessions' }}
+                    </h5>
+                    <a href="{{ url_for('consultation.all_sessions') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        {{ 'عرض الكل' if lang == 'ar' else 'View All' }}
+                    </a>
                 </div>
+                
+                {% if recent_sessions %}
+                <div style="padding: 20px;">
+                    {% for sess in recent_sessions %}
+                    {% set messages = sess.messages|from_json if sess.messages else [] %}
+                    <div style="padding: 15px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s;" 
+                         onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'"
+                         onclick="window.location.href='{{ url_for('consultation.view_session', session_id=sess.id) }}'">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #0A2756; margin-bottom: 5px;">
+                                {{ sess.domain }}
+                            </div>
+                            <div style="font-size: 12px; color: #999; display: flex; gap: 20px;">
+                                <span><i class="fas fa-comments me-1"></i>{{ messages|length }} {{ 'رسالة' if lang == 'ar' else 'messages' }}</span>
+                                <span><i class="fas fa-clock me-1"></i>{{ sess.updated_at.strftime('%d/%m/%Y') }}</span>
+                            </div>
+                        </div>
+                        <div style="text-align: {{ 'right' if lang == 'ar' else 'left' }}; padding: 0 15px;">
+                            <div style="font-weight: 600; color: #FFC107;">
+                                {% set total_cost = 0 %}
+                                {% for msg in messages %}
+                                    {% if msg.role == 'assistant' and msg.cost %}
+                                        {% set total_cost = total_cost + msg.cost %}
+                                    {% endif %}
+                                {% endfor %}
+                                ${{ "%.4f"|format(total_cost) }}
+                            </div>
+                            <i class="fas fa-chevron-{{ 'left' if lang == 'ar' else 'right' }} me-2" style="color: #0A2756;"></i>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-sessions" style="padding: 40px 20px; text-align: center; color: #999;">
+                    <i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; display: block; margin-bottom: 15px;"></i>
+                    <p>{{ 'لا توجد جلسات سابقة' if lang == 'ar' else 'No previous sessions' }}</p>
+                    <small>{{ 'ابدأ جلسة جديدة لبدء الاستشارة' if lang == 'ar' else 'Start a new session to begin consulting' }}</small>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
-
-<script>
-    // Load recent sessions
-    fetch('{{ url_for("consultation.index") }}')
-        .then(res => res.text())
-        .then(html => {
-            // This would load recent sessions via API if implemented
-            // For now, we'll leave it empty
-        });
-</script>
 {% endif %}
 {% endblock %}

@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'جميع الجلسات' if lang == 'ar' else 'All Sessions' }} - Mcidia{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sessions-container {
+        background: linear-gradient(135deg, rgba(10, 39, 86, 0.05) 0%, rgba(44, 140, 86, 0.05) 100%);
+        min-height: calc(100vh - 120px);
+        padding: 40px 0;
+    }
+    
+    .sessions-header {
+        background: linear-gradient(135deg, #0A2756 0%, #2767B1 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+    }
+    
+    .sessions-header h2 {
+        margin: 0;
+        font-weight: 700;
+    }
+    
+    .sessions-header p {
+        margin: 10px 0 0 0;
+        opacity: 0.9;
+    }
+    
+    .session-item {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.2s;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .session-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+        background: #f9f9f9;
+    }
+    
+    .session-info {
+        flex: 1;
+    }
+    
+    .session-domain {
+        font-weight: 600;
+        color: #0A2756;
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+    
+    .session-meta {
+        display: flex;
+        gap: 25px;
+        font-size: 13px;
+        color: #666;
+    }
+    
+    .session-meta span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .session-cost {
+        text-align: {{ 'right' if lang == 'ar' else 'left' }};
+        padding: 0 20px;
+        min-width: 120px;
+    }
+    
+    .cost-amount {
+        font-weight: 700;
+        color: #FFC107;
+        font-size: 18px;
+    }
+    
+    .cost-label {
+        font-size: 12px;
+        color: #999;
+    }
+    
+    .pagination-container {
+        text-align: center;
+        margin-top: 40px;
+        padding-bottom: 40px;
+    }
+    
+    .pagination {
+        display: inline-flex;
+        gap: 5px;
+    }
+    
+    .pagination a, .pagination span {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #0A2756;
+        transition: all 0.2s;
+    }
+    
+    .pagination a:hover {
+        background: #0A2756;
+        color: white;
+    }
+    
+    .pagination .active {
+        background: #0A2756;
+        color: white;
+        border-color: #0A2756;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .empty-state i {
+        font-size: 64px;
+        color: #ddd;
+        display: block;
+        margin-bottom: 20px;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #0A2756;
+        text-decoration: none;
+        font-weight: 600;
+        margin-bottom: 30px;
+        transition: all 0.2s;
+    }
+    
+    .back-link:hover {
+        gap: 12px;
+    }
+    
+    .filter-bar {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .filter-bar input, .filter-bar select {
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-family: inherit;
+    }
+    
+    .filter-bar input:focus, .filter-bar select:focus {
+        outline: none;
+        border-color: #0A2756;
+        box-shadow: 0 0 0 3px rgba(10, 39, 86, 0.1);
+    }
+    
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+    }
+    
+    .loading i {
+        font-size: 32px;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sessions-container">
+    <div class="container">
+        <a href="{{ url_for('consultation.index') }}" class="back-link">
+            <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }}"></i>
+            {{ 'العودة' if lang == 'ar' else 'Back' }}
+        </a>
+        
+        <div class="sessions-header">
+            <h2><i class="fas fa-history me-2"></i>{{ 'جميع جلسات الاستشارة' if lang == 'ar' else 'All Consultation Sessions' }}</h2>
+            <p>{{ 'عرض وإدارة جميع جلساتك الاستشارية السابقة' if lang == 'ar' else 'View and manage all your previous consultation sessions' }}</p>
+        </div>
+        
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <input type="text" id="searchInput" placeholder="{{ 'ابحث عن جلسة...' if lang == 'ar' else 'Search sessions...' }}" style="flex: 1; max-width: 300px;">
+            <select id="sortSelect">
+                <option value="recent">{{ 'الأحدث أولاً' if lang == 'ar' else 'Newest First' }}</option>
+                <option value="oldest">{{ 'الأقدم أولاً' if lang == 'ar' else 'Oldest First' }}</option>
+                <option value="cost-high">{{ 'أعلى تكلفة' if lang == 'ar' else 'Highest Cost' }}</option>
+                <option value="cost-low">{{ 'أقل تكلفة' if lang == 'ar' else 'Lowest Cost' }}</option>
+            </select>
+        </div>
+        
+        <!-- Sessions List -->
+        <div id="sessionsContainer">
+            <div class="loading">
+                <i class="fas fa-spinner"></i>
+                <p>{{ 'جاري التحميل...' if lang == 'ar' else 'Loading...' }}</p>
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div id="paginationContainer"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const lang = '{{ lang }}';
+    let currentPage = 1;
+    let allSessions = [];
+    
+    const apiUrl = '{{ url_for("consultation.get_sessions_api") }}';
+    
+    // Load sessions
+    function loadSessions(page = 1) {
+        const container = document.getElementById('sessionsContainer');
+        container.innerHTML = `
+            <div class="loading">
+                <i class="fas fa-spinner"></i>
+                <p>${lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</p>
+            </div>
+        `;
+        
+        fetch(`${apiUrl}?page=${page}&per_page=10`)
+            .then(res => res.json())
+            .then(data => {
+                allSessions = data.sessions;
+                renderSessions(data);
+                renderPagination(data);
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>${lang === 'ar' ? 'حدث خطأ في تحميل الجلسات' : 'Error loading sessions'}</p>
+                    </div>
+                `;
+            });
+    }
+    
+    function renderSessions(data) {
+        const container = document.getElementById('sessionsContainer');
+        
+        if (!data.sessions || data.sessions.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>${lang === 'ar' ? 'لا توجد جلسات' : 'No sessions found'}</p>
+                    <small>${lang === 'ar' ? 'ابدأ جلسة جديدة الآن' : 'Start a new session now'}</small>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        data.sessions.forEach(session => {
+            const createdDate = new Date(session.created_at);
+            const createdStr = createdDate.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US');
+            const createdTime = createdDate.toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', {hour: '2-digit', minute:'2-digit'});
+            
+            html += `
+                <div class="session-item" onclick="window.location.href='{{ url_for('consultation.view_session', session_id=0) }}'.replace('0', '${session.id}')">
+                    <div class="session-info">
+                        <div class="session-domain">${session.domain}</div>
+                        <div class="session-meta">
+                            <span><i class="fas fa-comments"></i>${session.message_count} ${lang === 'ar' ? 'رسالة' : 'messages'}</span>
+                            <span><i class="fas fa-calendar"></i>${createdStr}</span>
+                            <span><i class="fas fa-clock"></i>${createdTime}</span>
+                        </div>
+                    </div>
+                    <div class="session-cost">
+                        <div class="cost-label">${lang === 'ar' ? 'التكلفة' : 'Cost'}</div>
+                        <div class="cost-amount">$${session.total_cost.toFixed(4)}</div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    function renderPagination(data) {
+        const container = document.getElementById('paginationContainer');
+        
+        if (data.pages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        let html = '<div class="pagination">';
+        
+        // Previous button
+        if (data.current_page > 1) {
+            html += `<a href="javascript:loadSessions(${data.current_page - 1})"><i class="fas fa-chevron-${lang === 'ar' ? 'right' : 'left'}"></i></a>`;
+        }
+        
+        // Page numbers
+        for (let i = 1; i <= data.pages; i++) {
+            if (i === data.current_page) {
+                html += `<span class="active">${i}</span>`;
+            } else {
+                html += `<a href="javascript:loadSessions(${i})">${i}</a>`;
+            }
+        }
+        
+        // Next button
+        if (data.current_page < data.pages) {
+            html += `<a href="javascript:loadSessions(${data.current_page + 1})"><i class="fas fa-chevron-${lang === 'ar' ? 'left' : 'right'}"></i></a>`;
+        }
+        
+        html += '</div>';
+        container.innerHTML = html;
+    }
+    
+    // Load initial sessions
+    loadSessions(1);
+    
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const filtered = allSessions.filter(s => s.domain.toLowerCase().includes(query));
+        
+        if (filtered.length === 0) {
+            document.getElementById('sessionsContainer').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <p>${lang === 'ar' ? 'لم يتم العثور على نتائج' : 'No results found'}</p>
+                </div>
+            `;
+        } else {
+            let html = '';
+            filtered.forEach(session => {
+                const createdDate = new Date(session.created_at);
+                const createdStr = createdDate.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US');
+                
+                html += `
+                    <div class="session-item" onclick="window.location.href='{{ url_for('consultation.view_session', session_id=0) }}'.replace('0', '${session.id}')">
+                        <div class="session-info">
+                            <div class="session-domain">${session.domain}</div>
+                            <div class="session-meta">
+                                <span><i class="fas fa-comments"></i>${session.message_count} ${lang === 'ar' ? 'رسالة' : 'messages'}</span>
+                                <span><i class="fas fa-calendar"></i>${createdStr}</span>
+                            </div>
+                        </div>
+                        <div class="session-cost">
+                            <div class="cost-label">${lang === 'ar' ? 'التكلفة' : 'Cost'}</div>
+                            <div class="cost-amount">$${session.total_cost.toFixed(4)}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('sessionsContainer').innerHTML = html;
+            document.getElementById('paginationContainer').innerHTML = '';
+        }
+    });
+</script>
+{% endblock %}

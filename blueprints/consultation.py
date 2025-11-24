@@ -18,7 +18,68 @@ def index():
     services = db.session.query(Service).filter_by(is_active=True).all()
     services_list = [{'id': s.id, 'title_ar': s.title_ar, 'title_en': s.title_en, 'slug': s.slug} for s in services]
     
-    return render_template('consultation/index.html', lang=lang, services=services_list)
+    # Get recent sessions for current user if logged in
+    recent_sessions = []
+    try:
+        from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+        verify_jwt_in_request(optional=True, locations=['cookies'])
+        user_id = get_jwt_identity()
+        if user_id:
+            recent_sessions = db.session.query(ChatSession).filter_by(
+                user_id=int(user_id)
+            ).order_by(ChatSession.updated_at.desc()).limit(5).all()
+    except:
+        pass
+    
+    return render_template('consultation/index.html', lang=lang, services=services_list, recent_sessions=recent_sessions)
+
+@consultation_bp.route('/api/sessions', methods=['GET'])
+@login_required
+def get_sessions_api():
+    """API endpoint to get user's consultation sessions"""
+    db = current_app.extensions['sqlalchemy']
+    user_id = int(get_jwt_identity())
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    # Get paginated sessions
+    sessions = db.session.query(ChatSession).filter_by(
+        user_id=user_id
+    ).order_by(ChatSession.updated_at.desc()).paginate(page=page, per_page=per_page)
+    
+    sessions_list = []
+    for s in sessions.items:
+        try:
+            messages = json.loads(s.messages) if s.messages else []
+            message_count = len(messages)
+            total_cost = sum(m.get('cost', 0) for m in messages if m.get('role') == 'assistant')
+        except:
+            message_count = 0
+            total_cost = 0
+        
+        sessions_list.append({
+            'id': s.id,
+            'domain': s.domain,
+            'message_count': message_count,
+            'total_cost': round(total_cost, 4),
+            'created_at': s.created_at.isoformat(),
+            'updated_at': s.updated_at.isoformat()
+        })
+    
+    return jsonify({
+        'sessions': sessions_list,
+        'total': sessions.total,
+        'pages': sessions.pages,
+        'current_page': page
+    })
+
+@consultation_bp.route('/sessions')
+@login_required
+def all_sessions():
+    """View all consultation sessions"""
+    lang = session.get('language', 'ar')
+    return render_template('consultation/all_sessions.html', lang=lang)
 
 @consultation_bp.route('/start')
 @login_required
