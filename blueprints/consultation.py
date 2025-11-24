@@ -17,10 +17,11 @@ def index():
     lang = session.get('language', 'ar')
     db = current_app.extensions['sqlalchemy']
     
-    # Get available services for consultation topics
+    # Get available services for consultation topics and convert to dict
     services = db.session.query(Service).filter_by(is_active=True).all()
+    services_list = [{'id': s.id, 'title_ar': s.title_ar, 'title_en': s.title_en, 'slug': s.slug} for s in services]
     
-    return render_template('consultation/index.html', lang=lang, services=services)
+    return render_template('consultation/index.html', lang=lang, services=services_list)
 
 @consultation_bp.route('/start')
 @login_required
@@ -30,10 +31,11 @@ def start_session():
     db = current_app.extensions['sqlalchemy']
     user_id = int(get_jwt_identity())
     
-    # Get available services for topics
+    # Get available services for topics and convert to dict
     services = db.session.query(Service).filter_by(is_active=True).all()
+    services_list = [{'id': s.id, 'title_ar': s.title_ar, 'title_en': s.title_en, 'slug': s.slug} for s in services]
     
-    return render_template('consultation/start.html', lang=lang, services=services)
+    return render_template('consultation/start.html', lang=lang, services=services_list)
 
 @consultation_bp.route('/session/<int:session_id>')
 @login_required
@@ -59,15 +61,16 @@ def view_session(session_id):
     except:
         messages = []
     
-    # Get available services
+    # Get available services and convert to dict
     services = db.session.query(Service).filter_by(is_active=True).all()
+    services_list = [{'id': s.id, 'title_ar': s.title_ar, 'title_en': s.title_en, 'slug': s.slug} for s in services]
     
     return render_template(
         'consultation/session.html',
         lang=lang,
         session=chat_session,
         messages=messages,
-        services=services
+        services=services_list
     )
 
 @consultation_bp.route('/api/send-message', methods=['POST'])
