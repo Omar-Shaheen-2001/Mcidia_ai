@@ -16,11 +16,12 @@ def get_lang():
 
 def get_or_create_settings():
     """Get settings or create default if doesn't exist"""
-    settings = SystemSettings.query.first()
+    db_instance = get_db()
+    settings = db_instance.session.query(SystemSettings).first()
     if not settings:
         settings = SystemSettings()
-        db.session.add(settings)
-        db.session.commit()
+        db_instance.session.add(settings)
+        db_instance.session.commit()
     return settings
 
 @settings_bp.route('/')
@@ -29,7 +30,7 @@ def index():
     """Settings Main Dashboard"""
     lang = get_lang()
     settings = get_or_create_settings()
-    backups = BackupLog.query.order_by(BackupLog.created_at.desc()).limit(5).all()
+    backups = current_app.extensions["sqlalchemy"].session.query(BackupLog).order_by(BackupLog.created_at.desc()).limit(5).all()
     
     return render_template(
         'admin/settings/index.html',
@@ -52,7 +53,7 @@ def general_settings():
         settings.maintenance_mode = request.form.get('maintenance_mode') == 'on'
         settings.updated_by = get_jwt_identity() if get_jwt_identity() else None
         
-        db.session.commit()
+        current_app.extensions["sqlalchemy"].session.commit()
         return jsonify({'success': True, 'message': 'تم حفظ الإعدادات' if lang == 'ar' else 'Settings saved'}), 200
     
     return render_template(
@@ -110,7 +111,7 @@ def branding_settings():
             file.save(filepath)
             settings.favicon = f'/static/uploads/logos/{filename}'
         
-        db.session.commit()
+        current_app.extensions["sqlalchemy"].session.commit()
         return jsonify({'success': True, 'message': 'تم حفظ إعدادات الهوية البصرية' if lang == 'ar' else 'Branding settings saved'}), 200
     
     return render_template(
@@ -133,7 +134,7 @@ def ai_settings():
         settings.ai_max_tokens = int(request.form.get('ai_max_tokens', 2000))
         settings.updated_by = get_jwt_identity() if get_jwt_identity() else None
         
-        db.session.commit()
+        current_app.extensions["sqlalchemy"].session.commit()
         return jsonify({'success': True, 'message': 'تم حفظ إعدادات الذكاء الاصطناعي' if lang == 'ar' else 'AI settings saved'}), 200
     
     return render_template(
@@ -148,7 +149,7 @@ def backup_settings():
     """Backup & Maintenance Settings"""
     lang = get_lang()
     settings = get_or_create_settings()
-    backups = BackupLog.query.order_by(BackupLog.created_at.desc()).all()
+    backups = current_app.extensions["sqlalchemy"].session.query(BackupLog).order_by(BackupLog.created_at.desc()).all()
     
     if request.method == 'POST':
         action = request.form.get('action')
@@ -162,15 +163,15 @@ def backup_settings():
                 backup_path=f'/backups/{backup_name}',
                 status='success'
             )
-            db.session.add(backup)
+            current_app.extensions["sqlalchemy"].session.add(backup)
             settings.last_backup = datetime.utcnow()
-            db.session.commit()
+            current_app.extensions["sqlalchemy"].session.commit()
             return jsonify({'success': True, 'message': 'تم إنشاء النسخة الاحتياطية' if lang == 'ar' else 'Backup created'}), 200
         
         elif action == 'health_check':
             # Health check
             settings.last_health_check = datetime.utcnow()
-            db.session.commit()
+            current_app.extensions["sqlalchemy"].session.commit()
             return jsonify({'success': True, 'status': 'healthy', 'message': 'النظام سليم' if lang == 'ar' else 'System healthy'}), 200
         
         elif action == 'clear_cache':
@@ -188,7 +189,10 @@ def backup_settings():
 @login_required
 def download_backup(backup_id):
     """Download backup"""
-    backup = BackupLog.query.get_or_404(backup_id)
+    db_instance = get_db()
+    backup = db_instance.session.query(BackupLog).get(backup_id)
+    if not backup:
+        return jsonify({'error': 'Backup not found'}), 404
     
     # Here you would implement actual backup download logic
     return jsonify({'error': 'Not implemented yet'}), 501
