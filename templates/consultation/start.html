@@ -3,6 +3,7 @@
 {% block title %}{{ 'استشارة فورية جديدة' if lang == 'ar' else 'New Consultation' }} - Mcidia{% endblock %}
 
 {% block extra_css %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
     .consultation-container {
         background: linear-gradient(135deg, rgba(10, 39, 86, 0.05) 0%, rgba(44, 140, 86, 0.05) 100%);
@@ -266,6 +267,61 @@
         margin: 12px 0;
         border-radius: 4px;
         font-size: 13px;
+    }
+    
+    .message-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid #e0e0e0;
+    }
+    
+    .btn-action {
+        background: #f0f0f0;
+        border: 1px solid #ddd;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        color: #0A2756;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .btn-action:hover {
+        background: #0A2756;
+        color: white;
+        border-color: #0A2756;
+    }
+    
+    .btn-action i {
+        font-size: 13px;
+    }
+    
+    .copy-feedback {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #2C8C56;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        animation: slideDown 0.3s ease;
+        z-index: 5000;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
     
     .message-time {
@@ -635,6 +691,24 @@
             costSpan.className = 'message-cost';
             costSpan.textContent = `💰 $${cost.toFixed(4)}`;
             messageDiv.appendChild(costSpan);
+            
+            // Add action buttons
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'message-actions';
+            
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'btn-action';
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i><span>{{ "نسخ" if lang == "ar" else "Copy" }}</span>';
+            copyBtn.addEventListener('click', () => copyToClipboard(content_div));
+            
+            const pdfBtn = document.createElement('button');
+            pdfBtn.className = 'btn-action';
+            pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i><span>PDF</span>';
+            pdfBtn.addEventListener('click', () => downloadPDF(content_div));
+            
+            actionsDiv.appendChild(copyBtn);
+            actionsDiv.appendChild(pdfBtn);
+            messageDiv.appendChild(actionsDiv);
         }
         
         messagesDiv.appendChild(messageDiv);
@@ -642,6 +716,29 @@
         
         messageCount++;
         document.getElementById('messageCount').textContent = messageCount;
+    }
+    
+    function copyToClipboard(element) {
+        const text = element.innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            const feedback = document.createElement('div');
+            feedback.className = 'copy-feedback';
+            feedback.textContent = lang === 'ar' ? '✓ تم النسخ' : '✓ Copied!';
+            document.body.appendChild(feedback);
+            setTimeout(() => feedback.remove(), 2000);
+        });
+    }
+    
+    function downloadPDF(element) {
+        const element_html = element.cloneNode(true);
+        const opt = {
+            margin: 10,
+            filename: 'consultation-' + new Date().getTime() + '.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { orientation: 'p', unit: 'mm', format: 'a4' }
+        };
+        html2pdf().set(opt).from(element_html).save();
     }
     
     function formatResponse(text) {
