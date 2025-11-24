@@ -10,10 +10,16 @@
                 <h2 class="mb-0">{{ 'تفاصيل الاستشارة' if lang == 'ar' else 'Consultation Details' }}</h2>
                 <p class="text-muted">{{ 'بيانات جلسة الاستشارة' if lang == 'ar' else 'Consultation session information' }}</p>
             </div>
-            <a href="{{ url_for('admin.consultations_admin.user_consultations', user_id=user.id) }}" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
-                {{ 'العودة' if lang == 'ar' else 'Back' }}
-            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('admin.consultations_admin.export_session_pdf', session_id=session.id) }}" class="btn btn-warning" target="_blank">
+                    <i class="fas fa-file-pdf {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                    {{ 'تصدير PDF' if lang == 'ar' else 'Export PDF' }}
+                </a>
+                <a href="{{ url_for('admin.consultations_admin.user_consultations', user_id=user.id) }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                    {{ 'العودة' if lang == 'ar' else 'Back' }}
+                </a>
+            </div>
         </div>
     </div>
 </div>
