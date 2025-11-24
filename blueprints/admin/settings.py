@@ -6,7 +6,7 @@ from datetime import datetime
 import os
 import json
 
-settings_bp = Blueprint('settings_admin', __name__, url_prefix='/settings')
+settings_bp = Blueprint('settings_admin', __name__)
 
 def get_db():
     return current_app.extensions['sqlalchemy']
@@ -16,13 +16,19 @@ def get_lang():
 
 def get_or_create_settings():
     """Get settings or create default if doesn't exist"""
-    db_instance = get_db()
-    settings = db_instance.session.query(SystemSettings).first()
-    if not settings:
-        settings = SystemSettings()
-        db_instance.session.add(settings)
-        db_instance.session.commit()
-    return settings
+    try:
+        db_instance = get_db()
+        settings = db_instance.session.query(SystemSettings).first()
+        if not settings:
+            settings = SystemSettings()
+            db_instance.session.add(settings)
+            db_instance.session.commit()
+        return settings
+    except Exception as e:
+        print(f"[get_or_create_settings] Error: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 @settings_bp.route('/')
 @login_required

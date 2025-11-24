@@ -19,7 +19,6 @@ from .ai_management import ai_management_bp
 from .knowledge_admin import knowledge_admin_bp
 from .reports import reports_bp
 from .notifications_admin import notifications_admin_bp
-from .settings import settings_bp
 from .logs import logs_bp
 from .support import support_bp
 from .projects import projects_bp
@@ -36,8 +35,9 @@ admin_bp.register_blueprint(ai_management_bp)
 admin_bp.register_blueprint(knowledge_admin_bp)
 admin_bp.register_blueprint(reports_bp)
 admin_bp.register_blueprint(notifications_admin_bp)
-admin_bp.register_blueprint(settings_bp)
 admin_bp.register_blueprint(logs_bp)
 admin_bp.register_blueprint(support_bp)
 admin_bp.register_blueprint(projects_bp)
 admin_bp.register_blueprint(consultations_bp)
+
+# Note: settings_bp is registered separately in app.py with url_prefix='/admin/settings'
