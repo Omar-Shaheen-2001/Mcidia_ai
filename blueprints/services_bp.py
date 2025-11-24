@@ -371,10 +371,18 @@ def api_generate_content(service_slug, offering_slug):
         # Update user credits
         user.ai_credits_used += (offering.ai_credits_cost or 1)
         
-        # Create project
+        # Create project with title truncation (max 500 chars)
+        project_name = form_data.get('project_name', 'جديد')
+        offering_title = offering.title_ar if lang == 'ar' else offering.title_en
+        title = f"{offering_title} - {project_name}"
+        
+        # Truncate title if it exceeds 450 chars to leave safety margin
+        if len(title) > 450:
+            title = title[:447] + '...'
+        
         project = Project(
             user_id=int(user_id),
-            title=f"{offering.title_ar if lang == 'ar' else offering.title_en} - {form_data.get('project_name', 'جديد')}",
+            title=title,
             module=f"{service_slug}_{offering_slug}",
             content=json.dumps({
                 'input': form_data,
@@ -396,7 +404,22 @@ def api_generate_content(service_slug, offering_slug):
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        # Return user-friendly error messages
+        error_msg = str(e)
+        
+        # Handle database errors gracefully
+        if 'value too long' in error_msg.lower() or 'stringdatarighttrun' in error_msg.lower():
+            return jsonify({
+                'error': 'اسم المشروع طويل جداً. يرجى استخدام اسم أقصر / Project name is too long. Please use a shorter name.' if lang == 'ar' else 'Project name is too long. Please use a shorter name.'
+            }), 400
+        elif 'not null' in error_msg.lower():
+            return jsonify({
+                'error': 'بعض الحقول المطلوبة غير مملوءة / Some required fields are missing.' if lang == 'ar' else 'Some required fields are missing.'
+            }), 400
+        else:
+            return jsonify({
+                'error': f'حدث خطأ: {error_msg} / Error: {error_msg}' if lang == 'ar' else f'Error: {error_msg}'
+            }), 500
 
 @services_bp.route('/project/<int:project_id>/view')
 @login_required

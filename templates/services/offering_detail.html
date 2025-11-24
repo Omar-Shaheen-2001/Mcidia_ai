@@ -436,13 +436,41 @@ document.addEventListener('DOMContentLoaded', function() {
                     addExportButtons(data.project_id);
                 }
                 
-                // Show success message
-                alert('{{ "تم إنشاء الاستشارة بنجاح!" if lang == "ar" else "Consultation generated successfully!" }}');
+                // Show success message with SweetAlert
+                const successMsg = '{{ "تم إنشاء الاستشارة بنجاح!" if lang == "ar" else "Consultation generated successfully!" }}';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: successMsg,
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                } else {
+                    alert(successMsg);
+                }
             } else {
                 throw new Error(data.error || 'Unknown error');
             }
         } catch (error) {
-            alert('{{ "حدث خطأ: " if lang == "ar" else "Error: " }}' + error.message);
+            // Show user-friendly error with SweetAlert
+            const errorTitle = '{{ "حدث خطأ" if lang == "ar" else "Error" }}';
+            const errorMsg = error.message || '{{ "حدث خطأ غير متوقع" if lang == "ar" else "An unexpected error occurred" }}';
+            
+            // Check if SweetAlert is available
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: errorTitle,
+                    html: `<div style="text-align: left; margin: 10px 0; word-wrap: break-word; font-size: 14px;">${errorMsg}</div>`,
+                    confirmButtonText: '{{ "حسناً" if lang == "ar" else "OK" }}',
+                    allowOutsideClick: false
+                });
+            } else {
+                alert(errorTitle + ': ' + errorMsg);
+            }
+            
             form.classList.remove('d-none');
             loadingState.classList.add('d-none');
         }

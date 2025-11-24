@@ -116,7 +116,7 @@ class Project(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    title = db.Column(db.String(200), nullable=False)
+    title = db.Column(db.String(500), nullable=False)  # Increased from 200 to 500 to support longer titles
     module = db.Column(db.String(50), nullable=False)  # strategy, hr, finance, etc.
     content = db.Column(db.Text)  # JSON string of project data
     status = db.Column(db.String(50), default='draft')  # draft, completed, archived
