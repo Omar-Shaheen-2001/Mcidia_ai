@@ -339,12 +339,15 @@ class ServiceOffering(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     service_id = db.Column(db.Integer, db.ForeignKey('services.id'), nullable=False)
-    slug = db.Column(db.String(100), nullable=False)  # URL-friendly identifier
-    title_ar = db.Column(db.String(200), nullable=False)  # Arabic title
-    title_en = db.Column(db.String(200), nullable=False)  # English title
+    name = db.Column(db.String(200), nullable=False)  # Default name (from title_ar)
+    slug = db.Column(db.String(100))  # URL-friendly identifier
+    title_ar = db.Column(db.String(200))  # Arabic title
+    title_en = db.Column(db.String(200))  # English title
+    description = db.Column(db.Text)  # Default description
     description_ar = db.Column(db.Text)  # Arabic description
     description_en = db.Column(db.Text)  # English description
     icon = db.Column(db.String(50))  # FontAwesome icon class
+    price = db.Column(db.Float)  # Price for this offering
     display_order = db.Column(db.Integer, default=0)  # Sort order
     is_active = db.Column(db.Boolean, default=True)
     

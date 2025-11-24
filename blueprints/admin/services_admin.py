@@ -256,14 +256,18 @@ def create_offering(service_id):
             flash('Invalid JSON format in form fields.' if lang == 'en' else 'صيغة JSON غير صحيحة في الحقول.', 'danger')
             return redirect(url_for('admin.services_admin.create_offering', service_id=service_id))
         
+        title_ar = request.form.get('title_ar', 'New Offering')
         new_offering = ServiceOffering(
             service_id=service_id,
+            name=title_ar,  # Use Arabic title as default name
             slug=request.form.get('slug'),
-            title_ar=request.form.get('title_ar'),
+            title_ar=title_ar,
             title_en=request.form.get('title_en'),
+            description=request.form.get('description_ar', ''),  # Default description
             description_ar=request.form.get('description_ar'),
             description_en=request.form.get('description_en'),
             icon=request.form.get('icon', 'fa-check-circle'),
+            price=float(request.form.get('price', 0)) if request.form.get('price') else None,
             display_order=int(request.form.get('display_order', 0)),
             is_active=request.form.get('is_active') == 'on',
             ai_prompt_template=request.form.get('ai_prompt_template'),
@@ -339,18 +343,22 @@ def edit_offering(service_id, offering_id):
             flash('Invalid JSON format in form fields.' if lang == 'en' else 'صيغة JSON غير صحيحة في الحقول.', 'danger')
             return redirect(url_for('admin.services_admin.edit_offering', service_id=service_id, offering_id=offering_id))
         
+        offering.name = request.form.get('title_ar', offering.name)  # Update name from title_ar
         offering.slug = request.form.get('slug')
         offering.title_ar = request.form.get('title_ar')
         offering.title_en = request.form.get('title_en')
+        offering.description = request.form.get('description_ar', offering.description)
         offering.description_ar = request.form.get('description_ar')
         offering.description_en = request.form.get('description_en')
         offering.icon = request.form.get('icon', 'fa-check-circle')
+        offering.price = float(request.form.get('price', 0)) if request.form.get('price') else None
         offering.display_order = int(request.form.get('display_order', 0))
         offering.is_active = request.form.get('is_active') == 'on'
         offering.ai_prompt_template = request.form.get('ai_prompt_template')
         offering.ai_model = request.form.get('ai_model', 'gpt-4')
         offering.ai_credits_cost = int(request.form.get('ai_credits_cost', 1))
         offering.form_fields = form_fields_json
+        offering.updated_at = datetime.utcnow()
         
         db.session.commit()
         
