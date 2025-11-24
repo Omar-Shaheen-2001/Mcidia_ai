@@ -1,0 +1,116 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>💾 {{ 'النسخ الاحتياطية والصيانة' if lang == 'ar' else 'Backup & Maintenance' }}</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="list-group sticky-top">
+                <a href="{{ url_for('settings_admin.general_settings') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-sliders-h"></i> {{ 'الإعدادات العامة' if lang == 'ar' else 'General Settings' }}
+                </a>
+                <a href="{{ url_for('settings_admin.branding_settings') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-palette"></i> {{ 'الهوية البصرية' if lang == 'ar' else 'Branding' }}
+                </a>
+                <a href="{{ url_for('settings_admin.ai_settings') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-brain"></i> {{ 'إعدادات الذكاء الاصطناعي' if lang == 'ar' else 'AI Settings' }}
+                </a>
+                <a href="{{ url_for('settings_admin.backup_settings') }}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-database"></i> {{ 'النسخ الاحتياطية والصيانة' if lang == 'ar' else 'Backup & Maintenance' }}
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="m-0">💾 {{ 'إدارة النسخ الاحتياطية' if lang == 'ar' else 'Backup Management' }}</h5>
+                </div>
+                <div class="card-body">
+                    <form id="backupForm" method="POST">
+                        <div class="btn-group mb-3" role="group">
+                            <button type="submit" name="action" value="create_backup" class="btn btn-success">
+                                <i class="fas fa-plus"></i> {{ 'إنشاء نسخة احتياطية' if lang == 'ar' else 'Create Backup' }}
+                            </button>
+                            <button type="submit" name="action" value="health_check" class="btn btn-info">
+                                <i class="fas fa-stethoscope"></i> {{ 'فحص النظام' if lang == 'ar' else 'Health Check' }}
+                            </button>
+                            <button type="submit" name="action" value="clear_cache" class="btn btn-warning">
+                                <i class="fas fa-eraser"></i> {{ 'مسح الذاكرة' if lang == 'ar' else 'Clear Cache' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="m-0">📋 {{ 'سجل النسخ الاحتياطية' if lang == 'ar' else 'Backup History' }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>{{ 'الاسم' if lang == 'ar' else 'Name' }}</th>
+                                    <th>{{ 'النوع' if lang == 'ar' else 'Type' }}</th>
+                                    <th>{{ 'الحجم' if lang == 'ar' else 'Size' }}</th>
+                                    <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                                    <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                                    <th>{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for backup in backups %}
+                                <tr>
+                                    <td>{{ backup.backup_name }}</td>
+                                    <td><span class="badge badge-secondary">{{ backup.backup_type }}</span></td>
+                                    <td>{{ (backup.backup_size / 1024 / 1024) | round(2) if backup.backup_size else '—' }} MB</td>
+                                    <td>{{ backup.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <span class="badge {% if backup.status == 'success' %}badge-success{% elif backup.status == 'failed' %}badge-danger{% else %}badge-warning{% endif %}">
+                                            {{ backup.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('settings_admin.download_backup', backup_id=backup.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center">{{ 'لا توجد نسخ احتياطية' if lang == 'ar' else 'No backups' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('backupForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    fetch('{{ url_for("settings_admin.backup_settings") }}', {
+        method: 'POST',
+        body: new FormData(this)
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            alert(d.message);
+            location.reload();
+        }
+    });
+});
+</script>
+{% endblock %}

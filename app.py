@@ -156,6 +156,7 @@ def create_app():
     from blueprints.strategic_identity import strategic_identity_bp
     from blueprints.erp import erp_bp
     from blueprints.hr_module import hr_module_bp
+    from blueprints.admin.settings import settings_bp
     
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -178,6 +179,7 @@ def create_app():
     app.register_blueprint(member_dashboard_bp)
     app.register_blueprint(erp_bp)
     app.register_blueprint(hr_module_bp)
+    app.register_blueprint(settings_bp, url_prefix='/admin/settings')
     
     # Create tables and seed default data
     with app.app_context():

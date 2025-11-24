@@ -1,0 +1,81 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>⚙️ {{ 'الإعدادات العامة' if lang == 'ar' else 'General Settings' }}</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="list-group sticky-top">
+                <a href="{{ url_for('settings_admin.general_settings') }}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-sliders-h"></i> {{ 'الإعدادات العامة' if lang == 'ar' else 'General Settings' }}
+                </a>
+                <a href="{{ url_for('settings_admin.branding_settings') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-palette"></i> {{ 'الهوية البصرية' if lang == 'ar' else 'Branding' }}
+                </a>
+                <a href="{{ url_for('settings_admin.ai_settings') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-brain"></i> {{ 'إعدادات الذكاء الاصطناعي' if lang == 'ar' else 'AI Settings' }}
+                </a>
+                <a href="{{ url_for('settings_admin.backup_settings') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-database"></i> {{ 'النسخ الاحتياطية والصيانة' if lang == 'ar' else 'Backup & Maintenance' }}
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="m-0">📋 {{ 'الإعدادات الأساسية' if lang == 'ar' else 'Basic Settings' }}</h5>
+                </div>
+                <div class="card-body">
+                    <form id="generalForm" method="POST">
+                        <div class="form-group">
+                            <label>{{ 'اسم المنصة' if lang == 'ar' else 'Platform Name' }}</label>
+                            <input type="text" class="form-control" name="platform_name" value="{{ settings.platform_name or 'Mcidia' }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>{{ 'وصف المنصة' if lang == 'ar' else 'Platform Description' }}</label>
+                            <textarea class="form-control" name="platform_description" rows="3">{{ settings.platform_description or '' }}</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>{{ 'البريد الإلكتروني للدعم' if lang == 'ar' else 'Support Email' }}</label>
+                            <input type="email" class="form-control" name="support_email" value="{{ settings.support_email or '' }}">
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="maintenance" name="maintenance_mode" {% if settings.maintenance_mode %}checked{% endif %}>
+                            <label class="form-check-label" for="maintenance">
+                                {{ 'تفعيل وضع الصيانة' if lang == 'ar' else 'Enable Maintenance Mode' }}
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">{{ 'حفظ التغييرات' if lang == 'ar' else 'Save Changes' }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('generalForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    fetch('{{ url_for("settings_admin.general_settings") }}', {
+        method: 'POST',
+        body: new FormData(this)
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            alert('{{ "تم الحفظ بنجاح" if lang == "ar" else "Saved successfully" }}');
+        }
+    });
+});
+</script>
+{% endblock %}

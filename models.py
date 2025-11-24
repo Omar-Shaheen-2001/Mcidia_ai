@@ -563,27 +563,6 @@ class SupportTicket(db.Model):
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
-class SystemSettings(db.Model):
-    __tablename__ = 'system_settings'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    key = db.Column(db.String(100), unique=True, nullable=False)
-    value = db.Column(db.Text)
-    category = db.Column(db.String(50))  # general, ai, billing, security
-    description = db.Column(db.String(255))
-    is_public = db.Column(db.Boolean, default=False)  # If users can see this setting
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    updated_by = db.Column(db.Integer, db.ForeignKey('users.id'))
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'key': self.key,
-            'value': self.value,
-            'category': self.category,
-            'description': self.description
-        }
-
 class OrganizationMembership(db.Model):
     """
     Links users to organizations with organization-specific roles.
@@ -1261,4 +1240,99 @@ class TerminationRecord(db.Model):
             'termination_date': self.termination_date.isoformat() if self.termination_date else None,
             'reason': self.reason,
             'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+
+class SystemSettings(db.Model):
+    """System Settings - إعدادات النظام"""
+    __tablename__ = 'system_settings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # General Settings
+    platform_name = db.Column(db.String(200), default='Mcidia')
+    platform_description = db.Column(db.Text)
+    support_email = db.Column(db.String(120))
+    maintenance_mode = db.Column(db.Boolean, default=False)
+    
+    # Branding & Identity
+    primary_color = db.Column(db.String(7), default='#0d6efd')  # Hex color
+    secondary_color = db.Column(db.String(7), default='#28a745')
+    accent_color = db.Column(db.String(7), default='#ffc107')
+    
+    dashboard_logo = db.Column(db.String(255))  # File path
+    login_logo = db.Column(db.String(255))
+    favicon = db.Column(db.String(255))
+    
+    font_family = db.Column(db.String(100), default='Arial')  # Font for both AR/EN
+    welcome_message = db.Column(db.Text)
+    
+    custom_domain = db.Column(db.String(255))
+    https_enabled = db.Column(db.Boolean, default=True)
+    cname_record = db.Column(db.String(255))
+    
+    # AI Settings
+    ai_provider = db.Column(db.String(50), default='openai')  # openai, ollama, etc.
+    ai_model = db.Column(db.String(100), default='gpt-3.5-turbo')
+    ai_temperature = db.Column(db.Float, default=0.7)
+    ai_max_tokens = db.Column(db.Integer, default=2000)
+    
+    # System Maintenance
+    last_backup = db.Column(db.DateTime)
+    last_health_check = db.Column(db.DateTime)
+    system_version = db.Column(db.String(50), default='1.0.0')
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'platform_name': self.platform_name,
+            'platform_description': self.platform_description,
+            'support_email': self.support_email,
+            'maintenance_mode': self.maintenance_mode,
+            'primary_color': self.primary_color,
+            'secondary_color': self.secondary_color,
+            'accent_color': self.accent_color,
+            'dashboard_logo': self.dashboard_logo,
+            'login_logo': self.login_logo,
+            'favicon': self.favicon,
+            'font_family': self.font_family,
+            'welcome_message': self.welcome_message,
+            'custom_domain': self.custom_domain,
+            'https_enabled': self.https_enabled,
+            'ai_provider': self.ai_provider,
+            'ai_model': self.ai_model,
+            'ai_temperature': self.ai_temperature,
+            'ai_max_tokens': self.ai_max_tokens,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+
+class BackupLog(db.Model):
+    """Backup Logs - سجلات النسخ الاحتياطية"""
+    __tablename__ = 'backup_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    backup_name = db.Column(db.String(255), nullable=False)
+    backup_size = db.Column(db.BigInteger)  # Size in bytes
+    backup_type = db.Column(db.String(50), default='full')  # full, database, files
+    backup_path = db.Column(db.Text)
+    status = db.Column(db.String(50), default='success')  # success, failed, in_progress
+    error_message = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    scheduled = db.Column(db.Boolean, default=False)
+    schedule_frequency = db.Column(db.String(50))  # daily, weekly
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'backup_name': self.backup_name,
+            'backup_size': self.backup_size,
+            'backup_type': self.backup_type,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'scheduled': self.scheduled
         }

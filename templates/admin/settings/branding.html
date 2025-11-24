@@ -1,0 +1,136 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>🎨 {{ 'الهوية البصرية' if lang == 'ar' else 'Branding & Identity' }}</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="list-group sticky-top">
+                <a href="{{ url_for('settings_admin.general_settings') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-sliders-h"></i> {{ 'الإعدادات العامة' if lang == 'ar' else 'General Settings' }}
+                </a>
+                <a href="{{ url_for('settings_admin.branding_settings') }}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-palette"></i> {{ 'الهوية البصرية' if lang == 'ar' else 'Branding' }}
+                </a>
+                <a href="{{ url_for('settings_admin.ai_settings') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-brain"></i> {{ 'إعدادات الذكاء الاصطناعي' if lang == 'ar' else 'AI Settings' }}
+                </a>
+                <a href="{{ url_for('settings_admin.backup_settings') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-database"></i> {{ 'النسخ الاحتياطية والصيانة' if lang == 'ar' else 'Backup & Maintenance' }}
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <form id="brandingForm" method="POST" enctype="multipart/form-data">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="m-0">🎨 {{ 'الألوان' if lang == 'ar' else 'Colors' }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label>{{ 'اللون الأساسي' if lang == 'ar' else 'Primary Color' }}</label>
+                                <input type="color" class="form-control" name="primary_color" value="{{ settings.primary_color or '#0d6efd' }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label>{{ 'اللون الثانوي' if lang == 'ar' else 'Secondary Color' }}</label>
+                                <input type="color" class="form-control" name="secondary_color" value="{{ settings.secondary_color or '#28a745' }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label>{{ 'لون التمييز' if lang == 'ar' else 'Accent Color' }}</label>
+                                <input type="color" class="form-control" name="accent_color" value="{{ settings.accent_color or '#ffc107' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="m-0">📝 {{ 'الملفات والخطوط' if lang == 'ar' else 'Files & Fonts' }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>{{ 'شعار لوحة التحكم' if lang == 'ar' else 'Dashboard Logo' }}</label>
+                            <input type="file" class="form-control" name="dashboard_logo" accept="image/*">
+                            {% if settings.dashboard_logo %}<img src="{{ settings.dashboard_logo }}" style="max-width:100px" class="mt-2">{% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label>{{ 'شعار تسجيل الدخول' if lang == 'ar' else 'Login Logo' }}</label>
+                            <input type="file" class="form-control" name="login_logo" accept="image/*">
+                            {% if settings.login_logo %}<img src="{{ settings.login_logo }}" style="max-width:100px" class="mt-2">{% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label>{{ 'رمز الموقع' if lang == 'ar' else 'Favicon' }}</label>
+                            <input type="file" class="form-control" name="favicon" accept="image/*">
+                        </div>
+
+                        <div class="form-group">
+                            <label>{{ 'نوع الخط' if lang == 'ar' else 'Font Family' }}</label>
+                            <select class="form-control" name="font_family">
+                                <option value="Arial" {% if settings.font_family == 'Arial' %}selected{% endif %}>Arial</option>
+                                <option value="Tahoma" {% if settings.font_family == 'Tahoma' %}selected{% endif %}>Tahoma</option>
+                                <option value="Times New Roman" {% if settings.font_family == 'Times New Roman' %}selected{% endif %}>Times New Roman</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>{{ 'رسالة الترحيب' if lang == 'ar' else 'Welcome Message' }}</label>
+                            <textarea class="form-control" name="welcome_message" rows="3">{{ settings.welcome_message or '' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="m-0">🌐 {{ 'النطاق' if lang == 'ar' else 'Domain' }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>{{ 'نطاق مخصص' if lang == 'ar' else 'Custom Domain' }}</label>
+                            <input type="text" class="form-control" name="custom_domain" value="{{ settings.custom_domain or '' }}" placeholder="example.com">
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="https" name="https_enabled" {% if settings.https_enabled %}checked{% endif %}>
+                            <label class="form-check-label" for="https">
+                                {{ 'تفعيل HTTPS' if lang == 'ar' else 'Enable HTTPS' }}
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label>{{ 'سجل CNAME' if lang == 'ar' else 'CNAME Record' }}</label>
+                            <input type="text" class="form-control" name="cname_record" value="{{ settings.cname_record or '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">{{ 'حفظ الهوية البصرية' if lang == 'ar' else 'Save Branding' }}</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('brandingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    fetch('{{ url_for("settings_admin.branding_settings") }}', {
+        method: 'POST',
+        body: new FormData(this)
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            alert('{{ "تم الحفظ بنجاح" if lang == "ar" else "Saved successfully" }}');
+        }
+    });
+});
+</script>
+{% endblock %}

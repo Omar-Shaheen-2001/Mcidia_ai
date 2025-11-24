@@ -107,7 +107,7 @@
                 </a>
                 
                 <div class="menu-section">{{ 'الإعدادات' if lang == 'ar' else 'Settings' }}</div>
-                <a href="{{ url_for('admin.settings.index') }}" class="menu-item {% if 'settings' in request.endpoint %}active{% endif %}">
+                <a href="{{ url_for('settings_admin.index') }}" class="menu-item {% if 'settings_admin' in request.endpoint %}active{% endif %}">
                     <i class="fas fa-cog"></i>
                     <span>{{ 'إعدادات النظام' if lang == 'ar' else 'System Settings' }}</span>
                 </a>
