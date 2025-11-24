@@ -131,6 +131,101 @@
     </div>
 </div>
 
+<!-- Most Used Services and Top Users -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="table-card">
+            <div class="table-header">
+                <h5 class="mb-0">{{ 'أكثر الوحدات استخدامًا' if lang == 'ar' else 'Most Used AI Modules' }}</h5>
+                <small class="text-muted">{{ '(آخر 30 يوم)' if lang == 'ar' else '(Last 30 days)' }}</small>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{ 'الوحدة' if lang == 'ar' else 'Module' }}</th>
+                            <th class="text-center">{{ 'الطلبات' if lang == 'ar' else 'Requests' }}</th>
+                            <th class="text-end">{{ 'التكلفة' if lang == 'ar' else 'Cost' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if most_used_services %}
+                            {% for service, count, cost in most_used_services %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-info">{{ service }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <strong>{{ count }}</strong>
+                                </td>
+                                <td class="text-end">
+                                    <small>${{ "%.2f"|format(cost or 0) }}</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-3">
+                                {{ 'لا توجد بيانات' if lang == 'ar' else 'No data available' }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="table-card">
+            <div class="table-header">
+                <h5 class="mb-0">{{ 'أكثر المستخدمين استخدامًا' if lang == 'ar' else 'Most Active Users' }}</h5>
+                <small class="text-muted">{{ '(آخر 30 يوم)' if lang == 'ar' else '(Last 30 days)' }}</small>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{ 'المستخدم' if lang == 'ar' else 'User' }}</th>
+                            <th class="text-center">{{ 'الطلبات' if lang == 'ar' else 'Requests' }}</th>
+                            <th class="text-end">{{ 'التكلفة' if lang == 'ar' else 'Cost' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if top_ai_users %}
+                            {% for user_id, username, email, request_count, total_cost in top_ai_users %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <a href="{{ url_for('admin.users.detail', user_id=user_id) }}" class="text-decoration-none">
+                                            <strong>{{ username }}</strong>
+                                        </a>
+                                        <br>
+                                        <small class="text-muted">{{ email }}</small>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-success">{{ request_count }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <small>${{ "%.2f"|format(total_cost or 0) }}</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-3">
+                                {{ 'لا توجد بيانات' if lang == 'ar' else 'No data available' }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Recent Activity Tables -->
 <div class="row g-4">
     <div class="col-lg-6">

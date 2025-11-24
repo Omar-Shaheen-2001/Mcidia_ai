@@ -63,6 +63,31 @@ def index():
         AILog.created_at >= thirty_days_ago
     ).group_by(AILog.module).all()
     
+    # Get most used AI services (by service_type) - last 30 days
+    most_used_services = db.session.query(
+        AILog.service_type,
+        func.count(AILog.id).label('count'),
+        func.sum(AILog.estimated_cost).label('total_cost')
+    ).filter(
+        AILog.created_at >= thirty_days_ago,
+        AILog.service_type != None
+    ).group_by(AILog.service_type).order_by(func.count(AILog.id).desc()).limit(10).all()
+    
+    # Get top users by AI usage (last 30 days)
+    top_ai_users = db.session.query(
+        User.id,
+        User.username,
+        User.email,
+        func.count(AILog.id).label('request_count'),
+        func.sum(AILog.estimated_cost).label('total_cost')
+    ).outerjoin(
+        AILog, User.id == AILog.user_id
+    ).filter(
+        AILog.created_at >= thirty_days_ago
+    ).group_by(User.id, User.username, User.email).order_by(
+        func.count(AILog.id).desc()
+    ).limit(10).all()
+    
     return render_template(
         'admin/dashboard/index.html',
         lang=lang,
@@ -75,7 +100,9 @@ def index():
         recent_transactions=recent_transactions,
         role_distribution=role_distribution,
         monthly_revenue=monthly_revenue,
-        ai_by_module=ai_by_module
+        ai_by_module=ai_by_module,
+        most_used_services=most_used_services,
+        top_ai_users=top_ai_users
     )
 
 @dashboard_bp.route('/api/metrics')
