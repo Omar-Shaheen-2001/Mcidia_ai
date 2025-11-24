@@ -1,7 +1,266 @@
 {% extends "base.html" %}
+
+{% block title %}{{ 'الاستشارة الفورية' if lang == 'ar' else 'Consultation' }} - Mcidia{% endblock %}
+
+{% block extra_css %}
+<style>
+    .consultation-hero {
+        background: linear-gradient(135deg, #0A2756 0%, #2767B1 100%);
+        color: white;
+        padding: 80px 0;
+        text-align: center;
+        margin-bottom: 60px;
+    }
+    
+    .consultation-hero h1 {
+        font-size: 48px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+    
+    .consultation-hero p {
+        font-size: 18px;
+        opacity: 0.9;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .feature-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        transition: all 0.3s;
+        margin-bottom: 30px;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    .feature-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #0A2756 0%, #2767B1 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 28px;
+        margin: 0 auto 20px;
+    }
+    
+    .feature-title {
+        font-weight: 600;
+        color: #0A2756;
+        margin-bottom: 12px;
+        font-size: 18px;
+    }
+    
+    .feature-desc {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+    
+    .cta-section {
+        text-align: center;
+        margin: 80px 0;
+    }
+    
+    .btn-start-consultation {
+        background: linear-gradient(135deg, #0A2756 0%, #2767B1 100%);
+        color: white;
+        padding: 16px 40px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-start-consultation:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(10, 39, 86, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .sessions-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+    
+    .sessions-header {
+        background: linear-gradient(135deg, #0A2756 0%, #2767B1 100%);
+        color: white;
+        padding: 20px;
+        margin: 0;
+    }
+    
+    .session-item {
+        padding: 16px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s;
+    }
+    
+    .session-item:last-child {
+        border-bottom: none;
+    }
+    
+    .session-item:hover {
+        background: #f5f5f5;
+    }
+    
+    .session-info {
+        flex: 1;
+    }
+    
+    .session-topic {
+        font-weight: 600;
+        color: #0A2756;
+        margin-bottom: 5px;
+    }
+    
+    .session-date {
+        font-size: 12px;
+        color: #999;
+    }
+    
+    .session-action {
+        margin-{{ 's' if lang == 'en' else 'e' }}: 15px;
+    }
+    
+    .btn-session {
+        background: #0A2756;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 12px;
+        transition: all 0.2s;
+        display: inline-block;
+    }
+    
+    .btn-session:hover {
+        background: #2767B1;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .empty-sessions {
+        padding: 40px 20px;
+        text-align: center;
+        color: #999;
+    }
+    
+    .empty-sessions i {
+        font-size: 48px;
+        opacity: 0.3;
+        display: block;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <h2 class="fw-bold mb-4">Consultation Module</h2>
-    <p>Module content coming soon...</p>
+<!-- Hero Section -->
+<div class="consultation-hero">
+    <div class="container">
+        <h1>{{ 'الاستشارة الفورية الذكية' if lang == 'ar' else 'Smart Live Consultation' }}</h1>
+        <p>{{ 'احصل على استشارات فورية من خلال الذكاء الاصطناعي المتقدم في مختلف المجالات الاستشارية' if lang == 'ar' else 'Get instant consultations through advanced AI in various consulting domains' }}</p>
+    </div>
 </div>
+
+<!-- Features Section -->
+<div class="container mb-60">
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div class="feature-title">{{ 'محادثة فورية' if lang == 'ar' else 'Instant Chat' }}</div>
+                <div class="feature-desc">{{ 'تواصل مباشر مع نظام AI المتقدم للإجابة على أسئلتك الاستشارية' if lang == 'ar' else 'Direct communication with advanced AI system to answer your consultation questions' }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-list"></i>
+                </div>
+                <div class="feature-title">{{ 'مواضيع متعددة' if lang == 'ar' else 'Multiple Topics' }}</div>
+                <div class="feature-desc">{{ 'اختر من بين مختلف المواضيع الاستشارية المتخصصة' if lang == 'ar' else 'Choose from various specialized consulting topics' }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="feature-title">{{ 'تتبع التكاليف' if lang == 'ar' else 'Cost Tracking' }}</div>
+                <div class="feature-desc">{{ 'تابع تكاليف جلساتك الاستشارية بشفافية تامة' if lang == 'ar' else 'Track your consultation session costs with full transparency' }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="cta-section">
+    {% if current_user %}
+    <a href="{{ url_for('consultation.start_session') }}" class="btn-start-consultation">
+        <i class="fas fa-rocket"></i>
+        {{ 'ابدأ جلسة استشارة فورية' if lang == 'ar' else 'Start a Consultation Session' }}
+    </a>
+    {% else %}
+    <a href="{{ url_for('auth.login') }}" class="btn-start-consultation">
+        <i class="fas fa-sign-in-alt"></i>
+        {{ 'سجل دخول لبدء الاستشارة' if lang == 'ar' else 'Login to Start Consultation' }}
+    </a>
+    {% endif %}
+</div>
+
+<!-- Recent Sessions Section -->
+{% if current_user %}
+<div class="container mb-5">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="sessions-card">
+                <h5 class="sessions-header">
+                    <i class="fas fa-history me-2"></i>
+                    {{ 'آخر الجلسات' if lang == 'ar' else 'Recent Sessions' }}
+                </h5>
+                <div id="sessionsContainer">
+                    <div class="empty-sessions">
+                        <i class="fas fa-inbox"></i>
+                        <p>{{ 'لا توجد جلسات سابقة' if lang == 'ar' else 'No previous sessions' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Load recent sessions
+    fetch('{{ url_for("consultation.index") }}')
+        .then(res => res.text())
+        .then(html => {
+            // This would load recent sessions via API if implemented
+            // For now, we'll leave it empty
+        });
+</script>
+{% endif %}
 {% endblock %}

@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'جلسة الاستشارة' if lang == 'ar' else 'Consultation Session' }} #{{ session.id }} - Mcidia{% endblock %}
+
+{% block extra_css %}
+<style>
+    .consultation-container {
+        background: linear-gradient(135deg, rgba(10, 39, 86, 0.05) 0%, rgba(44, 140, 86, 0.05) 100%);
+        min-height: calc(100vh - 120px);
+        padding: 40px 0;
+    }
+    
+    .chat-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 200px);
+        overflow: hidden;
+    }
+    
+    .chat-header {
+        background: linear-gradient(135deg, #0A2756 0%, #2767B1 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .chat-header h5 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .session-id-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+    }
+    
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .message {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 12px;
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .message.user {
+        justify-content: flex-end;
+    }
+    
+    .message.assistant {
+        justify-content: flex-start;
+    }
+    
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+        margin-top: 4px;
+    }
+    
+    .user .message-avatar {
+        background: #0A2756;
+        color: white;
+    }
+    
+    .assistant .message-avatar {
+        background: #2C8C56;
+        color: white;
+    }
+    
+    .message-content {
+        max-width: 70%;
+        padding: 12px 16px;
+        border-radius: 12px;
+        word-wrap: break-word;
+        line-height: 1.4;
+    }
+    
+    .user .message-content {
+        background: #0A2756;
+        color: white;
+        border-bottom-right-radius: 0;
+    }
+    
+    .assistant .message-content {
+        background: #f0f0f0;
+        color: #333;
+        border-bottom-left-radius: 0;
+    }
+    
+    .message-time {
+        font-size: 12px;
+        color: #999;
+        margin-top: 4px;
+    }
+    
+    .message-cost {
+        font-size: 11px;
+        color: #FFC107;
+        margin-top: 4px;
+    }
+    
+    .chat-input-area {
+        padding: 20px;
+        background: #f9f9f9;
+        border-top: 1px solid #e0e0e0;
+        border-radius: 0 0 12px 12px;
+    }
+    
+    .input-group-custom {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .message-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-family: inherit;
+        resize: none;
+        max-height: 120px;
+        min-height: 45px;
+    }
+    
+    .message-input:focus {
+        outline: none;
+        border-color: #0A2756;
+        box-shadow: 0 0 0 3px rgba(10, 39, 86, 0.1);
+    }
+    
+    .btn-send {
+        background: linear-gradient(135deg, #0A2756 0%, #2767B1 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: transform 0.2s;
+    }
+    
+    .btn-send:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(10, 39, 86, 0.2);
+    }
+    
+    .btn-send:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .sidebar-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 20px;
+    }
+    
+    .sidebar-title {
+        font-weight: 600;
+        color: #0A2756;
+        margin-bottom: 15px;
+        font-size: 14px;
+        text-transform: uppercase;
+    }
+    
+    .cost-bar {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .cost-bar i {
+        color: #FFC107;
+        font-size: 18px;
+    }
+    
+    .cost-text {
+        font-size: 14px;
+        color: #333;
+    }
+    
+    .cost-amount {
+        font-weight: 600;
+        color: #FFC107;
+        margin-left: auto;
+    }
+    
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="consultation-container">
+    <div class="container-fluid">
+        <div class="row h-100" style="min-height: calc(100vh - 200px);">
+            <!-- Chat Area -->
+            <div class="col-lg-9 mb-4 mb-lg-0">
+                <div class="chat-card">
+                    <div class="chat-header">
+                        <div>
+                            <h5>
+                                <i class="fas fa-comments me-2"></i>
+                                {{ 'جلسة الاستشارة' if lang == 'ar' else 'Consultation Session' }}
+                            </h5>
+                        </div>
+                        <div class="session-id-badge">
+                            #{{ session.id }}
+                        </div>
+                    </div>
+                    
+                    <div class="chat-messages" id="chatMessages"></div>
+                    
+                    <div class="chat-input-area">
+                        <div class="input-group-custom">
+                            <textarea class="message-input" id="messageInput" placeholder="{{ 'اكتب رسالتك هنا...' if lang == 'ar' else 'Type your message here...' }}" rows="2"></textarea>
+                            <button class="btn-send" id="sendBtn">
+                                <i class="fas fa-paper-plane"></i>
+                                <span>{{ 'إرسال' if lang == 'ar' else 'Send' }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <!-- Cost Information -->
+                <div class="cost-bar">
+                    <i class="fas fa-info-circle"></i>
+                    <div class="cost-text">
+                        {{ 'تكلفة الجلسة' if lang == 'ar' else 'Session Cost' }}:
+                        <span class="cost-amount" id="sessionCost">$0.00</span>
+                    </div>
+                </div>
+                
+                <!-- Session Info -->
+                <div class="sidebar-card">
+                    <div class="sidebar-title">{{ 'معلومات الجلسة' if lang == 'ar' else 'Session Info' }}</div>
+                    <div style="font-size: 13px; color: #666; line-height: 1.8;">
+                        <div class="mb-2">
+                            <strong>{{ 'الموضوع' if lang == 'ar' else 'Topic' }}:</strong>
+                            <span class="d-block mt-1">{{ session.domain }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>{{ 'الحالة' if lang == 'ar' else 'Status' }}:</strong>
+                            <span class="badge bg-success ms-2">{{ 'نشطة' if lang == 'ar' else 'Active' }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>{{ 'تاريخ الإنشاء' if lang == 'ar' else 'Created' }}:</strong>
+                            <span class="d-block mt-1">{{ session.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </div>
+                        <div>
+                            <strong>{{ 'آخر تحديث' if lang == 'ar' else 'Updated' }}:</strong>
+                            <span class="d-block mt-1">{{ session.updated_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="sidebar-card">
+                    <a href="{{ url_for('consultation.start_session') }}" class="btn btn-outline-primary w-100" style="margin-bottom: 10px;">
+                        <i class="fas fa-plus me-2"></i>
+                        {{ 'جلسة جديدة' if lang == 'ar' else 'New Session' }}
+                    </a>
+                    <a href="{{ url_for('consultation.index') }}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        {{ 'العودة' if lang == 'ar' else 'Go Back' }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const lang = '{{ lang }}';
+    const sessionId = {{ session.id }};
+    const messages = {{ messages | tojson }};
+    
+    const apiUrl = '{{ url_for("consultation.send_message") }}';
+    let sessionCost = 0;
+    
+    // Load existing messages
+    function loadMessages() {
+        const messagesDiv = document.getElementById('chatMessages');
+        messagesDiv.innerHTML = '';
+        
+        messages.forEach(msg => {
+            const role = msg.role;
+            const content = msg.content;
+            const cost = msg.cost;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = role === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+            
+            const content_div = document.createElement('div');
+            content_div.className = 'message-content';
+            content_div.textContent = content;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content_div);
+            
+            if (role === 'assistant' && cost) {
+                sessionCost += cost;
+                const costSpan = document.createElement('div');
+                costSpan.className = 'message-cost';
+                costSpan.textContent = `💰 $${cost.toFixed(4)}`;
+                messageDiv.appendChild(costSpan);
+            }
+            
+            messagesDiv.appendChild(messageDiv);
+        });
+        
+        document.getElementById('sessionCost').textContent = `$${sessionCost.toFixed(4)}`;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+    
+    // Send message
+    document.getElementById('sendBtn').addEventListener('click', sendMessage);
+    document.getElementById('messageInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        // Disable send button
+        const btn = document.getElementById('sendBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading-spinner"></span><span>{{ "جاري الإرسال..." if lang == "ar" else "Sending..." }}</span>';
+        
+        // Add user message to chat
+        addMessage('user', message);
+        input.value = '';
+        
+        // Send to API
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: message,
+                session_id: sessionId,
+                topic: '{{ session.domain }}'
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                addMessage('assistant', `{{ 'خطأ: ' if lang == 'ar' else 'Error: ' }}${data.error}`);
+            } else {
+                addMessage('assistant', data.response, data.cost);
+                sessionCost += data.cost;
+                document.getElementById('sessionCost').textContent = `$${sessionCost.toFixed(4)}`;
+            }
+        })
+        .catch(err => {
+            addMessage('assistant', `{{ 'حدث خطأ في الاتصال' if lang == 'ar' else 'Connection error' }}`);
+            console.error('Error:', err);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i><span>{{ "إرسال" if lang == "ar" else "Send" }}</span>';
+        });
+    }
+    
+    function addMessage(role, content, cost = null) {
+        const messagesDiv = document.getElementById('chatMessages');
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role}`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.innerHTML = role === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+        
+        const content_div = document.createElement('div');
+        content_div.className = 'message-content';
+        content_div.textContent = content;
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(content_div);
+        
+        if (role === 'assistant' && cost) {
+            const costSpan = document.createElement('div');
+            costSpan.className = 'message-cost';
+            costSpan.textContent = `💰 $${cost.toFixed(4)}`;
+            messageDiv.appendChild(costSpan);
+        }
+        
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+    
+    // Initialize
+    loadMessages();
+</script>
+{% endblock %}
