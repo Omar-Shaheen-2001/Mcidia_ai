@@ -179,32 +179,103 @@
 {% if session.messages %}
 <div class="card mt-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0">{{ 'محادثة الجلسة' if lang == 'ar' else 'Session Conversation' }}</h5>
+        <h5 class="mb-0">
+            <i class="fas fa-comments {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+            {{ 'محادثة الجلسة' if lang == 'ar' else 'Session Conversation' }}
+        </h5>
     </div>
     <div class="card-body">
-        <div class="messages-container" style="max-height: 600px; overflow-y: auto;">
+        <div class="messages-container" style="max-height: 700px; overflow-y: auto; background-color: #f8f9fa; border-radius: 8px; padding: 20px;">
             {% set messages = session.messages|from_json %}
-            {% for i in range(0, messages|length, 2) %}
-                {% if i < messages|length %}
-                <div class="mb-3 p-3 bg-light rounded">
-                    <div class="mb-2">
-                        <strong class="text-primary">{{ 'المستخدم' if lang == 'ar' else 'User' }}:</strong>
+            {% if messages|length > 0 %}
+                {% for msg in messages %}
+                    {% set role = msg.role if msg is mapping else 'user' %}
+                    {% set content = msg.content if msg is mapping else msg %}
+                    {% set timestamp = msg.timestamp if msg is mapping and msg.timestamp else '' %}
+                    
+                    <div class="message-box mb-4" style="animation: slideIn 0.3s ease-in-out;">
+                        <!-- Message Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            {% if role == 'user' %}
+                                <span class="badge bg-primary" style="font-size: 12px; padding: 6px 12px;">
+                                    <i class="fas fa-user {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                                    {{ 'المستخدم' if lang == 'ar' else 'User' }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success" style="font-size: 12px; padding: 6px 12px;">
+                                    <i class="fas fa-robot {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                                    {{ 'المستشار الذكي' if lang == 'ar' else 'AI Assistant' }}
+                                </span>
+                            {% endif %}
+                            
+                            {% if timestamp %}
+                                <small class="text-muted" style="font-size: 11px;">
+                                    {% set ts = timestamp %}
+                                    {{ ts[:10] }} • {{ ts[11:19] }}
+                                </small>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Message Content -->
+                        {% if role == 'user' %}
+                            <div style="background: white; padding: 12px 15px; border-radius: 8px; border-{{ 'right' if lang == 'ar' else 'left' }}: 4px solid #0d6efd; margin-{{ 'right' if lang == 'ar' else 'left' }}: 10px; word-wrap: break-word; line-height: 1.6; color: #333;">
+                                {{ content|replace('\n', '<br>')|safe }}
+                            </div>
+                        {% else %}
+                            <div style="background: #e7f3ff; padding: 12px 15px; border-radius: 8px; border-{{ 'right' if lang == 'ar' else 'left' }}: 4px solid #28a745; margin-{{ 'right' if lang == 'ar' else 'left' }}: 10px; word-wrap: break-word; line-height: 1.6; color: #333;">
+                                {{ content|replace('\n', '<br>')|safe }}
+                            </div>
+                        {% endif %}
                     </div>
-                    <p class="mb-0 text-muted">{{ messages[i] }}</p>
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i>
+                    <p>{{ 'لا توجد رسائل في هذه الجلسة' if lang == 'ar' else 'No messages in this session' }}</p>
                 </div>
-                {% endif %}
-                
-                {% if i+1 < messages|length %}
-                <div class="mb-3 p-3 bg-info bg-opacity-10 rounded">
-                    <div class="mb-2">
-                        <strong class="text-info">{{ 'الاستشاري' if lang == 'ar' else 'Consultant' }}:</strong>
-                    </div>
-                    <p class="mb-0 text-dark">{{ messages[i+1] }}</p>
-                </div>
-                {% endif %}
-            {% endfor %}
+            {% endif %}
         </div>
     </div>
 </div>
+
+<style>
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .message-box {
+        animation: slideIn 0.3s ease-in-out;
+    }
+    
+    .messages-container {
+        scrollbar-width: thin;
+        scrollbar-color: #ccc #f8f9fa;
+    }
+    
+    .messages-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .messages-container::-webkit-scrollbar-track {
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .messages-container::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 10px;
+    }
+    
+    .messages-container::-webkit-scrollbar-thumb:hover {
+        background: #999;
+    }
+</style>
 {% endif %}
 {% endblock %}
