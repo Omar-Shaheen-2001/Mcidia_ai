@@ -62,11 +62,12 @@ def create_app():
         'max_overflow': 20
     }
     app.config['JWT_SECRET_KEY'] = os.getenv('SESSION_SECRET', 'jwt-secret-key')
-    app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+    app.config['JWT_TOKEN_LOCATION'] = ['cookies', 'headers']
     app.config['JWT_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
     app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable JWT CSRF, use Flask-WTF instead
     app.config['JWT_ACCESS_COOKIE_PATH'] = '/'
-    app.config['JWT_COOKIE_SAMESITE'] = 'Lax'  # Important for cookie handling
+    app.config['JWT_COOKIE_DOMAIN'] = None  # Allow cookies across all subdomains
+    app.config['JWT_COOKIE_SAMESITE'] = 'Lax'
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)  # Keep tokens valid for 7 days
     app.config['WTF_CSRF_CHECK_DEFAULT'] = False  # Disable CSRF by default, enable manually where needed
     

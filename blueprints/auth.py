@@ -72,6 +72,11 @@ def login():
             user.is_online = True
             db.session.commit()
             
+            # Store user ID in Flask session as backup
+            session['user_id'] = user.id
+            session['username'] = user.username
+            session['user_role'] = user.role
+            
             # Create access token
             access_token = create_access_token(identity=str(user.id))
             

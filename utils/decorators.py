@@ -10,8 +10,8 @@ def login_required(f):
             # Import here to avoid conflicts
             from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
             
-            # Try to verify JWT in cookies
-            verify_jwt_in_request(optional=False, locations=['cookies'])
+            # Try to verify JWT in cookies and headers
+            verify_jwt_in_request(optional=False, locations=['cookies', 'headers'])
             identity = get_jwt_identity()
             
             # Ensure identity is valid

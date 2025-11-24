@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, session, request, jsonify
+from flask import Blueprint, render_template, session, request, jsonify, redirect, url_for, flash
 from utils.decorators import login_required, role_required
 from models import AILog, User, Organization
 from flask import current_app
@@ -128,11 +128,37 @@ def index():
                          lang=lang)
 
 @ai_management_bp.route('/log/<int:log_id>')
-@login_required
-@role_required('system_admin')
 def view_log(log_id):
     """View detailed AI log"""
+    from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+    
+    # Try to verify with JWT first
+    user_id = None
+    try:
+        verify_jwt_in_request(optional=True, locations=['cookies', 'headers'])
+        user_id = get_jwt_identity()
+        if user_id:
+            user_id = int(user_id)
+    except:
+        pass
+    
+    # If JWT fails, check Flask session
+    if not user_id:
+        user_id = session.get('user_id')
+    
+    # If still no user, redirect to login
+    if not user_id:
+        flash('يرجى تسجيل الدخول / Please login first', 'warning')
+        return redirect(url_for('auth.login'))
+    
+    # Verify user is system admin
     db = get_db()
+    user = db.session.query(User).get(user_id)
+    
+    if not user or not user.has_role('system_admin'):
+        flash('ليس لديك صلاحية / No permission', 'danger')
+        return redirect(url_for('dashboard.index'))
+    
     lang = get_lang()
     
     log = db.session.query(AILog).filter(AILog.id == log_id).first()
