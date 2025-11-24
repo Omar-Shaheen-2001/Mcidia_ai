@@ -62,13 +62,17 @@ def create_service():
     
     # POST - Create service
     try:
+        title_ar = request.form.get('title_ar', 'New Service')
         new_service = Service(
+            name=title_ar,  # Use Arabic title as default name
             slug=request.form.get('slug'),
-            title_ar=request.form.get('title_ar'),
+            title_ar=title_ar,
             title_en=request.form.get('title_en'),
+            description=request.form.get('description_ar', ''),  # Default description
             description_ar=request.form.get('description_ar'),
             description_en=request.form.get('description_en'),
             icon=request.form.get('icon', 'fa-briefcase'),
+            category=request.form.get('category', ''),
             color=request.form.get('color', '#0A2756'),
             display_order=int(request.form.get('display_order', 0)),
             is_active=request.form.get('is_active') == 'on'
@@ -100,12 +104,15 @@ def edit_service(service_id):
     
     # POST - Update service
     try:
+        service.name = request.form.get('title_ar', service.name)  # Update name from title_ar
         service.slug = request.form.get('slug')
         service.title_ar = request.form.get('title_ar')
         service.title_en = request.form.get('title_en')
+        service.description = request.form.get('description_ar', service.description)
         service.description_ar = request.form.get('description_ar')
         service.description_en = request.form.get('description_en')
         service.icon = request.form.get('icon', 'fa-briefcase')
+        service.category = request.form.get('category', service.category)
         service.color = request.form.get('color', '#0A2756')
         service.display_order = int(request.form.get('display_order', 0))
         service.is_active = request.form.get('is_active') == 'on'

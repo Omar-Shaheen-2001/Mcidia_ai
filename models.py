@@ -303,12 +303,15 @@ class Service(db.Model):
     __tablename__ = 'services'
     
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)  # Default name (from title_ar)
     slug = db.Column(db.String(100), unique=True, nullable=False)  # URL-friendly identifier
-    title_ar = db.Column(db.String(200), nullable=False)  # Arabic title
-    title_en = db.Column(db.String(200), nullable=False)  # English title
+    title_ar = db.Column(db.String(200))  # Arabic title
+    title_en = db.Column(db.String(200))  # English title
+    description = db.Column(db.Text)  # Default description
     description_ar = db.Column(db.Text)  # Arabic description
     description_en = db.Column(db.Text)  # English description
     icon = db.Column(db.String(50))  # FontAwesome icon class
+    category = db.Column(db.String(100))  # Service category
     color = db.Column(db.String(20))  # Hex color code
     display_order = db.Column(db.Integer, default=0)  # Sort order
     is_active = db.Column(db.Boolean, default=True)
