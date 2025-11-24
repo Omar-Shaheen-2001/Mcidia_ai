@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, session, current_app
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
-from models import User, Project, AILog, Transaction, Service, ServiceOffering
+from models import User, Project, AILog, Transaction, Service, ServiceOffering, ChatSession
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -16,6 +16,7 @@ def index():
     total_projects = db.session.query(Project).filter_by(user_id=user_id).count()
     active_projects = db.session.query(Project).filter_by(user_id=user_id, status='draft').count()
     ai_credits = user.ai_credits_used if user else 0
+    total_consultations = db.session.query(ChatSession).filter_by(user_id=user_id).count()
     
     # Get recent projects
     recent_projects = db.session.query(Project).filter_by(user_id=user_id).order_by(Project.updated_at.desc()).limit(5).all()
@@ -52,6 +53,7 @@ def index():
                          total_projects=total_projects,
                          active_projects=active_projects,
                          ai_credits=ai_credits,
+                         total_consultations=total_consultations,
                          recent_projects=recent_projects,
                          recent_ai_activity=recent_ai_activity,
                          project_services=project_services,
