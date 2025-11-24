@@ -3,12 +3,13 @@ from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
 from models import AILog, ChatSession, Service
 from datetime import datetime
+from openai import OpenAI
 import json
-import openai
 import os
 import time
 
-openai.api_key = os.getenv('OPENAI_API_KEY')
+# Initialize OpenAI client with API key
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 consultation_bp = Blueprint('consultation', __name__)
 
@@ -91,13 +92,13 @@ def send_message():
         return jsonify({'error': 'Message is required'}), 400
     
     try:
-        # Call OpenAI API
-        response = openai.ChatCompletion.create(
+        # Call OpenAI API using new client interface
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": message}]
         )
         
-        ai_response = response.choices[0].message['content']
+        ai_response = response.choices[0].message.content
         execution_time_ms = int((time.time() - start_time) * 1000)
         
         # Calculate estimated cost
