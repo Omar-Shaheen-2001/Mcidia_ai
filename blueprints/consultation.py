@@ -2,14 +2,10 @@ from flask import Blueprint, render_template, request, flash, session, redirect,
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
 from models import AILog, ChatSession, Service
+from utils.ai_providers.ai_manager import AIManager
 from datetime import datetime
-from openai import OpenAI
 import json
-import os
 import time
-
-# Initialize OpenAI client with API key
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 consultation_bp = Blueprint('consultation', __name__)
 
@@ -92,30 +88,38 @@ def send_message():
         return jsonify({'error': 'Message is required'}), 400
     
     try:
-        # Call OpenAI API using new client interface
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": message}]
-        )
+        # Call AI using AIManager (same as other consulting modules)
+        ai = AIManager.for_use_case('consultation')
         
-        ai_response = response.choices[0].message.content
+        system_prompt = f"""أنت مستشار خبير متخصص في مجال {topic}.
+تقدّم استشارات عملية وقيّمة وقابلة للتطبيق.
+كن موجزاً وفعالاً في إجابتك.
+الرد بالعربية إذا كانت الأسئلة بالعربية، والإنجليزية إذا كانت بالإنجليزية."""
+        
+        ai_response = ai.chat(system_prompt, message)
         execution_time_ms = int((time.time() - start_time) * 1000)
         
-        # Calculate estimated cost
-        input_tokens = response.usage.prompt_tokens
-        output_tokens = response.usage.completion_tokens
-        estimated_cost = (input_tokens * 0.0015 / 1000) + (output_tokens * 0.002 / 1000)
+        # Estimate tokens and cost (rough estimation)
+        estimated_tokens = len(message.split()) + len(ai_response.split())
+        # OpenAI pricing: $0.0015 per 1K input, $0.002 per 1K output
+        estimated_cost = (estimated_tokens * 0.00175 / 1000) if estimated_tokens > 0 else 0.001
+        
+        # Get provider info
+        available_providers = AIManager.get_available_providers()
+        provider_name = available_providers[0] if available_providers else 'huggingface'
+        provider_config = AIManager.get_provider_info(provider_name)
+        model_name = provider_config.get('default_model', 'llama3')
         
         # Log AI usage
         log = AILog(
             user_id=user_id,
             module='consultation',
             service_type=topic,
-            provider_type='openai',
-            model_name='gpt-3.5-turbo',
+            provider_type=provider_name,
+            model_name=model_name,
             prompt=message,
             response=ai_response,
-            tokens_used=response.usage.total_tokens,
+            tokens_used=estimated_tokens,
             estimated_cost=estimated_cost,
             execution_time_ms=execution_time_ms,
             status='success'
