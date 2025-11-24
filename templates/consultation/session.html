@@ -2,17 +2,38 @@
 
 {% block title %}{{ 'جلسة الاستشارة' if lang == 'ar' else 'Consultation Session' }} #{{ session.id }} - Mcidia{% endblock %}
 
-{% block extra_js_head %}
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-{% endblock %}
-
 {% block extra_css %}
 <style>
     .consultation-container {
         background: linear-gradient(135deg, rgba(10, 39, 86, 0.05) 0%, rgba(44, 140, 86, 0.05) 100%);
         min-height: calc(100vh - 120px);
         padding: 40px 0;
+        transition: all 0.3s ease;
+    }
+    
+    .consultation-container.fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        padding: 0;
+        margin: 0;
+        border-radius: 0;
+        z-index: 10000;
+        background: white;
+    }
+    
+    .consultation-container.fullscreen .chat-card {
+        height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+    }
+    
+    .consultation-container.fullscreen .chat-header {
+        border-radius: 0;
     }
     
     .chat-card {
@@ -23,6 +44,7 @@
         flex-direction: column;
         height: calc(100vh - 200px);
         overflow: hidden;
+        transition: all 0.3s ease;
     }
     
     .chat-header {
@@ -33,11 +55,33 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 15px;
     }
     
     .chat-header h5 {
         margin: 0;
         font-weight: 600;
+        flex: 1;
+    }
+    
+    .chat-header-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-header {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.2s;
+    }
+    
+    .btn-header:hover {
+        background: rgba(255, 255, 255, 0.3);
     }
     
     .session-id-badge {
@@ -119,117 +163,106 @@
     }
     
     .assistant .message-content {
-        background: #f9f9f9;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
         color: #333;
         border-bottom-left-radius: 0;
-        border: 1px solid #e8e8e8;
+        border: 1px solid #e0e0e0;
+        padding: 16px;
     }
     
-    /* Markdown styling for assistant messages */
-    .assistant .message-content h1,
-    .assistant .message-content h2,
-    .assistant .message-content h3 {
-        margin: 12px 0 8px 0;
-        color: #0A2756;
-        font-weight: 700;
-    }
-    
-    .assistant .message-content h1 {
-        font-size: 18px;
-        border-bottom: 2px solid #0A2756;
-        padding-bottom: 6px;
-    }
-    
-    .assistant .message-content h2 {
+    /* Styled content for assistant messages */
+    .assistant .message-content .response-title {
         font-size: 16px;
+        font-weight: 700;
+        color: #0A2756;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #2767B1;
     }
     
-    .assistant .message-content h3 {
+    .assistant .message-content .response-section {
+        margin: 12px 0;
+    }
+    
+    .assistant .message-content .section-title {
         font-size: 14px;
+        font-weight: 600;
+        color: #2767B1;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
     
-    .assistant .message-content p {
+    .assistant .message-content .section-icon {
+        width: 24px;
+        height: 24px;
+        background: #2767B1;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .assistant .message-content .response-list {
+        margin-left: 12px;
+        padding-left: 0;
+        list-style: none;
+    }
+    
+    .assistant .message-content .response-list li {
         margin: 8px 0;
+        padding-left: 28px;
+        position: relative;
         line-height: 1.6;
     }
     
-    .assistant .message-content ul,
-    .assistant .message-content ol {
-        margin: 8px 0 8px 20px;
+    .assistant .message-content .response-list li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #2C8C56;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    
+    .assistant .message-content .response-text {
         line-height: 1.8;
+        margin: 8px 0;
+        color: #444;
     }
     
-    .assistant .message-content li {
-        margin: 4px 0;
-    }
-    
-    .assistant .message-content code {
-        background: #e8e8e8;
-        color: #d63384;
-        padding: 2px 6px;
+    .assistant .message-content .response-highlight {
+        background: #fff3cd;
+        border-left: 4px solid #FFC107;
+        padding: 12px;
+        margin: 12px 0;
         border-radius: 4px;
-        font-family: 'Courier New', monospace;
-        font-size: 12px;
+        font-size: 13px;
     }
     
-    .assistant .message-content pre {
+    .assistant .message-content .response-code {
         background: #2d2d2d;
         color: #f8f8f2;
         padding: 12px;
         border-radius: 6px;
-        overflow-x: auto;
-        margin: 8px 0;
+        font-family: 'Courier New', monospace;
         font-size: 12px;
-        line-height: 1.4;
+        line-height: 1.5;
+        margin: 8px 0;
+        overflow-x: auto;
     }
     
-    .assistant .message-content pre code {
-        background: none;
-        color: inherit;
-        padding: 0;
-        border-radius: 0;
-    }
-    
-    .assistant .message-content blockquote {
+    .assistant .message-content .response-box {
+        background: #e8f4f8;
         border-left: 4px solid #0A2756;
-        margin: 8px 0;
-        padding-left: 12px;
-        color: #666;
-        font-style: italic;
-    }
-    
-    .assistant .message-content strong {
-        color: #0A2756;
-        font-weight: 700;
-    }
-    
-    .assistant .message-content em {
-        font-style: italic;
-        color: #2C8C56;
-    }
-    
-    .assistant .message-content a {
-        color: #0A2756;
-        text-decoration: underline;
-    }
-    
-    .assistant .message-content table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 8px 0;
+        padding: 12px;
+        margin: 12px 0;
+        border-radius: 4px;
         font-size: 13px;
-    }
-    
-    .assistant .message-content table th,
-    .assistant .message-content table td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-    }
-    
-    .assistant .message-content table th {
-        background: #0A2756;
-        color: white;
     }
     
     .message-time {
@@ -365,14 +398,17 @@
             <div class="col-lg-9 mb-4 mb-lg-0">
                 <div class="chat-card">
                     <div class="chat-header">
-                        <div>
-                            <h5>
-                                <i class="fas fa-comments me-2"></i>
-                                {{ 'جلسة الاستشارة' if lang == 'ar' else 'Consultation Session' }}
-                            </h5>
-                        </div>
+                        <h5>
+                            <i class="fas fa-comments me-2"></i>
+                            {{ 'جلسة الاستشارة' if lang == 'ar' else 'Consultation Session' }}
+                        </h5>
                         <div class="session-id-badge">
                             #{{ session.id }}
+                        </div>
+                        <div class="chat-header-buttons">
+                            <button class="btn-header" id="fullscreenBtn" title="{{ 'ملء الشاشة' if lang == 'ar' else 'Fullscreen' }}">
+                                <i class="fas fa-expand"></i>
+                            </button>
                         </div>
                     </div>
                     
@@ -568,13 +604,8 @@
         content_div.className = 'message-content';
         
         if (role === 'assistant') {
-            // Render markdown for assistant messages
-            try {
-                const htmlContent = marked.parse(content);
-                content_div.innerHTML = DOMPurify.sanitize(htmlContent);
-            } catch (e) {
-                content_div.textContent = content;
-            }
+            // Format the response professionally
+            content_div.innerHTML = formatResponse(content);
         } else {
             // Plain text for user messages
             content_div.textContent = content;
@@ -593,6 +624,68 @@
         messagesDiv.appendChild(messageDiv);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
+    
+    function formatResponse(text) {
+        // Professional formatting without markdown symbols
+        let html = '';
+        
+        // Split into paragraphs
+        const paragraphs = text.split('\n\n');
+        
+        paragraphs.forEach((para, idx) => {
+            para = para.trim();
+            if (!para) return;
+            
+            // Check if it's a numbered list
+            if (para.match(/^\d+\./)) {
+                html += '<div class="response-section">';
+                const items = para.split('\n').filter(l => l.trim());
+                items.forEach(item => {
+                    const match = item.match(/^\d+\.\s*(.+)/);
+                    if (match) {
+                        html += `<div class="response-text"><strong>${match[1]}</strong></div>`;
+                    }
+                });
+                html += '</div>';
+            }
+            // Check if it's a bullet list
+            else if (para.match(/^[-•*]/)) {
+                html += '<ul class="response-list">';
+                const items = para.split('\n').filter(l => l.trim());
+                items.forEach(item => {
+                    const text = item.replace(/^[-•*]\s*/, '').trim();
+                    if (text) html += `<li>${text}</li>`;
+                });
+                html += '</ul>';
+            }
+            // Check if it's a title/header
+            else if (idx === 0 || para.length < 100) {
+                html += `<div class="response-title">${para}</div>`;
+            }
+            // Regular paragraph
+            else {
+                html += `<div class="response-text">${para}</div>`;
+            }
+        });
+        
+        return html || text;
+    }
+    
+    // Fullscreen functionality
+    document.getElementById('fullscreenBtn').addEventListener('click', function() {
+        const container = document.querySelector('.consultation-container');
+        const btn = this;
+        
+        container.classList.toggle('fullscreen');
+        
+        if (container.classList.contains('fullscreen')) {
+            btn.innerHTML = '<i class="fas fa-compress"></i>';
+            btn.title = lang === 'ar' ? 'إغلاق الملء' : 'Exit fullscreen';
+        } else {
+            btn.innerHTML = '<i class="fas fa-expand"></i>';
+            btn.title = lang === 'ar' ? 'ملء الشاشة' : 'Fullscreen';
+        }
+    });
     
     // Initialize
     loadMessages();
