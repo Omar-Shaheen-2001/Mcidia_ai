@@ -24,6 +24,11 @@ def login_required(f):
             # Log the error for debugging
             print(f"JWT Verification Error: {type(e).__name__}: {str(e)}")
             
+            # Check if this is an API request (looking for JSON)
+            if request.path.endswith('/api') or 'application/json' in request.headers.get('Accept', ''):
+                from flask import jsonify
+                return jsonify({'success': False, 'error': 'Authentication required'}), 401
+            
             # Fail closed - always redirect to login on any JWT error
             lang = session.get('language', 'ar')
             flash('يرجى تسجيل الدخول للوصول إلى هذه الصفحة / Please login to access this page', 'warning')

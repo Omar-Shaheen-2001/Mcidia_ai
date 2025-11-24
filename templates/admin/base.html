@@ -30,7 +30,7 @@
     
     {% block extra_css %}{% endblock %}
 </head>
-<body style="font-family: {{ "'Cairo', sans-serif" if lang == 'ar' else "'Poppins', sans-serif" }}">
+{% if lang == 'ar' %}<body style="font-family: 'Cairo', sans-serif">{% else %}<body style="font-family: 'Poppins', sans-serif">{% endif %}
     <div class="admin-wrapper">
         <!-- Sidebar -->
         <div class="admin-sidebar" id="adminSidebar">
