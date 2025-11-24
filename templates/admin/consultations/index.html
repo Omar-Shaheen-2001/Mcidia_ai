@@ -1,0 +1,181 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'استشارات المستخدمين' if lang == 'ar' else 'User Consultations' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-0">{{ 'استشارات المستخدمين' if lang == 'ar' else 'User Consultations' }}</h2>
+        <p class="text-muted">{{ 'عرض وتحليل جميع استشارات المستخدمين' if lang == 'ar' else 'View and analyze all user consultations' }}</p>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10B981;">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ total_consultations }}</div>
+                    <div class="stat-label">{{ 'إجمالي الاستشارات' if lang == 'ar' else 'Total Consultations' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3B82F6;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ total_active_users }}</div>
+                    <div class="stat-label">{{ 'مستخدمون نشطون' if lang == 'ar' else 'Active Users' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #F59E0B;">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">${{ "%.2f"|format(total_consultation_cost) }}</div>
+                    <div class="stat-label">{{ 'إجمالي التكلفة' if lang == 'ar' else 'Total Cost' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: #8B5CF6;">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    {% if total_active_users > 0 %}
+                    <div class="stat-value">{{ "%.1f"|format(total_consultations / total_active_users) }}</div>
+                    {% else %}
+                    <div class="stat-value">0</div>
+                    {% endif %}
+                    <div class="stat-label">{{ 'متوسط الاستشارات' if lang == 'ar' else 'Avg per User' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="table-card">
+    <div class="table-header">
+        <h5 class="mb-0">{{ 'المستخدمون والاستشارات' if lang == 'ar' else 'Users & Consultations' }}</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>{{ 'المستخدم' if lang == 'ar' else 'User' }}</th>
+                    <th>{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</th>
+                    <th class="text-center">{{ 'عدد الاستشارات' if lang == 'ar' else 'Consultations' }}</th>
+                    <th class="text-center">{{ 'التكلفة الإجمالية' if lang == 'ar' else 'Total Cost' }}</th>
+                    <th class="text-center">{{ 'الإجراء' if lang == 'ar' else 'Action' }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if users %}
+                    {% for user_data in users %}
+                    <tr>
+                        <td>
+                            <strong>{{ user_data[1] }}</strong>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ user_data[2] }}</small>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-primary bg-primary">{{ user_data[3] or 0 }}</span>
+                        </td>
+                        <td class="text-center">
+                            <strong>${{ "%.2f"|format(user_data[4] or 0) }}</strong>
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('admin.consultations_admin.user_consultations', user_id=user_data[0]) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                                {{ 'عرض' if lang == 'ar' else 'View' }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            {{ 'لا توجد استشارات حتى الآن' if lang == 'ar' else 'No consultations yet' }}
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+    <div class="d-flex justify-content-between align-items-center p-3 border-top">
+        <div class="text-muted small">
+            {{ 'الصفحة' if lang == 'ar' else 'Page' }} {{ pagination.page }} {{ 'من' if lang == 'ar' else 'of' }} {{ pagination.pages }}
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination mb-0">
+                {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.consultations_admin.index', page=pagination.prev_num) }}">
+                        {{ 'السابق' if lang == 'ar' else 'Previous' }}
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in pagination.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num == pagination.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin.consultations_admin.index', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.consultations_admin.index', page=pagination.next_num) }}">
+                        {{ 'التالي' if lang == 'ar' else 'Next' }}
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

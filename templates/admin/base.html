@@ -91,6 +91,10 @@
                     <i class="fas fa-robot"></i>
                     <span>{{ 'إدارة الذكاء الاصطناعي' if lang == 'ar' else 'AI Management' }}</span>
                 </a>
+                <a href="{{ url_for('admin.consultations_admin.index') }}" class="menu-item {% if 'consultations_admin' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-comments"></i>
+                    <span>{{ 'استشارات المستخدمين' if lang == 'ar' else 'User Consultations' }}</span>
+                </a>
                 
                 <div class="menu-section">{{ 'الدعم' if lang == 'ar' else 'Support' }}</div>
                 <a href="{{ url_for('admin.support.index') }}" class="menu-item {% if 'support' in request.endpoint %}active{% endif %}">

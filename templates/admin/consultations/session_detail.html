@@ -1,0 +1,210 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'تفاصيل الجلسة' if lang == 'ar' else 'Session Details' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h2 class="mb-0">{{ 'تفاصيل الاستشارة' if lang == 'ar' else 'Consultation Details' }}</h2>
+                <p class="text-muted">{{ 'بيانات جلسة الاستشارة' if lang == 'ar' else 'Consultation session information' }}</p>
+            </div>
+            <a href="{{ url_for('admin.consultations_admin.user_consultations', user_id=user.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                {{ 'العودة' if lang == 'ar' else 'Back' }}
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Session Info Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10B981;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value small">{{ user.username }}</div>
+                    <div class="stat-label small">{{ 'المستخدم' if lang == 'ar' else 'User' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3B82F6;">
+                        <i class="fas fa-tag"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value small">{{ session.domain or 'General' }}</div>
+                    <div class="stat-label small">{{ 'المجال' if lang == 'ar' else 'Domain' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #F59E0B;">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">${{ "%.4f"|format(session_cost) }}</div>
+                    <div class="stat-label">{{ 'التكلفة' if lang == 'ar' else 'Cost' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: #8B5CF6;">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value small">{{ session.created_at.strftime('%H:%M') if session.created_at else '-' }}</div>
+                    <div class="stat-label small">{{ session.created_at.strftime('%d/%m/%Y') if session.created_at else '-' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Session Info -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">{{ 'معلومات الجلسة' if lang == 'ar' else 'Session Information' }}</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ 'معرّف الجلسة' if lang == 'ar' else 'Session ID' }}:</label>
+                    <p class="text-muted">{{ session.id }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ 'الموضوع' if lang == 'ar' else 'Topic' }}:</label>
+                    <p class="text-muted">{{ session.topic or 'N/A' }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ 'وقت الإنشاء' if lang == 'ar' else 'Created At' }}:</label>
+                    <p class="text-muted">{{ session.created_at.strftime('%d/%m/%Y %H:%M:%S') if session.created_at else '-' }}</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ 'بريد المستخدم' if lang == 'ar' else 'User Email' }}:</label>
+                    <p class="text-muted">{{ user.email }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ 'عدد الرسائل' if lang == 'ar' else 'Message Count' }}:</label>
+                    <p class="text-muted">
+                        {% if session.messages %}
+                            {{ (session.messages|from_json|length // 2) if session.messages else 0 }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ 'آخر تحديث' if lang == 'ar' else 'Updated At' }}:</label>
+                    <p class="text-muted">{{ session.updated_at.strftime('%d/%m/%Y %H:%M:%S') if session.updated_at else '-' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Logs -->
+<div class="table-card">
+    <div class="table-header">
+        <h5 class="mb-0">{{ 'سجلات الذكاء الاصطناعي' if lang == 'ar' else 'AI Logs' }}</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+            <thead class="table-light">
+                <tr>
+                    <th>{{ 'الخدمة' if lang == 'ar' else 'Service' }}</th>
+                    <th class="text-center">{{ 'الرموز المستخدمة' if lang == 'ar' else 'Tokens' }}</th>
+                    <th class="text-center">{{ 'التكلفة المقدرة' if lang == 'ar' else 'Cost' }}</th>
+                    <th>{{ 'الوقت' if lang == 'ar' else 'Time' }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if ai_logs %}
+                    {% for log in ai_logs %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-info">{{ log.service_type or 'Unknown' }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary">{{ log.tokens_used or 0 }}</span>
+                        </td>
+                        <td class="text-center">
+                            <strong>${{ "%.4f"|format(log.estimated_cost or 0) }}</strong>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ log.created_at.strftime('%H:%M:%S') if log.created_at else '-' }}</small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                            {{ 'لا توجد سجلات' if lang == 'ar' else 'No logs available' }}
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Messages Preview -->
+{% if session.messages %}
+<div class="card mt-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">{{ 'محادثة الجلسة' if lang == 'ar' else 'Session Conversation' }}</h5>
+    </div>
+    <div class="card-body">
+        <div class="messages-container" style="max-height: 600px; overflow-y: auto;">
+            {% set messages = session.messages|from_json %}
+            {% for i in range(0, messages|length, 2) %}
+                {% if i < messages|length %}
+                <div class="mb-3 p-3 bg-light rounded">
+                    <div class="mb-2">
+                        <strong class="text-primary">{{ 'المستخدم' if lang == 'ar' else 'User' }}:</strong>
+                    </div>
+                    <p class="mb-0 text-muted">{{ messages[i] }}</p>
+                </div>
+                {% endif %}
+                
+                {% if i+1 < messages|length %}
+                <div class="mb-3 p-3 bg-info bg-opacity-10 rounded">
+                    <div class="mb-2">
+                        <strong class="text-info">{{ 'الاستشاري' if lang == 'ar' else 'Consultant' }}:</strong>
+                    </div>
+                    <p class="mb-0 text-dark">{{ messages[i+1] }}</p>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

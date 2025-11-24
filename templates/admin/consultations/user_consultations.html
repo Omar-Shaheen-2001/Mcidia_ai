@@ -1,0 +1,199 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'استشارات' if lang == 'ar' else 'Consultations' }} - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h2 class="mb-0">{{ 'استشارات' if lang == 'ar' else 'Consultations' }}: {{ user.username }}</h2>
+                <p class="text-muted">{{ user.email }}</p>
+            </div>
+            <a href="{{ url_for('admin.consultations_admin.index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                {{ 'العودة' if lang == 'ar' else 'Back' }}
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- User Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10B981;">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ total_consultations }}</div>
+                    <div class="stat-label">{{ 'إجمالي الاستشارات' if lang == 'ar' else 'Total Consultations' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #F59E0B;">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">${{ "%.2f"|format(total_cost) }}</div>
+                    <div class="stat-label">{{ 'إجمالي التكلفة' if lang == 'ar' else 'Total Cost' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3B82F6;">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ consultations[0].created_at.strftime('%d/%m/%Y') if consultations else '-' }}</div>
+                    <div class="stat-label">{{ 'آخر استشارة' if lang == 'ar' else 'Last Consultation' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: #8B5CF6;">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    {% if total_consultations > 0 %}
+                    <div class="stat-value">${{ "%.2f"|format(total_cost / total_consultations) }}</div>
+                    {% else %}
+                    <div class="stat-value">$0.00</div>
+                    {% endif %}
+                    <div class="stat-label">{{ 'متوسط التكلفة' if lang == 'ar' else 'Avg Cost' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Consultations Table -->
+<div class="table-card">
+    <div class="table-header">
+        <h5 class="mb-0">{{ 'جلسات الاستشارة' if lang == 'ar' else 'Consultation Sessions' }}</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>{{ 'المجال' if lang == 'ar' else 'Domain' }}</th>
+                    <th>{{ 'الموضوع' if lang == 'ar' else 'Topic' }}</th>
+                    <th class="text-center">{{ 'عدد الرسائل' if lang == 'ar' else 'Messages' }}</th>
+                    <th class="text-center">{{ 'التكلفة' if lang == 'ar' else 'Cost' }}</th>
+                    <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                    <th class="text-center">{{ 'الإجراء' if lang == 'ar' else 'Action' }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if consultations %}
+                    {% for consultation in consultations %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-info">{{ consultation.domain or 'General' }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ consultation.topic[:50] + '...' if consultation.topic and consultation.topic|length > 50 else consultation.topic or 'N/A' }}</strong>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary">
+                                {% if consultation.messages %}
+                                    {{ (consultation.messages|from_json|length // 2) if consultation.messages else 0 }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <strong>${{ "%.4f"|format(cost_map.get(consultation.id, 0)) }}</strong>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ consultation.created_at.strftime('%d/%m/%Y %H:%M') if consultation.created_at else '-' }}</small>
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('admin.consultations_admin.view_session', session_id=consultation.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                                {{ 'عرض' if lang == 'ar' else 'View' }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            {{ 'لا توجد استشارات لهذا المستخدم' if lang == 'ar' else 'No consultations for this user' }}
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+    <div class="d-flex justify-content-between align-items-center p-3 border-top">
+        <div class="text-muted small">
+            {{ 'الصفحة' if lang == 'ar' else 'Page' }} {{ pagination.page }} {{ 'من' if lang == 'ar' else 'of' }} {{ pagination.pages }}
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination mb-0">
+                {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.consultations_admin.user_consultations', user_id=user.id, page=pagination.prev_num) }}">
+                        {{ 'السابق' if lang == 'ar' else 'Previous' }}
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in pagination.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num == pagination.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin.consultations_admin.user_consultations', user_id=user.id, page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.consultations_admin.user_consultations', user_id=user.id, page=pagination.next_num) }}">
+                        {{ 'التالي' if lang == 'ar' else 'Next' }}
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
