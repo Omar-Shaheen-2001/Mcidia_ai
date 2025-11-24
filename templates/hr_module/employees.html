@@ -90,7 +90,7 @@
                                             
                                             <!-- Hidden delete form -->
                                             <form id="delete-form-{{ emp.id }}" action="{{ url_for('hr_module.delete_employee', employee_id=emp.id) }}" method="POST" style="display: none;">
-                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                                             </form>
                                         </td>
                                     </tr>

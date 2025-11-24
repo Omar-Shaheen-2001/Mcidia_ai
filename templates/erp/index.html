@@ -328,7 +328,7 @@
                         </button>
                     {% else %}
                         <form method="POST" action="{{ url_for('erp.subscribe', plan_id=plan.id) }}" class="subscribe-form">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <button type="submit" class="btn btn-gradient w-100">
                                 <i class="fas fa-rocket me-2"></i>
                                 {{ 'اشترك الآن' if lang == 'ar' else 'Subscribe Now' }}

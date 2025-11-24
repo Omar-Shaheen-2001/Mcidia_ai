@@ -105,8 +105,8 @@ def create_app():
         except:
             pass
         
-        # Pass csrf_token as a function so templates can call {{ csrf_token() }}
-        return dict(csrf_token=generate_csrf, current_user=current_user)
+        # Pass csrf_token as the generated token value (not as a function)
+        return dict(csrf_token=generate_csrf(), current_user=current_user)
     
     # Register blueprints
     from blueprints.auth import auth_bp
