@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, current_app, session, send_file
 from flask_jwt_extended import get_jwt_identity
-from utils.decorators import login_required, role_required
+from utils.decorators import login_required
 from models import SystemSettings, BackupLog, db
 from datetime import datetime
 import os
@@ -25,7 +25,6 @@ def get_or_create_settings():
 
 @settings_bp.route('/')
 @login_required
-@role_required('system_admin')
 def index():
     """Settings Main Dashboard"""
     lang = get_lang()
@@ -41,7 +40,6 @@ def index():
 
 @settings_bp.route('/general', methods=['GET', 'POST'])
 @login_required
-@role_required('system_admin')
 def general_settings():
     """General Settings"""
     lang = get_lang()
@@ -65,7 +63,6 @@ def general_settings():
 
 @settings_bp.route('/branding', methods=['GET', 'POST'])
 @login_required
-@role_required('system_admin')
 def branding_settings():
     """Branding & Identity Settings"""
     lang = get_lang()
@@ -124,7 +121,6 @@ def branding_settings():
 
 @settings_bp.route('/ai', methods=['GET', 'POST'])
 @login_required
-@role_required('system_admin')
 def ai_settings():
     """AI Settings"""
     lang = get_lang()
@@ -148,7 +144,6 @@ def ai_settings():
 
 @settings_bp.route('/backup', methods=['GET', 'POST'])
 @login_required
-@role_required('system_admin')
 def backup_settings():
     """Backup & Maintenance Settings"""
     lang = get_lang()
@@ -191,7 +186,6 @@ def backup_settings():
 
 @settings_bp.route('/backup/download/<int:backup_id>')
 @login_required
-@role_required('system_admin')
 def download_backup(backup_id):
     """Download backup"""
     backup = BackupLog.query.get_or_404(backup_id)
