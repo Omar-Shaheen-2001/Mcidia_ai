@@ -166,7 +166,30 @@ def send_message():
         })
         
     except Exception as e:
+        from openai import APIError, APIConnectionError, RateLimitError, AuthenticationError
+        
         execution_time_ms = int((time.time() - start_time) * 1000)
+        error_str = str(e)
+        
+        # Handle specific OpenAI API errors
+        error_message = error_str
+        http_status = 500
+        
+        if isinstance(e, AuthenticationError):
+            error_message = 'خطأ في المصادقة - تحقق من API Key / Authentication error - check your API Key'
+            http_status = 401
+        elif isinstance(e, RateLimitError):
+            error_message = 'تم تجاوز حد الاستخدام - يرجى المحاولة لاحقاً / Rate limit exceeded - please try again later'
+            http_status = 429
+        elif 'insufficient_quota' in error_str.lower():
+            error_message = 'حد الاستخدام قد تم تجاوزه - يرجى التحقق من حسابك في OpenAI وإضافة رصيد / Insufficient quota - please check your OpenAI account and add credits'
+            http_status = 402
+        elif isinstance(e, APIConnectionError):
+            error_message = 'خطأ في الاتصال - تحقق من الإنترنت / Connection error - check your internet'
+            http_status = 503
+        elif isinstance(e, APIError):
+            error_message = f'خطأ في API: {error_str} / API Error: {error_str}'
+            http_status = 500
         
         # Log failed attempt
         failed_log = AILog(
@@ -178,13 +201,13 @@ def send_message():
             prompt=message,
             response='',
             status='failed',
-            error_message=str(e),
+            error_message=error_str,
             execution_time_ms=execution_time_ms
         )
         db.session.add(failed_log)
         db.session.commit()
         
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': error_message}), http_status
 
 @consultation_bp.route('/api/create-session', methods=['POST'])
 @login_required
