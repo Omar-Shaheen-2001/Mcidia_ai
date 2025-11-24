@@ -15,7 +15,7 @@ def get_lang():
 
 @ai_management_bp.route('/')
 @login_required
-@role_required('system_admin', 'org_admin')
+@role_required('system_admin')
 def index():
     """AI logs management dashboard"""
     db = get_db()
@@ -129,7 +129,7 @@ def index():
 
 @ai_management_bp.route('/log/<int:log_id>')
 @login_required
-@role_required('system_admin', 'org_admin')
+@role_required('system_admin')
 def view_log(log_id):
     """View detailed AI log"""
     db = get_db()
@@ -143,7 +143,7 @@ def view_log(log_id):
 
 @ai_management_bp.route('/api/stats')
 @login_required
-@role_required('system_admin', 'org_admin')
+@role_required('system_admin')
 def api_stats():
     """Get AI statistics API"""
     db = get_db()
