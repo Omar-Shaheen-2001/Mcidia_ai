@@ -28,14 +28,14 @@ def index():
     page = request.args.get('page', 1, type=int)
     per_page = 20
     
-    # Query consultations with user info and costs
+    # Query consultations with user info and costs - only users with consultations
     query = db.session.query(
         User.id,
         User.username,
         User.email,
         func.count(ChatSession.id).label('consultation_count'),
         func.sum(AILog.estimated_cost).label('total_cost')
-    ).outerjoin(
+    ).join(
         ChatSession, User.id == ChatSession.user_id
     ).outerjoin(
         AILog, (AILog.user_id == User.id) & (AILog.module == 'consultation')
