@@ -78,22 +78,18 @@ def user_consultations(user_id):
         user_id=user_id
     ).order_by(ChatSession.created_at.desc()).paginate(page=page, per_page=per_page)
     
-    # Get cost info for consultations
-    consultation_costs = db.session.query(
-        ChatSession.id,
-        func.sum(AILog.estimated_cost).label('cost')
-    ).outerjoin(
-        AILog, (AILog.session_id == ChatSession.id)
-    ).filter(
-        ChatSession.user_id == user_id
-    ).group_by(ChatSession.id).all()
-    
-    # Create cost map
-    cost_map = {cid: cost for cid, cost in consultation_costs}
-    
     # Get user statistics
     total_consultations = db.session.query(ChatSession).filter_by(user_id=user_id).count()
     total_cost = db.session.query(func.sum(AILog.estimated_cost)).filter_by(user_id=user_id, module='consultation').scalar() or 0
+    
+    # Distribute total cost equally among consultations
+    if total_consultations > 0:
+        avg_cost_per_consultation = total_cost / total_consultations
+    else:
+        avg_cost_per_consultation = 0
+    
+    # Create cost map - all sessions get equal share of AI costs
+    cost_map = {consultation.id: avg_cost_per_consultation for consultation in consultations.items}
     
     return render_template(
         'admin/consultations/user_consultations.html',
@@ -120,13 +116,25 @@ def view_session(session_id):
     
     user = db.session.query(User).get(session_obj.user_id)
     
-    # Get cost for this session
-    session_cost = db.session.query(
-        func.sum(AILog.estimated_cost).label('cost')
-    ).filter_by(session_id=session_id).scalar() or 0
+    # Get total AI usage cost for this user's consultations
+    user_consultation_cost = db.session.query(
+        func.sum(AILog.estimated_cost)
+    ).filter_by(user_id=session_obj.user_id, module='consultation').scalar() or 0
     
-    # Get AI logs for this session
-    ai_logs = db.session.query(AILog).filter_by(session_id=session_id).order_by(AILog.created_at).all()
+    # Get total consultations count
+    total_consultations = db.session.query(ChatSession).filter_by(user_id=session_obj.user_id).count()
+    
+    # Distribute cost equally among this user's consultations
+    if total_consultations > 0:
+        session_cost = user_consultation_cost / total_consultations
+    else:
+        session_cost = 0
+    
+    # Get AI logs for this user's consultations
+    ai_logs = db.session.query(AILog).filter_by(
+        user_id=session_obj.user_id, 
+        module='consultation'
+    ).order_by(AILog.created_at.desc()).limit(10).all()
     
     return render_template(
         'admin/consultations/session_detail.html',
