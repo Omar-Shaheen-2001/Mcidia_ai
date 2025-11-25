@@ -32,7 +32,7 @@
                         <p class="text-muted mb-1 small" style="font-size: 0.85rem;">
                             {{ 'إجمالي العمليات' if lang == 'ar' else 'Total Transactions' }}
                         </p>
-                        <h3 class="fw-bold" style="color: var(--color-primary);">{{ enriched_transactions|length }}</h3>
+                        <h3 class="fw-bold" style="color: var(--color-primary);">{{ total_transactions }}</h3>
                     </div>
                 </div>
             </div>
@@ -42,7 +42,7 @@
                         <p class="text-muted mb-1 small" style="font-size: 0.85rem;">
                             {{ 'عمليات ناجحة' if lang == 'ar' else 'Successful' }}
                         </p>
-                        <h3 class="fw-bold" style="color: #10b981;">{{ enriched_transactions|selectattr('transaction.status', 'equalto', 'succeeded')|list|length }}</h3>
+                        <h3 class="fw-bold" style="color: #10b981;">{{ successful_count }}</h3>
                     </div>
                 </div>
             </div>
@@ -52,7 +52,7 @@
                         <p class="text-muted mb-1 small" style="font-size: 0.85rem;">
                             {{ 'الإجمالي المالي' if lang == 'ar' else 'Total Amount' }}
                         </p>
-                        <h3 class="fw-bold" style="color: #f59e0b;">${{ "%.2f"|format(enriched_transactions|map(attribute='transaction.amount')|sum) }}</h3>
+                        <h3 class="fw-bold" style="color: #f59e0b;">${{ "%.2f"|format(total_amount) }}</h3>
                     </div>
                 </div>
             </div>
@@ -62,7 +62,7 @@
                         <p class="text-muted mb-1 small" style="font-size: 0.85rem;">
                             {{ 'عدد المستخدمين' if lang == 'ar' else 'Unique Users' }}
                         </p>
-                        <h3 class="fw-bold" style="color: #6366f1;">{{ enriched_transactions|map(attribute='transaction.user_id')|unique|list|length }}</h3>
+                        <h3 class="fw-bold" style="color: #6366f1;">{{ unique_users }}</h3>
                     </div>
                 </div>
             </div>
@@ -130,39 +130,39 @@
                                         </span>
                                     </td>
                                     <td style="padding: 1rem; vertical-align: middle;">
-                                        {% if item.transaction.transaction_type == 'subscription' %}
+                                        {% if item.transaction_type == 'subscription' %}
                                         <span class="badge bg-info" style="font-size: 0.8rem;">
                                             {{ 'اشتراك' if lang == 'ar' else 'Subscription' }}
                                         </span>
                                         {% else %}
                                         <span class="badge bg-secondary" style="font-size: 0.8rem;">
-                                            {{ item.transaction.transaction_type }}
+                                            {{ item.transaction_type }}
                                         </span>
                                         {% endif %}
                                     </td>
                                     <td style="padding: 1rem; vertical-align: middle;">
                                         <span class="fw-bold" style="color: var(--color-primary); font-size: 1.05rem;">
-                                            ${{ "%.2f"|format(item.transaction.amount) }}
+                                            ${{ "%.2f"|format(item.amount) }}
                                         </span>
-                                        {% if item.transaction.currency %}
-                                        <small class="text-muted"> {{ item.transaction.currency.upper() }}</small>
+                                        {% if item.currency %}
+                                        <small class="text-muted"> {{ item.currency.upper() }}</small>
                                         {% endif %}
                                     </td>
                                     <td style="padding: 1rem; vertical-align: middle;">
                                         <small style="color: #6b7280;">
-                                            {{ item.transaction.created_at.strftime('%d/%m/%Y') }}
+                                            {{ item.created_at.strftime('%d/%m/%Y') }}
                                         </small>
                                         <br>
                                         <small style="color: #9ca3af;">
-                                            {{ item.transaction.created_at.strftime('%H:%M') }}
+                                            {{ item.created_at.strftime('%H:%M') }}
                                         </small>
                                     </td>
                                     <td style="padding: 1rem; vertical-align: middle;">
-                                        {% if item.transaction.status == 'succeeded' %}
+                                        {% if item.status == 'succeeded' %}
                                         <span class="badge bg-success" style="font-size: 0.8rem;">
                                             <i class="fas fa-check me-1"></i>{{ 'نجح' if lang == 'ar' else 'Succeeded' }}
                                         </span>
-                                        {% elif item.transaction.status == 'pending' %}
+                                        {% elif item.status == 'pending' %}
                                         <span class="badge bg-warning" style="font-size: 0.8rem;">
                                             <i class="fas fa-hourglass me-1"></i>{{ 'معلق' if lang == 'ar' else 'Pending' }}
                                         </span>
@@ -173,11 +173,11 @@
                                         {% endif %}
                                     </td>
                                     <td style="padding: 1rem; vertical-align: middle;">
-                                        <a href="{{ url_for('billing.receipt', transaction_id=item.transaction.id) }}" class="btn btn-sm btn-outline-primary" style="border-radius: 6px; padding: 0.4rem 0.8rem;">
+                                        <a href="{{ url_for('billing.receipt', transaction_id=item.id) }}" class="btn btn-sm btn-outline-primary" style="border-radius: 6px; padding: 0.4rem 0.8rem;">
                                             <i class="fas fa-eye me-1"></i>{{ 'عرض' if lang == 'ar' else 'View' }}
                                         </a>
-                                        {% if item.transaction.stripe_invoice_url %}
-                                        <a href="{{ item.transaction.stripe_invoice_url }}" target="_blank" class="btn btn-sm btn-outline-secondary" style="border-radius: 6px; padding: 0.4rem 0.8rem;">
+                                        {% if item.stripe_invoice_url %}
+                                        <a href="{{ item.stripe_invoice_url }}" target="_blank" class="btn btn-sm btn-outline-secondary" style="border-radius: 6px; padding: 0.4rem 0.8rem;">
                                             <i class="fas fa-file-invoice me-1"></i>{{ 'Stripe' if lang == 'ar' else 'Stripe' }}
                                         </a>
                                         {% endif %}
@@ -210,7 +210,7 @@
                     </div>
                     <div class="card-body">
                         {% for item in enriched_transactions %}
-                            {% if item.transaction.transaction_type == 'subscription' and item.transaction.subscription_start_date %}
+                            {% if item.transaction_type == 'subscription' and item.subscription_start_date %}
                             <div style="padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; margin-bottom: 1rem;">
                                 <div class="row">
                                     <div class="col-6">
@@ -223,28 +223,28 @@
                                         <p class="text-muted small mb-1" style="font-size: 0.8rem;">
                                             {{ 'تاريخ البداية' if lang == 'ar' else 'Start Date' }}
                                         </p>
-                                        <p class="fw-semibold" style="color: #1f2937;">{{ item.transaction.subscription_start_date.strftime('%d/%m/%Y') }}</p>
+                                        <p class="fw-semibold" style="color: #1f2937;">{{ item.subscription_start_date.strftime('%d/%m/%Y') }}</p>
                                     </div>
                                 </div>
-                                {% if item.transaction.subscription_renewal_date %}
+                                {% if item.subscription_renewal_date %}
                                 <div class="row mt-2">
                                     <div class="col-6">
                                         <p class="text-muted small mb-1" style="font-size: 0.8rem;">
                                             {{ 'التجديد القادم' if lang == 'ar' else 'Renewal Date' }}
                                         </p>
-                                        <p class="fw-semibold" style="color: #1f2937;">{{ item.transaction.subscription_renewal_date.strftime('%d/%m/%Y') }}</p>
+                                        <p class="fw-semibold" style="color: #1f2937;">{{ item.subscription_renewal_date.strftime('%d/%m/%Y') }}</p>
                                     </div>
                                     <div class="col-6">
                                         <p class="text-muted small mb-1" style="font-size: 0.8rem;">
                                             {{ 'الفترة الزمنية' if lang == 'ar' else 'Period' }}
                                         </p>
                                         <p class="fw-semibold" style="color: #1f2937;">
-                                            {% if item.transaction.billing_period == 'monthly' %}
+                                            {% if item.billing_period == 'monthly' %}
                                                 {{ 'شهري' if lang == 'ar' else 'Monthly' }}
-                                            {% elif item.transaction.billing_period == 'yearly' %}
+                                            {% elif item.billing_period == 'yearly' %}
                                                 {{ 'سنوي' if lang == 'ar' else 'Yearly' }}
                                             {% else %}
-                                                {{ item.transaction.billing_period }}
+                                                {{ item.billing_period }}
                                             {% endif %}
                                         </p>
                                     </div>
@@ -266,14 +266,12 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        {% set payment_methods = enriched_transactions|map(attribute='transaction.payment_method')|unique|list %}
-                        {% for method in payment_methods %}
-                        {% set count = enriched_transactions|selectattr('transaction.payment_method', 'equalto', method)|list|length %}
+                        {% for method, count in payment_methods.items() %}
                         <div style="padding: 1rem; background-color: #f9fafb; border-radius: 8px; margin-bottom: 1rem;">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <p class="fw-semibold mb-1" style="color: #1f2937;">
-                                        <i class="fas fa-credit-card me-2" style="color: var(--color-primary);"></i>{{ method or 'Unknown' }}
+                                        <i class="fas fa-credit-card me-2" style="color: var(--color-primary);"></i>{{ method }}
                                     </p>
                                     <small class="text-muted">{{ count }} {{ 'عملية' if lang == 'ar' else 'transactions' }}</small>
                                 </div>
