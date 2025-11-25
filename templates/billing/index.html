@@ -473,6 +473,69 @@ function downloadReceipt(transactionId) {
 </script>
 
 <style>
+/* Fix modal jitter and smooth appearance */
+.modal-content {
+    box-shadow: none;
+    border: none;
+}
+
+.modal.fade .modal-dialog {
+    transition: transform 0.2s cubic-bezier(0.36, 0, 0.66, 1) !important;
+}
+
+.modal-backdrop.fade {
+    transition: opacity 0.2s cubic-bezier(0.36, 0, 0.66, 1) !important;
+}
+
+/* Fix button hover jitter */
+.modal-footer .btn {
+    transition: none !important;
+    will-change: auto;
+    transform: translate3d(0, 0, 0);
+}
+
+.modal-footer .btn:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+    transform: none !important;
+}
+
+.modal-footer .btn:active,
+.modal-footer .btn:focus {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+    transform: none !important;
+}
+
+/* Prevent modal body shifting */
+.modal-body {
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+}
+
+/* Smooth table hover without jitter */
+.table {
+    margin-bottom: 0;
+}
+
+.table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f9fafb !important;
+}
+
+.table th {
+    background-color: transparent !important;
+    color: inherit;
+    border: none !important;
+}
+
+.badge {
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* Print styles */
 @media print {
     body * {
         visibility: hidden;
@@ -491,20 +554,6 @@ function downloadReceipt(transactionId) {
     .modal-footer, .modal-header {
         display: none;
     }
-}
-
-.table th {
-    background-color: transparent !important;
-    color: inherit;
-    border: none !important;
-}
-
-.table tr:hover {
-    background-color: #f9fafb;
-}
-
-.badge {
-    font-weight: 600;
 }
 </style>
 {% endblock %}
