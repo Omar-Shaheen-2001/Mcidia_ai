@@ -54,7 +54,24 @@ def index():
     user = db.session.query(User).get(user_id)
     transactions = db.session.query(Transaction).filter_by(user_id=user_id).order_by(Transaction.created_at.desc()).all()
     lang = session.get('language', 'ar')
-    return render_template('billing/index.html', user=user, transactions=transactions, lang=lang)
+    
+    # Get subscription plan details
+    plan_details = None
+    plan_names = {
+        'free': {'ar': 'مجاني', 'en': 'Free', 'price': 0, 'period': 'شهري / Monthly'},
+        'monthly': {'ar': 'شهري', 'en': 'Monthly', 'price': 99, 'period': 'شهري / Monthly'},
+        'yearly': {'ar': 'سنوي', 'en': 'Yearly', 'price': 999, 'period': 'سنوي / Yearly'},
+        'pay_per_use': {'ar': 'حسب الاستخدام', 'en': 'Pay Per Use', 'price': 0, 'period': 'متغير / Variable'}
+    }
+    
+    if user.plan_ref:
+        plan_details = plan_names.get(user.plan_ref.name, {})
+    
+    return render_template('billing/index.html', 
+                         user=user, 
+                         transactions=transactions, 
+                         lang=lang,
+                         plan_details=plan_details)
 
 @billing_bp.route('/pricing')
 def pricing():

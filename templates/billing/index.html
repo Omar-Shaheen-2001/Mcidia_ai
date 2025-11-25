@@ -1,7 +1,363 @@
 {% extends "base.html" %}
+
+{% block title %}{{ 'الفواتير' if lang == 'ar' else 'Invoices' }} - Mcidia{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <h2 class="fw-bold mb-4">Billing Module</h2>
-    <p>Module content coming soon...</p>
-</div>
+<section class="py-4" style="background-color: #f8f9fa;">
+    <div class="container">
+        <!-- Header -->
+        <div class="mb-4">
+            <h1 class="fw-bold" style="font-size: 2rem; color: #1f2937;">
+                {{ 'الفواتير والوصولات' if lang == 'ar' else 'Invoices & Receipts' }}
+            </h1>
+            <p class="text-muted" style="font-size: 1.05rem;">
+                {{ 'عرض وتحميل فواتيرك ووصولات الدفع' if lang == 'ar' else 'View and download your invoices and payment receipts' }}
+            </p>
+        </div>
+
+        <!-- Current Subscription Card -->
+        {% if user.plan_ref %}
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <div class="card shadow-sm" style="border: 2px solid var(--color-primary); border-radius: 12px;">
+                    <div class="card-body p-5">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h3 class="fw-bold mb-3" style="color: #1f2937; font-size: 1.5rem;">
+                                    {{ 'الخطة الحالية' if lang == 'ar' else 'Current Subscription' }}
+                                </h3>
+                                
+                                <!-- Plan Name & Details -->
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div style="width: 50px; height: 50px; background-color: var(--color-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-{{ 'right' if lang == 'ar' else 'left' }}: 1rem;">
+                                            <i class="fas fa-check fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="fw-bold mb-1" style="color: var(--color-primary); font-size: 1.25rem;">
+                                                {{ plan_details.get('ar' if lang == 'ar' else 'en', 'Unknown') }}
+                                            </h4>
+                                            <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                                                {{ 'الحالة: نشط' if lang == 'ar' and user.subscription_status == 'active' else 'Status: Active' }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Plan Details Grid -->
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div style="padding: 1rem; background-color: #f3f4f6; border-radius: 8px;">
+                                            <p class="text-muted mb-1" style="font-size: 0.85rem;">
+                                                {{ 'السعر الشهري' if lang == 'ar' else 'Monthly Price' }}
+                                            </p>
+                                            <h5 class="fw-bold" style="color: #1f2937;">
+                                                ${{ "%.2f"|format(plan_details.get('price', 0)) }}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div style="padding: 1rem; background-color: #f3f4f6; border-radius: 8px;">
+                                            <p class="text-muted mb-1" style="font-size: 0.85rem;">
+                                                {{ 'فترة الدفع' if lang == 'ar' else 'Billing Period' }}
+                                            </p>
+                                            <h5 class="fw-bold" style="color: #1f2937;">
+                                                {{ plan_details.get('period', 'N/A') }}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div style="padding: 1rem; background-color: #f3f4f6; border-radius: 8px;">
+                                            <p class="text-muted mb-1" style="font-size: 0.85rem;">
+                                                {{ 'تاريخ الاشتراك' if lang == 'ar' else 'Subscription Date' }}
+                                            </p>
+                                            <h5 class="fw-bold" style="color: #1f2937;">
+                                                {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div style="padding: 1rem; background-color: #f3f4f6; border-radius: 8px;">
+                                            <p class="text-muted mb-1" style="font-size: 0.85rem;">
+                                                {{ 'حالة الاشتراك' if lang == 'ar' else 'Status' }}
+                                            </p>
+                                            <div>
+                                                {% if user.subscription_status == 'active' %}
+                                                <span class="badge bg-success" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                                    {{ 'نشط' if lang == 'ar' else 'Active' }}
+                                                </span>
+                                                {% elif user.subscription_status == 'inactive' %}
+                                                <span class="badge bg-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                                    {{ 'غير نشط' if lang == 'ar' else 'Inactive' }}
+                                                </span>
+                                                {% else %}
+                                                <span class="badge bg-warning" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                                    {{ user.subscription_status }}
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div style="font-size: 4rem; color: var(--color-primary); margin-bottom: 1rem;">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <a href="{{ url_for('billing.pricing') }}" class="btn btn-outline-primary" style="border-radius: 8px;">
+                                    <i class="fas fa-sync me-2"></i>
+                                    {{ 'تغيير الخطة' if lang == 'ar' else 'Change Plan' }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Info Card -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm" style="border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4" style="color: #1f2937;">
+                            {{ 'بيانات الحساب' if lang == 'ar' else 'Account Details' }}
+                        </h5>
+                        <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; margin-bottom: 1rem;">
+                            <p class="text-muted small mb-1">{{ 'اسم المستخدم' if lang == 'ar' else 'Username' }}</p>
+                            <p class="fw-semibold" style="color: #1f2937;">{{ user.username }}</p>
+                        </div>
+                        <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; margin-bottom: 1rem;">
+                            <p class="text-muted small mb-1">{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</p>
+                            <p class="fw-semibold" style="color: #1f2937; word-break: break-all;">{{ user.email }}</p>
+                        </div>
+                        <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; margin-bottom: 1rem;">
+                            <p class="text-muted small mb-1">{{ 'الهاتف' if lang == 'ar' else 'Phone' }}</p>
+                            <p class="fw-semibold" style="color: #1f2937;">{{ user.phone or 'N/A' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-1">{{ 'معرّف العميل' if lang == 'ar' else 'Customer ID' }}</p>
+                            <p class="fw-semibold" style="color: #1f2937; font-size: 0.85rem; word-break: break-all;">{{ user.stripe_customer_id or 'N/A' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Transactions / Invoices Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm" style="border-radius: 12px;">
+                    <div class="card-header" style="background-color: #f3f4f6; border-bottom: 1px solid #e5e7eb; padding: 1.5rem; border-radius: 12px 12px 0 0;">
+                        <h5 class="fw-bold mb-0" style="color: #1f2937;">
+                            {{ 'سجل المعاملات' if lang == 'ar' else 'Transaction History' }}
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if transactions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead style="background-color: #f9fafb;">
+                                    <tr>
+                                        <th style="padding: 1rem; color: #6b7280; font-weight: 600; border-bottom: 2px solid #e5e7eb;">
+                                            {{ 'التاريخ' if lang == 'ar' else 'Date' }}
+                                        </th>
+                                        <th style="padding: 1rem; color: #6b7280; font-weight: 600; border-bottom: 2px solid #e5e7eb;">
+                                            {{ 'الوصف' if lang == 'ar' else 'Description' }}
+                                        </th>
+                                        <th style="padding: 1rem; color: #6b7280; font-weight: 600; border-bottom: 2px solid #e5e7eb;">
+                                            {{ 'المبلغ' if lang == 'ar' else 'Amount' }}
+                                        </th>
+                                        <th style="padding: 1rem; color: #6b7280; font-weight: 600; border-bottom: 2px solid #e5e7eb;">
+                                            {{ 'الحالة' if lang == 'ar' else 'Status' }}
+                                        </th>
+                                        <th style="padding: 1rem; color: #6b7280; font-weight: 600; border-bottom: 2px solid #e5e7eb;">
+                                            {{ 'الإجراء' if lang == 'ar' else 'Action' }}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for transaction in transactions %}
+                                    <tr style="border-bottom: 1px solid #e5e7eb;">
+                                        <td style="padding: 1rem; color: #374151;">
+                                            {{ transaction.created_at.strftime('%Y-%m-%d %H:%M') if transaction.created_at else 'N/A' }}
+                                        </td>
+                                        <td style="padding: 1rem; color: #374151;">
+                                            {{ transaction.description }}
+                                        </td>
+                                        <td style="padding: 1rem; color: #374151; font-weight: 600;">
+                                            ${{ "%.2f"|format(transaction.amount) }}
+                                        </td>
+                                        <td style="padding: 1rem;">
+                                            {% if transaction.status == 'succeeded' %}
+                                            <span class="badge bg-success" style="padding: 0.5rem 0.75rem;">
+                                                {{ 'نجح' if lang == 'ar' else 'Succeeded' }}
+                                            </span>
+                                            {% elif transaction.status == 'pending' %}
+                                            <span class="badge bg-warning" style="padding: 0.5rem 0.75rem;">
+                                                {{ 'قيد الانتظار' if lang == 'ar' else 'Pending' }}
+                                            </span>
+                                            {% elif transaction.status == 'failed' %}
+                                            <span class="badge bg-danger" style="padding: 0.5rem 0.75rem;">
+                                                {{ 'فشل' if lang == 'ar' else 'Failed' }}
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        <td style="padding: 1rem;">
+                                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#receiptModal{{ transaction.id }}" style="border-radius: 6px;">
+                                                <i class="fas fa-receipt me-1"></i>
+                                                {{ 'عرض الوصل' if lang == 'ar' else 'View Receipt' }}
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Receipt Modal -->
+                                    <div class="modal fade" id="receiptModal{{ transaction.id }}" tabindex="-1">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content" style="border-radius: 12px;">
+                                                <div class="modal-header" style="background-color: var(--color-primary); color: white; border-radius: 12px 12px 0 0;">
+                                                    <h5 class="modal-title fw-bold">
+                                                        {{ 'وصل الدفع' if lang == 'ar' else 'Payment Receipt' }}
+                                                    </h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body p-5">
+                                                    <!-- Receipt Header -->
+                                                    <div class="text-center mb-5 pb-3" style="border-bottom: 2px solid #e5e7eb;">
+                                                        <div style="font-size: 2rem; color: var(--color-primary); margin-bottom: 1rem;">
+                                                            <i class="fas fa-receipt"></i>
+                                                        </div>
+                                                        <h4 class="fw-bold" style="color: #1f2937;">
+                                                            {{ 'Mcidia' }}
+                                                        </h4>
+                                                        <p class="text-muted small mb-0">
+                                                            {{ 'منصة استشارات ذكية مدعومة بالذكاء الاصطناعي' if lang == 'ar' else 'AI-Powered Consulting Platform' }}
+                                                        </p>
+                                                    </div>
+
+                                                    <!-- Receipt Details -->
+                                                    <div class="mb-4">
+                                                        <div class="row mb-3">
+                                                            <div class="col-md-6">
+                                                                <p class="text-muted small mb-1">{{ 'رقم الفاتورة' if lang == 'ar' else 'Invoice Number' }}</p>
+                                                                <p class="fw-semibold" style="color: #1f2937;">{{ transaction.stripe_payment_id[:16] if transaction.stripe_payment_id else 'N/A' }}</p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <p class="text-muted small mb-1">{{ 'التاريخ' if lang == 'ar' else 'Date' }}</p>
+                                                                <p class="fw-semibold" style="color: #1f2937;">{{ transaction.created_at.strftime('%Y-%m-%d') if transaction.created_at else 'N/A' }}</p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row mb-3">
+                                                            <div class="col-md-6">
+                                                                <p class="text-muted small mb-1">{{ 'المستقبل' if lang == 'ar' else 'Billed To' }}</p>
+                                                                <p class="fw-semibold" style="color: #1f2937;">{{ user.username }}</p>
+                                                                <p class="text-muted small mb-0">{{ user.email }}</p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <p class="text-muted small mb-1">{{ 'حالة الدفع' if lang == 'ar' else 'Payment Status' }}</p>
+                                                                {% if transaction.status == 'succeeded' %}
+                                                                <p style="color: #10b981; font-weight: 600;">✓ {{ 'مدفوع' if lang == 'ar' else 'Paid' }}</p>
+                                                                {% else %}
+                                                                <p style="color: #ef4444; font-weight: 600;">✗ {{ 'لم يتم الدفع' if lang == 'ar' else 'Not Paid' }}</p>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Items Table -->
+                                                    <div class="mb-4" style="background-color: #f9fafb; padding: 1rem; border-radius: 8px;">
+                                                        <table class="w-100" style="font-size: 0.95rem;">
+                                                            <tr style="border-bottom: 1px solid #e5e7eb; padding: 0.75rem 0;">
+                                                                <td style="padding: 0.75rem; color: #6b7280; font-weight: 600;">{{ 'الخدمة' if lang == 'ar' else 'Service' }}</td>
+                                                                <td style="padding: 0.75rem; text-align: right; color: #6b7280; font-weight: 600;">{{ 'السعر' if lang == 'ar' else 'Price' }}</td>
+                                                            </tr>
+                                                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                                                <td style="padding: 0.75rem; color: #374151;">{{ transaction.description }}</td>
+                                                                <td style="padding: 0.75rem; text-align: right; color: #1f2937; font-weight: 600;">${{ "%.2f"|format(transaction.amount) }}</td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+
+                                                    <!-- Total -->
+                                                    <div class="mb-4" style="padding-top: 1rem; border-top: 2px solid #e5e7eb;">
+                                                        <div class="row">
+                                                            <div class="col-md-8"></div>
+                                                            <div class="col-md-4">
+                                                                <div class="d-flex justify-content-between mb-2">
+                                                                    <span class="text-muted">{{ 'المجموع' if lang == 'ar' else 'Total' }}:</span>
+                                                                    <span class="fw-bold" style="color: #1f2937; font-size: 1.25rem;">${{ "%.2f"|format(transaction.amount) }}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Footer Note -->
+                                                    <div style="padding: 1rem; background-color: #f0f9ff; border-radius: 8px; border-left: 4px solid var(--color-primary);">
+                                                        <p class="text-muted small mb-0" style="font-size: 0.85rem;">
+                                                            {{ 'شكراً لك على ثقتك بنا. إذا كان لديك أي استفسار، يرجى التواصل بنا.' if lang == 'ar' else 'Thank you for choosing us. If you have any questions, please contact us.' }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                        {{ 'إغلاق' if lang == 'ar' else 'Close' }}
+                                                    </button>
+                                                    <button type="button" class="btn btn-primary" onclick="window.print()">
+                                                        <i class="fas fa-print me-2"></i>
+                                                        {{ 'طباعة' if lang == 'ar' else 'Print' }}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <div style="font-size: 3rem; color: #d1d5db; margin-bottom: 1rem;">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                            <p class="text-muted" style="font-size: 1.05rem;">
+                                {{ 'لا توجد معاملات حتى الآن' if lang == 'ar' else 'No transactions yet' }}
+                            </p>
+                            <a href="{{ url_for('billing.pricing') }}" class="btn btn-primary mt-3" style="border-radius: 8px;">
+                                {{ 'الاشتراك الآن' if lang == 'ar' else 'Subscribe Now' }}
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .modal-body, .modal-body * {
+        visibility: visible;
+    }
+    .modal-body {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+}
+
+.table th {
+    background-color: transparent !important;
+    color: inherit;
+    border: none !important;
+}
+
+.table tr:hover {
+    background-color: #f9fafb;
+}
+</style>
 {% endblock %}
