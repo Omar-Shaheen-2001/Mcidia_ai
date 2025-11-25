@@ -1,6 +1,6 @@
 from flask import current_app, Blueprint, render_template, request, flash, session, redirect, url_for, jsonify
 from flask_jwt_extended import get_jwt_identity
-from utils.decorators import login_required
+from utils.decorators import login_required, role_required
 from models import User, Transaction, SubscriptionPlan
 import stripe
 import os
@@ -363,6 +363,36 @@ def download_receipt_pdf(transaction_id):
         traceback.print_exc()
         flash(f'خطأ في توليد PDF / Error generating PDF: {str(e)}', 'danger')
         return redirect(url_for('billing.receipt', transaction_id=transaction_id))
+
+@billing_bp.route('/admin/billing/')
+@login_required
+@role_required('system_admin')
+def admin_billing():
+    """Admin page to view all invoices and transactions"""
+    db = current_app.extensions['sqlalchemy']
+    lang = session.get('language', 'ar')
+    
+    # Get all transactions with user information
+    transactions = db.session.query(Transaction).order_by(Transaction.created_at.desc()).all()
+    
+    # Build plan name mapping
+    plan_names = {
+        'free': {'ar': 'مجاني', 'en': 'Free'},
+        'monthly': {'ar': 'شهري', 'en': 'Monthly'},
+        'yearly': {'ar': 'سنوي', 'en': 'Yearly'},
+        'pay_per_use': {'ar': 'حسب الاستخدام', 'en': 'Pay Per Use'}
+    }
+    
+    # Add user and plan info to transactions
+    for trans in transactions:
+        user = db.session.query(User).get(trans.user_id)
+        trans.user_info = user
+        plan_name = user.plan_ref.name if user and user.plan_ref else 'unknown'
+        trans.plan_name = plan_names.get(plan_name, {}).get('ar' if lang == 'ar' else 'en', plan_name)
+    
+    return render_template('admin/billing/index.html', 
+                         transactions=transactions, 
+                         lang=lang)
 
 @billing_bp.route('/webhook', methods=['POST'])
 def webhook():

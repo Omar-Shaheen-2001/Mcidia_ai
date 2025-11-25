@@ -1,46 +1,293 @@
 {% extends "admin/base.html" %}
 
-{% block title %}{{ 'إدارة الفواتير' if lang == 'ar' else 'Billing Management' }}{% endblock %}
+{% block title %}{{ 'إدارة الفواتير والوصولات' if lang == 'ar' else 'Invoices Management' }} - Mcidia{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h2>{{ 'إدارة الفواتير والمعاملات' if lang == 'ar' else 'Billing & Transactions' }}</h2>
-    </div>
-</div>
+<section class="py-4">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="fw-bold" style="font-size: 2rem; color: #1f2937;">
+                        {{ 'الفواتير والوصولات' if lang == 'ar' else 'Invoices & Receipts' }}
+                    </h1>
+                    <p class="text-muted mb-0" style="font-size: 1rem;">
+                        {{ 'إدارة جميع الفواتير والعمليات المالية' if lang == 'ar' else 'Manage all invoices and financial transactions' }}
+                    </p>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; color: var(--color-primary);">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<div class="table-card">
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead>
-                <tr>
-                    <th>{{ 'المبلغ' if lang == 'ar' else 'Amount' }}</th>
-                    <th>{{ 'الوصف' if lang == 'ar' else 'Description' }}</th>
-                    <th>{{ 'النوع' if lang == 'ar' else 'Type' }}</th>
-                    <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
-                    <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for trans in transactions %}
-                <tr>
-                    <td><strong>${{ "%.2f"|format(trans.amount) }}</strong></td>
-                    <td><small>{{ trans.description }}</small></td>
-                    <td><span class="badge bg-info">{{ trans.transaction_type }}</span></td>
-                    <td>
-                        {% if trans.status == 'succeeded' %}
-                        <span class="badge bg-success">{{ 'نجح' if lang == 'ar' else 'Success' }}</span>
-                        {% elif trans.status == 'pending' %}
-                        <span class="badge bg-warning">{{ 'معلق' if lang == 'ar' else 'Pending' }}</span>
-                        {% else %}
-                        <span class="badge bg-danger">{{ 'فشل' if lang == 'ar' else 'Failed' }}</span>
-                        {% endif %}
-                    </td>
-                    <td><small class="text-muted">{{ trans.created_at.strftime('%Y-%m-%d') }}</small></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <!-- Stats Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card shadow-sm" style="border-left: 4px solid var(--color-primary); border-radius: 8px;">
+                    <div class="card-body p-3">
+                        <p class="text-muted mb-1 small" style="font-size: 0.85rem;">
+                            {{ 'إجمالي العمليات' if lang == 'ar' else 'Total Transactions' }}
+                        </p>
+                        <h3 class="fw-bold" style="color: var(--color-primary);">{{ transactions|length }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm" style="border-left: 4px solid #10b981; border-radius: 8px;">
+                    <div class="card-body p-3">
+                        <p class="text-muted mb-1 small" style="font-size: 0.85rem;">
+                            {{ 'عمليات ناجحة' if lang == 'ar' else 'Successful' }}
+                        </p>
+                        <h3 class="fw-bold" style="color: #10b981;">{{ transactions|selectattr('status', 'equalto', 'succeeded')|list|length }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm" style="border-left: 4px solid #f59e0b; border-radius: 8px;">
+                    <div class="card-body p-3">
+                        <p class="text-muted mb-1 small" style="font-size: 0.85rem;">
+                            {{ 'الإجمالي المالي' if lang == 'ar' else 'Total Amount' }}
+                        </p>
+                        <h3 class="fw-bold" style="color: #f59e0b;">${{ "%.2f"|format(transactions|map(attribute='amount')|sum) }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm" style="border-left: 4px solid #6366f1; border-radius: 8px;">
+                    <div class="card-body p-3">
+                        <p class="text-muted mb-1 small" style="font-size: 0.85rem;">
+                            {{ 'عدد المستخدمين' if lang == 'ar' else 'Unique Users' }}
+                        </p>
+                        <h3 class="fw-bold" style="color: #6366f1;">{{ transactions|map(attribute='user_id')|unique|list|length }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="card shadow-sm" style="border-radius: 12px;">
+            <div class="card-header" style="background-color: #f9fafb; border-bottom: 1px solid #e5e7eb; padding: 1.5rem;">
+                <h5 class="fw-bold mb-0" style="color: #1f2937;">
+                    {{ 'جميع الفواتير والعمليات' if lang == 'ar' else 'All Transactions' }}
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" style="font-size: 0.95rem;">
+                        <thead style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+                            <tr>
+                                <th style="padding: 1rem; color: #6b7280; font-weight: 600;">
+                                    {{ 'المستخدم' if lang == 'ar' else 'User' }}
+                                </th>
+                                <th style="padding: 1rem; color: #6b7280; font-weight: 600;">
+                                    {{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}
+                                </th>
+                                <th style="padding: 1rem; color: #6b7280; font-weight: 600;">
+                                    {{ 'الخطة' if lang == 'ar' else 'Plan' }}
+                                </th>
+                                <th style="padding: 1rem; color: #6b7280; font-weight: 600;">
+                                    {{ 'النوع' if lang == 'ar' else 'Type' }}
+                                </th>
+                                <th style="padding: 1rem; color: #6b7280; font-weight: 600;">
+                                    {{ 'المبلغ' if lang == 'ar' else 'Amount' }}
+                                </th>
+                                <th style="padding: 1rem; color: #6b7280; font-weight: 600;">
+                                    {{ 'التاريخ' if lang == 'ar' else 'Date' }}
+                                </th>
+                                <th style="padding: 1rem; color: #6b7280; font-weight: 600;">
+                                    {{ 'الحالة' if lang == 'ar' else 'Status' }}
+                                </th>
+                                <th style="padding: 1rem; color: #6b7280; font-weight: 600;">
+                                    {{ 'الإجراء' if lang == 'ar' else 'Action' }}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if transactions %}
+                                {% for trans in transactions %}
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 1rem; vertical-align: middle;">
+                                        <div class="d-flex align-items-center">
+                                            <div style="width: 40px; height: 40px; background-color: var(--color-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-{{ 'right' if lang == 'ar' else 'left' }}: 0.75rem; font-weight: 600;">
+                                                {{ trans.user_info.username[0].upper() if trans.user_info else 'U' }}
+                                            </div>
+                                            <div>
+                                                <p class="fw-semibold mb-0" style="color: #1f2937;">{{ trans.user_info.username if trans.user_info else 'N/A' }}</p>
+                                                <small class="text-muted">ID: {{ trans.user_id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 1rem; vertical-align: middle;">
+                                        <small style="color: #374151;">{{ trans.user_info.email if trans.user_info else 'N/A' }}</small>
+                                    </td>
+                                    <td style="padding: 1rem; vertical-align: middle;">
+                                        <span class="badge" style="background-color: var(--color-primary); color: white;">
+                                            {{ trans.plan_name }}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 1rem; vertical-align: middle;">
+                                        {% if trans.transaction_type == 'subscription' %}
+                                        <span class="badge bg-info" style="font-size: 0.8rem;">
+                                            {{ 'اشتراك' if lang == 'ar' else 'Subscription' }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary" style="font-size: 0.8rem;">
+                                            {{ trans.transaction_type }}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 1rem; vertical-align: middle;">
+                                        <span class="fw-bold" style="color: var(--color-primary); font-size: 1.05rem;">
+                                            ${{ "%.2f"|format(trans.amount) }}
+                                        </span>
+                                        {% if trans.currency %}
+                                        <small class="text-muted"> {{ trans.currency.upper() }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 1rem; vertical-align: middle;">
+                                        <small style="color: #6b7280;">
+                                            {{ trans.created_at.strftime('%d/%m/%Y') }}
+                                        </small>
+                                        <br>
+                                        <small style="color: #9ca3af;">
+                                            {{ trans.created_at.strftime('%H:%M') }}
+                                        </small>
+                                    </td>
+                                    <td style="padding: 1rem; vertical-align: middle;">
+                                        {% if trans.status == 'succeeded' %}
+                                        <span class="badge bg-success" style="font-size: 0.8rem;">
+                                            <i class="fas fa-check me-1"></i>{{ 'نجح' if lang == 'ar' else 'Succeeded' }}
+                                        </span>
+                                        {% elif trans.status == 'pending' %}
+                                        <span class="badge bg-warning" style="font-size: 0.8rem;">
+                                            <i class="fas fa-hourglass me-1"></i>{{ 'معلق' if lang == 'ar' else 'Pending' }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-danger" style="font-size: 0.8rem;">
+                                            <i class="fas fa-times me-1"></i>{{ 'فشل' if lang == 'ar' else 'Failed' }}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 1rem; vertical-align: middle;">
+                                        <a href="{{ url_for('billing.receipt', transaction_id=trans.id) }}" class="btn btn-sm btn-outline-primary" style="border-radius: 6px; padding: 0.4rem 0.8rem;">
+                                            <i class="fas fa-eye me-1"></i>{{ 'عرض' if lang == 'ar' else 'View' }}
+                                        </a>
+                                        {% if trans.stripe_invoice_url %}
+                                        <a href="{{ trans.stripe_invoice_url }}" target="_blank" class="btn btn-sm btn-outline-secondary" style="border-radius: 6px; padding: 0.4rem 0.8rem;">
+                                            <i class="fas fa-file-invoice me-1"></i>{{ 'Stripe' if lang == 'ar' else 'Stripe' }}
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="8" style="padding: 2rem; text-align: center; color: #9ca3af;">
+                                    <i class="fas fa-inbox" style="font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                                    <p>{{ 'لا توجد عمليات دفع حتى الآن' if lang == 'ar' else 'No transactions found' }}</p>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription Details Section -->
+        {% if transactions %}
+        <div class="row mt-4">
+            <div class="col-lg-6">
+                <div class="card shadow-sm" style="border-radius: 12px;">
+                    <div class="card-header" style="background-color: #f9fafb; border-bottom: 1px solid #e5e7eb; padding: 1.5rem;">
+                        <h5 class="fw-bold mb-0" style="color: #1f2937;">
+                            {{ 'تفاصيل الاشتراكات' if lang == 'ar' else 'Subscription Details' }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for trans in transactions %}
+                            {% if trans.transaction_type == 'subscription' and trans.subscription_start_date %}
+                            <div style="padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; margin-bottom: 1rem;">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <p class="text-muted small mb-1" style="font-size: 0.8rem;">
+                                            {{ 'المستخدم' if lang == 'ar' else 'User' }}
+                                        </p>
+                                        <p class="fw-semibold" style="color: #1f2937;">{{ trans.user_info.username if trans.user_info else 'N/A' }}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p class="text-muted small mb-1" style="font-size: 0.8rem;">
+                                            {{ 'تاريخ البداية' if lang == 'ar' else 'Start Date' }}
+                                        </p>
+                                        <p class="fw-semibold" style="color: #1f2937;">{{ trans.subscription_start_date.strftime('%d/%m/%Y') }}</p>
+                                    </div>
+                                </div>
+                                {% if trans.subscription_renewal_date %}
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <p class="text-muted small mb-1" style="font-size: 0.8rem;">
+                                            {{ 'التجديد القادم' if lang == 'ar' else 'Renewal Date' }}
+                                        </p>
+                                        <p class="fw-semibold" style="color: #1f2937;">{{ trans.subscription_renewal_date.strftime('%d/%m/%Y') }}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p class="text-muted small mb-1" style="font-size: 0.8rem;">
+                                            {{ 'الفترة الزمنية' if lang == 'ar' else 'Period' }}
+                                        </p>
+                                        <p class="fw-semibold" style="color: #1f2937;">
+                                            {% if trans.billing_period == 'monthly' %}
+                                                {{ 'شهري' if lang == 'ar' else 'Monthly' }}
+                                            {% elif trans.billing_period == 'yearly' %}
+                                                {{ 'سنوي' if lang == 'ar' else 'Yearly' }}
+                                            {% else %}
+                                                {{ trans.billing_period }}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Methods Summary -->
+            <div class="col-lg-6">
+                <div class="card shadow-sm" style="border-radius: 12px;">
+                    <div class="card-header" style="background-color: #f9fafb; border-bottom: 1px solid #e5e7eb; padding: 1.5rem;">
+                        <h5 class="fw-bold mb-0" style="color: #1f2937;">
+                            {{ 'طرق الدفع' if lang == 'ar' else 'Payment Methods' }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% set payment_methods = transactions|map(attribute='payment_method')|unique|list %}
+                        {% for method in payment_methods %}
+                        {% set count = transactions|selectattr('payment_method', 'equalto', method)|list|length %}
+                        <div style="padding: 1rem; background-color: #f9fafb; border-radius: 8px; margin-bottom: 1rem;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <p class="fw-semibold mb-1" style="color: #1f2937;">
+                                        <i class="fas fa-credit-card me-2" style="color: var(--color-primary);"></i>{{ method or 'Unknown' }}
+                                    </p>
+                                    <small class="text-muted">{{ count }} {{ 'عملية' if lang == 'ar' else 'transactions' }}</small>
+                                </div>
+                                <span class="badge" style="background-color: var(--color-primary); font-size: 0.9rem; padding: 0.5rem 1rem;">
+                                    {{ count }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
-</div>
+</section>
 {% endblock %}
