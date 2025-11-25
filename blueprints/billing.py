@@ -49,8 +49,17 @@ billing_bp = Blueprint('billing', __name__)
 @billing_bp.route('/')
 @login_required
 def index():
+    from flask import session as flask_session
     db = current_app.extensions['sqlalchemy']
-    user_id = int(get_jwt_identity())
+    
+    # Get user_id from JWT or Flask session fallback
+    try:
+        user_id = int(get_jwt_identity())
+    except:
+        user_id = flask_session.get('user_id')
+        if not user_id:
+            return redirect(url_for('auth.login'))
+    
     user = db.session.query(User).get(user_id)
     transactions = db.session.query(Transaction).filter_by(user_id=user_id).order_by(Transaction.created_at.desc()).all()
     lang = session.get('language', 'ar')

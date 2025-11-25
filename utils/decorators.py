@@ -24,6 +24,11 @@ def login_required(f):
             # Log the error for debugging
             print(f"JWT Verification Error: {type(e).__name__}: {str(e)}")
             
+            # Fallback: Check Flask session for user_id (for backward compatibility)
+            if 'user_id' in session:
+                print(f"Using Flask session fallback: user_id={session['user_id']}")
+                return f(*args, **kwargs)
+            
             # Check if this is an API request (looking for JSON)
             # API paths can be anywhere, not just ending with /api
             is_api_request = '/api' in request.path or 'application/json' in request.headers.get('Accept', '') or request.method in ['POST', 'PUT', 'DELETE', 'PATCH']
