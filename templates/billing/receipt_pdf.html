@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html dir="{% if is_ar %}rtl{% else %}ltr{% endif %}" lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if is_ar %}وصل الدفع{% else %}Payment Receipt{% endif %}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Arial Unicode MS';
+            line-height: 1.6;
+            color: #1f2937;
+            background: white;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #0066cc, #0d47a1);
+            color: white;
+            padding: 3rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        
+        .section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .section:last-child {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-size: 0.9rem;
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .company-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            align-items: flex-start;
+        }
+        
+        .company-info h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .company-info p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .receipt-no {
+            text-align: right;
+        }
+        
+        .receipt-no .label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        
+        .receipt-no .value {
+            font-weight: 700;
+            color: #0066cc;
+            word-break: break-all;
+            font-size: 0.95rem;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .bill-info {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        
+        .bill-info p {
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .bill-info strong {
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        
+        .table-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        .table-row span {
+            font-size: 0.95rem;
+        }
+        
+        .amount-section {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        
+        .amount-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+        }
+        
+        .amount-row.total {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #0066cc;
+            border-top: 2px solid #e5e7eb;
+            padding-top: 0.75rem;
+            margin-top: 0.75rem;
+        }
+        
+        .footer {
+            background: #f0fdf4;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 4px solid #10b981;
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>{% if is_ar %}وصل الدفع{% else %}PAYMENT RECEIPT{% endif %}</h1>
+            <p>{% if is_ar %}شكراً لك على عملية الدفع{% else %}Thank you for your payment{% endif %}</p>
+        </div>
+
+        <!-- Company Info -->
+        <div class="section">
+            <div class="company-header">
+                <div class="company-info">
+                    <h3>Mcidia</h3>
+                    <p>{% if is_ar %}منصة استشارات ذكية مدعومة بالذكاء الاصطناعي{% else %}AI-Powered Consulting Platform{% endif %}</p>
+                </div>
+                <div class="receipt-no">
+                    <div class="label">{% if is_ar %}رقم الفاتورة{% else %}Receipt No.{% endif %}</div>
+                    <div class="value">{{ transaction.stripe_payment_id[:20] if transaction.stripe_payment_id else transaction.id }}</div>
+                </div>
+            </div>
+            <div class="badge">✓ {% if is_ar %}تم الدفع{% else %}PAID{% endif %}</div>
+        </div>
+
+        <!-- Bill To -->
+        <div class="section">
+            <div class="section-title">{% if is_ar %}تم الدفع إلى{% else %}Bill To{% endif %}</div>
+            <div class="bill-info">
+                <p><strong>{{ user.username }}</strong></p>
+                <p>{{ user.email }}</p>
+                {% if user.phone %}<p>{{ user.phone }}</p>{% endif %}
+            </div>
+        </div>
+
+        <!-- Transaction Info -->
+        <div class="section">
+            <div class="section-title">{% if is_ar %}معلومات العملية{% else %}Transaction Information{% endif %}</div>
+            <div class="table-row">
+                <span>{% if is_ar %}التاريخ{% else %}Date{% endif %}</span>
+                <span>{{ transaction.created_at.strftime('%d/%m/%Y %H:%M') if transaction.created_at else 'N/A' }}</span>
+            </div>
+            <div class="table-row">
+                <span>{% if is_ar %}النوع{% else %}Type{% endif %}</span>
+                <span>{% if is_ar and transaction.transaction_type == 'subscription' %}اشتراك{% else %}{{ transaction.transaction_type }}{% endif %}</span>
+            </div>
+            <div class="table-row">
+                <span>{% if is_ar %}طريقة الدفع{% else %}Payment Method{% endif %}</span>
+                <span>{{ transaction.payment_method or 'Stripe Payment' }}</span>
+            </div>
+        </div>
+
+        <!-- Service Details -->
+        <div class="section">
+            <div class="section-title">{% if is_ar %}تفاصيل الخدمة{% else %}Service Details{% endif %}</div>
+            <div class="table-row">
+                <span>{{ transaction.description }}</span>
+                <span>${{ "%.2f"|format(transaction.amount) }}</span>
+            </div>
+            {% if transaction.billing_period %}
+            <div class="table-row">
+                <span>{% if is_ar %}الفترة الزمنية{% else %}Billing Period{% endif %}</span>
+                <span>
+                    {% if transaction.billing_period == 'monthly' %}
+                        {% if is_ar %}شهري / Monthly{% else %}Monthly{% endif %}
+                    {% elif transaction.billing_period == 'yearly' %}
+                        {% if is_ar %}سنوي / Yearly{% else %}Yearly{% endif %}
+                    {% else %}
+                        {{ transaction.billing_period }}
+                    {% endif %}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Amount Summary -->
+        <div class="amount-section">
+            <div class="amount-row">
+                <span>{% if is_ar %}السعر الأساسي{% else %}Subtotal{% endif %}</span>
+                <span>${{ "%.2f"|format(transaction.amount - transaction.tax_amount + transaction.discount_amount) }}</span>
+            </div>
+            {% if transaction.discount_amount > 0 %}
+            <div class="amount-row" style="color: #10b981;">
+                <span>{% if is_ar %}خصم{% else %}Discount{% endif %}</span>
+                <span>-${{ "%.2f"|format(transaction.discount_amount) }}</span>
+            </div>
+            {% endif %}
+            {% if transaction.tax_amount > 0 %}
+            <div class="amount-row">
+                <span>{% if is_ar %}الضريبة (VAT){% else %}Tax (VAT){% endif %}</span>
+                <span>${{ "%.2f"|format(transaction.tax_amount) }}</span>
+            </div>
+            {% endif %}
+            <div class="amount-row total">
+                <span>{% if is_ar %}المجموع{% else %}TOTAL{% endif %}</span>
+                <span>${{ "%.2f"|format(transaction.amount) }}</span>
+            </div>
+        </div>
+
+        <!-- Subscription Info -->
+        {% if transaction.subscription_start_date or transaction.subscription_renewal_date %}
+        <div class="section">
+            <div class="section-title">{% if is_ar %}تواريخ الاشتراك{% else %}Subscription Dates{% endif %}</div>
+            {% if transaction.subscription_start_date %}
+            <div class="table-row">
+                <span>{% if is_ar %}تاريخ البداية{% else %}Start Date{% endif %}</span>
+                <span>{{ transaction.subscription_start_date.strftime('%d/%m/%Y') }}</span>
+            </div>
+            {% endif %}
+            {% if transaction.subscription_renewal_date %}
+            <div class="table-row">
+                <span>{% if is_ar %}التجديد القادم{% else %}Renewal Date{% endif %}</span>
+                <span>{{ transaction.subscription_renewal_date.strftime('%d/%m/%Y') }}</span>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Payment Details -->
+        {% if transaction.stripe_subscription_id or transaction.stripe_payment_id %}
+        <div class="section">
+            {% if transaction.stripe_payment_id %}
+            <div class="table-row">
+                <span>{% if is_ar %}معرّف الدفع{% else %}Payment ID{% endif %}</span>
+                <span style="font-size: 0.85rem; word-break: break-all;">{{ transaction.stripe_payment_id }}</span>
+            </div>
+            {% endif %}
+            {% if transaction.stripe_subscription_id %}
+            <div class="table-row">
+                <span>{% if is_ar %}معرّف الاشتراك{% else %}Subscription ID{% endif %}</span>
+                <span style="font-size: 0.85rem; word-break: break-all;">{{ transaction.stripe_subscription_id }}</span>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="footer">
+            {% if is_ar %}
+                شكراً لاختيارك Mcidia. إذا كان لديك أي استفسارات حول هذه الفاتورة، يرجى التواصل مع فريقنا.
+            {% else %}
+                Thank you for choosing Mcidia. If you have any questions about this receipt, please contact our support team.
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

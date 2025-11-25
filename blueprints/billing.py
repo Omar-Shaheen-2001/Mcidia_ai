@@ -252,6 +252,69 @@ def receipt(transaction_id):
                          user=user, 
                          lang=lang)
 
+@billing_bp.route('/receipt/<int:transaction_id>/download-pdf')
+@login_required
+def download_receipt_pdf(transaction_id):
+    """Download receipt as PDF"""
+    from flask import session as flask_session, send_file
+    from weasyprint import HTML
+    from io import BytesIO
+    
+    db = current_app.extensions['sqlalchemy']
+    
+    # Get user_id from JWT or Flask session fallback
+    try:
+        user_id = int(get_jwt_identity())
+    except:
+        user_id = flask_session.get('user_id')
+        if not user_id:
+            return redirect(url_for('auth.login'))
+    
+    user = db.session.query(User).get(user_id)
+    transaction = db.session.query(Transaction).get(transaction_id)
+    
+    # Verify transaction belongs to user
+    if not transaction or transaction.user_id != user_id:
+        flash('Transaction not found', 'danger')
+        return redirect(url_for('billing.index'))
+    
+    lang = session.get('language', 'ar')
+    is_ar = lang == 'ar'
+    
+    try:
+        # Prepare data for template
+        receipt_data = {
+            'transaction': transaction,
+            'user': user,
+            'lang': lang,
+            'is_ar': is_ar
+        }
+        
+        # Render template to HTML string
+        html_string = render_template('billing/receipt_pdf.html', **receipt_data)
+        
+        # Generate PDF from HTML
+        pdf_bytes = HTML(string=html_string).write_pdf()
+        
+        # Create BytesIO object
+        pdf_file = BytesIO(pdf_bytes)
+        pdf_file.seek(0)
+        
+        # Create filename
+        filename = f"receipt_{transaction.id}_{transaction.created_at.strftime('%Y%m%d')}.pdf"
+        
+        return send_file(
+            pdf_file,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=filename
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        flash(f'خطأ في توليد PDF / Error generating PDF: {str(e)}', 'danger')
+        return redirect(url_for('billing.receipt', transaction_id=transaction_id))
+
 @billing_bp.route('/webhook', methods=['POST'])
 def webhook():
     """Handle Stripe webhooks"""

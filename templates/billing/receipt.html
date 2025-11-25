@@ -304,7 +304,8 @@
 
 <script>
 function downloadPDF() {
-    alert('PDF download feature will be implemented');
+    // Redirect to PDF download endpoint
+    window.location.href = "{{ url_for('billing.download_receipt_pdf', transaction_id=transaction.id) }}";
 }
 </script>
 {% endblock %}
