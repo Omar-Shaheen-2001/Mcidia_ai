@@ -290,15 +290,26 @@ def receipt(transaction_id):
     user = db.session.query(User).get(user_id)
     transaction = db.session.query(Transaction).get(transaction_id)
     
-    # Verify transaction belongs to user
-    if not transaction or transaction.user_id != user_id:
+    # Check if transaction exists
+    if not transaction:
         flash('Transaction not found', 'danger')
         return redirect(url_for('billing.index'))
     
+    # Verify: Allow if user owns the transaction OR user is admin
+    is_admin = user and user.has_role('system_admin')
+    if transaction.user_id != user_id and not is_admin:
+        flash('ليس لديك صلاحية لعرض هذه الفاتورة / You do not have permission to view this receipt', 'danger')
+        return redirect(url_for('billing.index'))
+    
     lang = session.get('language', 'ar')
+    
+    # Get the transaction owner's info
+    transaction_user = db.session.query(User).get(transaction.user_id)
+    
     return render_template('billing/receipt.html', 
                          transaction=transaction, 
-                         user=user, 
+                         user=transaction_user, 
+                         current_user=user,
                          lang=lang)
 
 @billing_bp.route('/receipt/<int:transaction_id>/download-pdf')
@@ -322,19 +333,28 @@ def download_receipt_pdf(transaction_id):
     user = db.session.query(User).get(user_id)
     transaction = db.session.query(Transaction).get(transaction_id)
     
-    # Verify transaction belongs to user
-    if not transaction or transaction.user_id != user_id:
+    # Check if transaction exists
+    if not transaction:
         flash('Transaction not found', 'danger')
+        return redirect(url_for('billing.index'))
+    
+    # Verify: Allow if user owns the transaction OR user is admin
+    is_admin = user and user.has_role('system_admin')
+    if transaction.user_id != user_id and not is_admin:
+        flash('ليس لديك صلاحية لتحميل هذه الفاتورة / You do not have permission to download this receipt', 'danger')
         return redirect(url_for('billing.index'))
     
     lang = session.get('language', 'ar')
     is_ar = lang == 'ar'
     
+    # Get the transaction owner's info
+    transaction_user = db.session.query(User).get(transaction.user_id)
+    
     try:
         # Prepare data for template
         receipt_data = {
             'transaction': transaction,
-            'user': user,
+            'user': transaction_user,
             'lang': lang,
             'is_ar': is_ar
         }
