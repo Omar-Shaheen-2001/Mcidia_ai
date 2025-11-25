@@ -84,9 +84,30 @@ def index():
 
 @billing_bp.route('/pricing')
 def pricing():
+    from flask import session as flask_session
     db = current_app.extensions['sqlalchemy']
     lang = session.get('language', 'ar')
-    return render_template('billing/pricing.html', lang=lang)
+    
+    # Get user if logged in
+    user = None
+    user_plan = None
+    try:
+        user_id = int(get_jwt_identity())
+        user = db.session.query(User).get(user_id)
+        if user and user.plan_ref:
+            user_plan = user.plan_ref.name
+    except:
+        # Try Flask session fallback
+        user_id = flask_session.get('user_id')
+        if user_id:
+            user = db.session.query(User).get(user_id)
+            if user and user.plan_ref:
+                user_plan = user.plan_ref.name
+    
+    return render_template('billing/pricing.html', 
+                         lang=lang, 
+                         user=user, 
+                         user_plan=user_plan)
 
 @billing_bp.route('/subscribe', methods=['POST'])
 @login_required

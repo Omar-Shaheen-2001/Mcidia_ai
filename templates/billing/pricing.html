@@ -72,10 +72,17 @@
                             </ul>
                         </div>
                         
+                        {% if user_plan == 'free' %}
                         <button class="btn btn-outline-primary w-100 py-2" disabled style="border-radius: 8px; font-weight: 600;">
                             <i class="fas fa-check me-2"></i>
                             {{ 'خطتك الحالية' if lang == 'ar' else 'Current Plan' }}
                         </button>
+                        {% else %}
+                        <button class="btn btn-outline-primary w-100 py-2" disabled style="border-radius: 8px; font-weight: 600;">
+                            <i class="fas fa-arrow-right me-2"></i>
+                            {{ 'ترقية من خطتك' if lang == 'ar' else 'Upgrade Your Plan' }}
+                        </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -141,6 +148,12 @@
                             </ul>
                         </div>
                         
+                        {% if user_plan == 'monthly' %}
+                        <button class="btn btn-primary w-100 py-2" disabled style="border-radius: 8px; font-weight: 600; font-size: 1rem;">
+                            <i class="fas fa-check me-2"></i>
+                            {{ 'خطتك الحالية' if lang == 'ar' else 'Current Plan' }}
+                        </button>
+                        {% else %}
                         <form method="POST" action="{{ url_for('billing.subscribe') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <input type="hidden" name="plan" value="monthly">
@@ -149,6 +162,7 @@
                                 {{ 'اشترك الآن' if lang == 'ar' else 'Subscribe Now' }}
                             </button>
                         </form>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -222,6 +236,12 @@
                             </ul>
                         </div>
                         
+                        {% if user_plan == 'yearly' %}
+                        <button class="btn btn-success w-100 py-2" disabled style="border-radius: 8px; font-weight: 600; font-size: 1rem;">
+                            <i class="fas fa-check me-2"></i>
+                            {{ 'خطتك الحالية' if lang == 'ar' else 'Current Plan' }}
+                        </button>
+                        {% else %}
                         <form method="POST" action="{{ url_for('billing.subscribe') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <input type="hidden" name="plan" value="yearly">
@@ -230,6 +250,7 @@
                                 {{ 'اشترك الآن' if lang == 'ar' else 'Subscribe Now' }}
                             </button>
                         </form>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -290,6 +311,12 @@
                             </ul>
                         </div>
                         
+                        {% if user_plan == 'pay_per_use' %}
+                        <button class="btn btn-outline-warning w-100 py-2" disabled style="border-radius: 8px; font-weight: 600;">
+                            <i class="fas fa-check me-2"></i>
+                            {{ 'خطتك الحالية' if lang == 'ar' else 'Current Plan' }}
+                        </button>
+                        {% else %}
                         <form method="POST" action="{{ url_for('billing.subscribe') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <input type="hidden" name="plan" value="pay_per_use">
@@ -298,6 +325,7 @@
                                 {{ 'ابدأ الآن' if lang == 'ar' else 'Start Now' }}
                             </button>
                         </form>
+                        {% endif %}
                     </div>
                 </div>
             </div>
