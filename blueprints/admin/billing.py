@@ -33,4 +33,58 @@ def index():
     
     transactions = query.order_by(Transaction.created_at.desc()).all()
     
-    return render_template('admin/billing/index.html', transactions=transactions, lang=lang)
+    # Build plan name mapping
+    plan_names = {
+        'free': {'ar': 'مجاني', 'en': 'Free'},
+        'monthly': {'ar': 'شهري', 'en': 'Monthly'},
+        'yearly': {'ar': 'سنوي', 'en': 'Yearly'},
+        'pay_per_use': {'ar': 'حسب الاستخدام', 'en': 'Pay Per Use'}
+    }
+    
+    # Calculate stats
+    total_transactions = len(transactions)
+    successful_count = len([t for t in transactions if t.status == 'succeeded'])
+    total_amount = sum([t.amount for t in transactions])
+    unique_users = len(set([t.user_id for t in transactions]))
+    
+    # Build enriched transactions list with user and plan data
+    enriched_transactions = []
+    for trans in transactions:
+        user = db.session.query(User).get(trans.user_id)
+        plan_name = user.plan_ref.name if user and user.plan_ref else 'unknown'
+        plan_display_name = plan_names.get(plan_name, {}).get('ar' if lang == 'ar' else 'en', plan_name)
+        
+        enriched_transactions.append({
+            'transaction': trans,
+            'user': user,
+            'username': user.username if user else 'Unknown',
+            'email': user.email if user else 'N/A',
+            'plan_name': plan_display_name,
+            'id': trans.id,
+            'amount': trans.amount,
+            'status': trans.status,
+            'created_at': trans.created_at,
+            'transaction_type': trans.transaction_type,
+            'currency': trans.currency,
+            'stripe_invoice_url': trans.stripe_invoice_url,
+            'user_id': trans.user_id,
+            'payment_method': trans.payment_method,
+            'billing_period': trans.billing_period,
+            'subscription_start_date': trans.subscription_start_date,
+            'subscription_renewal_date': trans.subscription_renewal_date
+        })
+    
+    # Collect payment methods
+    payment_methods = {}
+    for item in enriched_transactions:
+        method = item.get('payment_method') or 'Unknown'
+        payment_methods[method] = payment_methods.get(method, 0) + 1
+    
+    return render_template('admin/billing/index.html', 
+                         enriched_transactions=enriched_transactions,
+                         total_transactions=total_transactions,
+                         successful_count=successful_count,
+                         total_amount=total_amount,
+                         unique_users=unique_users,
+                         payment_methods=payment_methods,
+                         lang=lang)
