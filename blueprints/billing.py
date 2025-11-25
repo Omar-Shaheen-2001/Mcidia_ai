@@ -13,21 +13,22 @@ stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 STRIPE_API_URL = 'https://api.stripe.com/v1'
 
 def stripe_create_customer(email, name):
-    """Create Stripe customer using requests library with manual Authorization header"""
+    """Create Stripe customer using requests library with proper UTF-8 encoding"""
     api_key = os.getenv('STRIPE_SECRET_KEY')
     if not api_key:
         raise Exception("Stripe API key not configured")
     
-    # Prepare data - ensure everything is ASCII
+    # Prepare data - use UTF-8 encoding which Stripe supports
     data = {
-        'email': str(email)[:254].encode('ascii', errors='ignore').decode('ascii') if email else '',
-        'name': str(name)[:100].encode('ascii', errors='ignore').decode('ascii') if name else ''
+        'email': str(email)[:254] if email else '',
+        'name': str(name)[:100] if name else ''
     }
     
-    # Manually construct Authorization header with base64
-    auth_str = base64.b64encode(f'{api_key}:'.encode('ascii')).decode('ascii')
+    # Manually construct Authorization header with base64 using UTF-8
+    # API key should always be ASCII, but encoding as UTF-8 is safe
+    auth_str = base64.b64encode(f'{api_key}:'.encode('utf-8')).decode('ascii')
     headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
         'Authorization': f'Basic {auth_str}'
     }
     
