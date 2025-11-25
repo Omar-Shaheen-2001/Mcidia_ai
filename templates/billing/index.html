@@ -2,6 +2,15 @@
 
 {% block title %}{{ 'الفواتير' if lang == 'ar' else 'Invoices' }} - Mcidia{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Hide flash messages on billing page to prevent jitter when opening modals */
+    .alert {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="py-4" style="background-color: #f8f9fa;">
     <div class="container">
