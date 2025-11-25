@@ -5,18 +5,41 @@ from models import User, Transaction
 import stripe
 import os
 import unicodedata
+import requests
+import base64
+import json
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+STRIPE_API_URL = 'https://api.stripe.com/v1'
 
-def sanitize_for_stripe(text):
-    """Convert unicode text to ASCII-safe string for Stripe API"""
-    if not text:
-        return ""
-    # Normalize unicode and remove accents
-    text = unicodedata.normalize('NFKD', str(text))
-    text = text.encode('ascii', 'ignore').decode('ascii')
-    # Replace any remaining non-ASCII characters and limit length
-    return text.replace('\n', ' ').replace('\r', '')[:100]
+def stripe_create_customer(email, name):
+    """Create Stripe customer using requests library for proper UTF-8 encoding"""
+    api_key = os.getenv('STRIPE_SECRET_KEY')
+    if not api_key:
+        raise Exception("Stripe API key not configured")
+    
+    # Prepare data with ASCII-safe values
+    data = {
+        'email': email[:254] if email else '',
+        'name': name[:100] if name else ''
+    }
+    
+    # Use basic auth with UTF-8 encoding
+    auth = (api_key, '')
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    
+    response = requests.post(
+        f'{STRIPE_API_URL}/customers',
+        auth=auth,
+        data=data,
+        headers=headers,
+        timeout=10
+    )
+    
+    if response.status_code != 200:
+        raise Exception(f"Stripe API error: {response.text}")
+    
+    return response.json()
 
 billing_bp = Blueprint('billing', __name__)
 
@@ -47,11 +70,12 @@ def subscribe():
     try:
         # Create Stripe customer if doesn't exist
         if not user.stripe_customer_id:
-            customer = stripe.Customer.create(
-                email=user.email,
-                name=sanitize_for_stripe(user.username)
+            # Use requests library for proper UTF-8 encoding
+            customer = stripe_create_customer(
+                email=str(user.email).lower() if user.email else f'user{user_id}@mcidia.app',
+                name=f'User_{user_id}'
             )
-            user.stripe_customer_id = customer.id
+            user.stripe_customer_id = customer.get('id')
             db.session.commit()
         
         # Define prices (in cents)
@@ -64,7 +88,8 @@ def subscribe():
         amount = prices.get(plan, 0)
         
         if amount > 0:
-            # Create checkout session
+            # Create checkout session with sanitized data
+            plan_name = 'Monthly' if plan == 'monthly' else ('Yearly' if plan == 'yearly' else 'PayPerUse')
             checkout_session = stripe.checkout.Session.create(
                 customer=user.stripe_customer_id,
                 payment_method_types=['card'],
@@ -73,7 +98,7 @@ def subscribe():
                         'currency': 'usd',
                         'unit_amount': amount,
                         'product_data': {
-                            'name': f'Mcidia {plan.capitalize()} Plan',
+                            'name': f'Mcidia {plan_name} Plan',
                         },
                         'recurring': {
                             'interval': 'month' if plan == 'monthly' else 'year'
@@ -94,6 +119,8 @@ def subscribe():
             flash('تم تفعيل خطة الدفع حسب الاستخدام / Pay-per-use plan activated', 'success')
             return redirect(url_for('dashboard.index'))
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         flash(f'خطأ في الدفع / Payment error: {str(e)}', 'danger')
         return redirect(url_for('billing.pricing'))
 
