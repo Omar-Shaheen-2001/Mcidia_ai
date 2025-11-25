@@ -72,7 +72,11 @@
                                                 {{ 'تاريخ الاشتراك' if lang == 'ar' else 'Subscription Date' }}
                                             </p>
                                             <h5 class="fw-bold" style="color: #1f2937;">
-                                                {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}
+                                                {% if subscription_start_date %}
+                                                    {{ subscription_start_date.strftime('%Y-%m-%d') }}
+                                                {% else %}
+                                                    {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}
+                                                {% endif %}
                                             </h5>
                                         </div>
                                     </div>

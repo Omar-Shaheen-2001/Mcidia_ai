@@ -76,11 +76,23 @@ def index():
     if user.plan_ref:
         plan_details = plan_names.get(user.plan_ref.name, {})
     
+    # Get latest subscription start date from transactions
+    latest_subscription = db.session.query(Transaction).filter(
+        Transaction.user_id == user_id,
+        Transaction.transaction_type == 'subscription',
+        Transaction.subscription_start_date != None
+    ).order_by(Transaction.subscription_start_date.desc()).first()
+    
+    subscription_start_date = None
+    if latest_subscription and latest_subscription.subscription_start_date:
+        subscription_start_date = latest_subscription.subscription_start_date
+    
     return render_template('billing/index.html', 
                          user=user, 
                          transactions=transactions, 
                          lang=lang,
-                         plan_details=plan_details)
+                         plan_details=plan_details,
+                         subscription_start_date=subscription_start_date)
 
 @billing_bp.route('/pricing')
 def pricing():
