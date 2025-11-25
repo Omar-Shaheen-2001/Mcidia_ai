@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'وصل الدفع' if lang == 'ar' else 'Payment Receipt' }} - Mcidia{% endblock %}
+
+{% block extra_css %}
+<style>
+    .receipt-container {
+        background: linear-gradient(135deg, var(--color-primary), #0d47a1);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .receipt-content {
+        background: white;
+        color: #1f2937;
+        padding: 3rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .receipt-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .receipt-section:last-child {
+        border-bottom: none;
+    }
+
+    .receipt-label {
+        color: #6b7280;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .receipt-value {
+        color: #1f2937;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .receipt-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .receipt-amount {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--color-primary);
+    }
+
+    .receipt-status {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background-color: #dcfce7;
+        color: #166534;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .receipt-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: #f3f4f6;
+        color: #374151;
+        border-radius: 6px;
+        font-size: 0.85rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-group-inline {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    @media print {
+        body {
+            background: white;
+        }
+        .receipt-header,
+        .action-buttons,
+        .navbar,
+        nav {
+            display: none !important;
+        }
+        .receipt-content {
+            box-shadow: none;
+            padding: 0;
+            margin: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Receipt Header -->
+    <div class="receipt-container text-center">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h2 class="fw-bold mb-1">
+            {{ 'وصل الدفع' if lang == 'ar' else 'Payment Receipt' }}
+        </h2>
+        <p class="mb-0" style="opacity: 0.9;">
+            {{ 'شكراً لك على عملية الدفع' if lang == 'ar' else 'Thank you for your payment' }}
+        </p>
+    </div>
+
+    <!-- Receipt Content -->
+    <div class="receipt-content">
+        <!-- Company Header -->
+        <div class="receipt-section">
+            <div class="row">
+                <div class="col-md-6">
+                    <h3 class="fw-bold mb-1">Mcidia</h3>
+                    <p class="text-muted small mb-0">
+                        {{ 'منصة استشارات ذكية مدعومة بالذكاء الاصطناعي' if lang == 'ar' else 'AI-Powered Consulting Platform' }}
+                    </p>
+                </div>
+                <div class="col-md-6 text-{{ 'end' if lang == 'en' else 'start' }}">
+                    <p class="text-muted small mb-1">{{ 'رقم الفاتورة' if lang == 'ar' else 'Receipt Number' }}</p>
+                    <p class="fw-bold" style="color: var(--color-primary); font-size: 0.9rem; word-break: break-all;">
+                        {{ transaction.stripe_payment_id[:20] if transaction.stripe_payment_id else transaction.id }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Badge -->
+        <div class="receipt-section text-center">
+            {% if transaction.status == 'succeeded' %}
+            <div class="receipt-status">
+                <i class="fas fa-check-circle me-2"></i>
+                {{ 'تم الدفع' if lang == 'ar' else 'PAID' }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Billed To Section -->
+        <div class="receipt-section">
+            <p class="receipt-label">{{ 'تم الدفع إلى' if lang == 'ar' else 'Bill To' }}</p>
+            <p class="fw-semibold mb-1" style="color: #1f2937; font-size: 0.95rem;">{{ user.username }}</p>
+            <p class="text-muted small mb-0">{{ user.email }}</p>
+            {% if user.phone %}
+            <p class="text-muted small mb-0">{{ user.phone }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Transaction Info -->
+        <div class="receipt-section">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="receipt-label">{{ 'التاريخ' if lang == 'ar' else 'Date' }}</p>
+                    <p class="receipt-value">
+                        {{ transaction.created_at.strftime('%d/%m/%Y %H:%M') if transaction.created_at else 'N/A' }}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p class="receipt-label">{{ 'النوع' if lang == 'ar' else 'Type' }}</p>
+                    <p class="receipt-value">
+                        {{ 'اشتراك' if lang == 'ar' and transaction.transaction_type == 'subscription' else transaction.transaction_type }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="receipt-section">
+            <p class="receipt-label">{{ 'طريقة الدفع' if lang == 'ar' else 'Payment Method' }}</p>
+            <div class="receipt-badge">
+                <i class="fas fa-credit-card me-2"></i>
+                {{ transaction.payment_method or 'Stripe Payment' }}
+            </div>
+        </div>
+
+        <!-- Service Details -->
+        <div class="receipt-section">
+            <p class="receipt-label">{{ 'تفاصيل الخدمة' if lang == 'ar' else 'Service Details' }}</p>
+            <div class="receipt-row">
+                <span>{{ transaction.description }}</span>
+                <span class="fw-bold">${{ "%.2f"|format(transaction.amount) }}</span>
+            </div>
+            {% if transaction.billing_period %}
+            <p class="text-muted small mb-0">
+                <span class="receipt-label">{{ 'الفترة الزمنية' if lang == 'ar' else 'Billing Period' }}</span>
+                {% if transaction.billing_period == 'monthly' %}
+                    {{ 'شهري / Monthly' }}
+                {% elif transaction.billing_period == 'yearly' %}
+                    {{ 'سنوي / Yearly' }}
+                {% else %}
+                    {{ transaction.billing_period }}
+                {% endif %}
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- Subscription Dates -->
+        {% if transaction.subscription_start_date or transaction.subscription_renewal_date %}
+        <div class="receipt-section">
+            <p class="receipt-label">{{ 'تواريخ الاشتراك' if lang == 'ar' else 'Subscription Dates' }}</p>
+            <div class="row">
+                {% if transaction.subscription_start_date %}
+                <div class="col-md-6">
+                    <p class="receipt-label">{{ 'تاريخ البداية' if lang == 'ar' else 'Start Date' }}</p>
+                    <p class="receipt-value">
+                        {{ transaction.subscription_start_date.strftime('%d/%m/%Y') }}
+                    </p>
+                </div>
+                {% endif %}
+                {% if transaction.subscription_renewal_date %}
+                <div class="col-md-6">
+                    <p class="receipt-label">{{ 'التجديد القادم' if lang == 'ar' else 'Renewal Date' }}</p>
+                    <p class="receipt-value">
+                        {{ transaction.subscription_renewal_date.strftime('%d/%m/%Y') }}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Amount Summary -->
+        <div class="receipt-section" style="background-color: #f9fafb; padding: 1.5rem; border-radius: 8px; border: none;">
+            <div class="receipt-row">
+                <span class="text-muted">{{ 'السعر الأساسي' if lang == 'ar' else 'Subtotal' }}</span>
+                <span>${{ "%.2f"|format(transaction.amount - transaction.tax_amount + transaction.discount_amount) }}</span>
+            </div>
+            {% if transaction.discount_amount > 0 %}
+            <div class="receipt-row" style="color: #10b981;">
+                <span>{{ 'خصم' if lang == 'ar' else 'Discount' }}</span>
+                <span>-${{ "%.2f"|format(transaction.discount_amount) }}</span>
+            </div>
+            {% endif %}
+            {% if transaction.tax_amount > 0 %}
+            <div class="receipt-row">
+                <span class="text-muted">{{ 'الضريبة (VAT)' if lang == 'ar' else 'Tax (VAT)' }}</span>
+                <span>${{ "%.2f"|format(transaction.tax_amount) }}</span>
+            </div>
+            {% endif %}
+            <div class="receipt-row" style="border-top: 1px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem;">
+                <span class="fw-bold">{{ 'المجموع' if lang == 'ar' else 'TOTAL' }}</span>
+                <span class="receipt-amount">${{ "%.2f"|format(transaction.amount) }}</span>
+            </div>
+        </div>
+
+        <!-- Additional Info -->
+        {% if transaction.stripe_subscription_id or transaction.stripe_invoice_url %}
+        <div class="receipt-section">
+            {% if transaction.stripe_subscription_id %}
+            <p class="receipt-label">{{ 'معرّف الاشتراك' if lang == 'ar' else 'Subscription ID' }}</p>
+            <p class="receipt-value" style="font-size: 0.85rem; word-break: break-all;">
+                {{ transaction.stripe_subscription_id }}
+            </p>
+            {% endif %}
+            {% if transaction.stripe_invoice_url %}
+            <a href="{{ transaction.stripe_invoice_url }}" target="_blank" class="btn btn-outline-secondary btn-sm mt-2" style="border-radius: 6px;">
+                <i class="fas fa-external-link-alt me-2"></i>
+                {{ 'عرض الفاتورة من Stripe' if lang == 'ar' else 'View on Stripe' }}
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Footer Message -->
+        <div style="padding: 1.5rem; background-color: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981; margin-top: 2rem;">
+            <p class="text-muted small mb-0" style="font-size: 0.85rem;">
+                {{ 'شكراً لاختيارك Mcidia. إذا كان لديك أي استفسارات حول هذه الفاتورة، يرجى التواصل مع فريقنا.' if lang == 'ar' else 'Thank you for choosing Mcidia. If you have any questions about this receipt, please contact our support team.' }}
+            </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{{ url_for('billing.index') }}" class="btn btn-secondary" style="border-radius: 6px;">
+                <i class="fas fa-arrow-left me-2"></i>
+                {{ 'العودة للفواتير' if lang == 'ar' else 'Back to Invoices' }}
+            </a>
+            <button onclick="window.print()" class="btn btn-primary" style="border-radius: 6px;">
+                <i class="fas fa-print me-2"></i>
+                {{ 'طباعة الوصل' if lang == 'ar' else 'Print Receipt' }}
+            </button>
+            <button onclick="downloadPDF()" class="btn btn-success" style="border-radius: 6px;">
+                <i class="fas fa-download me-2"></i>
+                {{ 'تحميل PDF' if lang == 'ar' else 'Download PDF' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function downloadPDF() {
+    alert('PDF download feature will be implemented');
+}
+</script>
+{% endblock %}

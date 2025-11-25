@@ -223,6 +223,35 @@ def success():
     
     return redirect(url_for('dashboard.index'))
 
+@billing_bp.route('/receipt/<int:transaction_id>')
+@login_required
+def receipt(transaction_id):
+    """Display receipt for a transaction"""
+    from flask import session as flask_session
+    db = current_app.extensions['sqlalchemy']
+    
+    # Get user_id from JWT or Flask session fallback
+    try:
+        user_id = int(get_jwt_identity())
+    except:
+        user_id = flask_session.get('user_id')
+        if not user_id:
+            return redirect(url_for('auth.login'))
+    
+    user = db.session.query(User).get(user_id)
+    transaction = db.session.query(Transaction).get(transaction_id)
+    
+    # Verify transaction belongs to user
+    if not transaction or transaction.user_id != user_id:
+        flash('Transaction not found', 'danger')
+        return redirect(url_for('billing.index'))
+    
+    lang = session.get('language', 'ar')
+    return render_template('billing/receipt.html', 
+                         transaction=transaction, 
+                         user=user, 
+                         lang=lang)
+
 @billing_bp.route('/webhook', methods=['POST'])
 def webhook():
     """Handle Stripe webhooks"""
