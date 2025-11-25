@@ -4,8 +4,19 @@ from utils.decorators import login_required
 from models import User, Transaction
 import stripe
 import os
+import unicodedata
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+
+def sanitize_for_stripe(text):
+    """Convert unicode text to ASCII-safe string for Stripe API"""
+    if not text:
+        return ""
+    # Normalize unicode and remove accents
+    text = unicodedata.normalize('NFKD', str(text))
+    text = text.encode('ascii', 'ignore').decode('ascii')
+    # Replace any remaining non-ASCII characters and limit length
+    return text.replace('\n', ' ').replace('\r', '')[:100]
 
 billing_bp = Blueprint('billing', __name__)
 
@@ -38,7 +49,7 @@ def subscribe():
         if not user.stripe_customer_id:
             customer = stripe.Customer.create(
                 email=user.email,
-                name=user.username
+                name=sanitize_for_stripe(user.username)
             )
             user.stripe_customer_id = customer.id
             db.session.commit()
