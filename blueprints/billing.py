@@ -392,7 +392,7 @@ def admin_billing():
     db = current_app.extensions['sqlalchemy']
     lang = session.get('language', 'ar')
     
-    # Get all transactions with user information
+    # Get all transactions with user information using proper join
     transactions = db.session.query(Transaction).order_by(Transaction.created_at.desc()).all()
     
     # Build plan name mapping
@@ -403,15 +403,23 @@ def admin_billing():
         'pay_per_use': {'ar': 'حسب الاستخدام', 'en': 'Pay Per Use'}
     }
     
-    # Add user and plan info to transactions
+    # Build enriched transactions list with user and plan data
+    enriched_transactions = []
     for trans in transactions:
         user = db.session.query(User).get(trans.user_id)
-        trans.user_info = user
         plan_name = user.plan_ref.name if user and user.plan_ref else 'unknown'
-        trans.plan_name = plan_names.get(plan_name, {}).get('ar' if lang == 'ar' else 'en', plan_name)
+        plan_display_name = plan_names.get(plan_name, {}).get('ar' if lang == 'ar' else 'en', plan_name)
+        
+        enriched_transactions.append({
+            'transaction': trans,
+            'user': user,
+            'username': user.username if user else 'Unknown',
+            'email': user.email if user else 'N/A',
+            'plan_name': plan_display_name
+        })
     
     return render_template('admin/billing/index.html', 
-                         transactions=transactions, 
+                         enriched_transactions=enriched_transactions, 
                          lang=lang)
 
 @billing_bp.route('/webhook', methods=['POST'])
