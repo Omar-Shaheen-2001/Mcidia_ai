@@ -211,7 +211,7 @@
                                     </tr>
 
                                     <!-- Professional Receipt Modal -->
-                                    <div class="modal fade" id="receiptModal{{ transaction.id }}" tabindex="-1">
+                                    <div class="modal" id="receiptModal{{ transaction.id }}" tabindex="-1" style="animation: none !important;">
                                         <div class="modal-dialog modal-lg">
                                             <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
                                                 <!-- Header -->
@@ -465,6 +465,37 @@
 </section>
 
 <script>
+// Disable Bootstrap animations for modals
+document.addEventListener('DOMContentLoaded', function() {
+    // Disable all modal animations
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.classList.remove('fade');
+        modal.style.animation = 'none !important';
+        modal.style.transition = 'none !important';
+    });
+    
+    // Intercept modal show events to prevent jitter
+    document.addEventListener('show.bs.modal', function(e) {
+        const modal = e.target;
+        if (modal.classList.contains('fade')) {
+            modal.classList.remove('fade');
+        }
+        modal.style.animation = 'none';
+        modal.style.transition = 'none';
+        modal.style.transform = 'none';
+    });
+    
+    // Ensure backdrop has no animation
+    document.addEventListener('shown.bs.modal', function(e) {
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+            backdrop.style.animation = 'none';
+            backdrop.style.transition = 'none';
+        }
+    });
+});
+
 function downloadReceipt(transactionId) {
     // Placeholder for PDF download functionality
     alert('PDF download feature will be implemented');
@@ -473,25 +504,48 @@ function downloadReceipt(transactionId) {
 </script>
 
 <style>
-/* Fix modal jitter and smooth appearance */
+/* COMPLETELY DISABLE ALL ANIMATIONS */
+.modal {
+    animation: none !important;
+}
+
+.modal.show {
+    animation: none !important;
+}
+
+.modal-backdrop {
+    animation: none !important;
+    transition: none !important;
+}
+
+.modal-dialog {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+}
+
 .modal-content {
-    box-shadow: none;
-    border: none;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+    border: none !important;
+    animation: none !important;
 }
 
-.modal.fade .modal-dialog {
-    transition: transform 0.2s cubic-bezier(0.36, 0, 0.66, 1) !important;
+/* Override Bootstrap button animations */
+.btn {
+    transition: none !important;
+    animation: none !important;
 }
 
-.modal-backdrop.fade {
-    transition: opacity 0.2s cubic-bezier(0.36, 0, 0.66, 1) !important;
+.btn:hover, .btn:focus, .btn:active {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
 }
 
-/* Fix button hover jitter */
+/* Modal buttons - NO animations */
 .modal-footer .btn {
     transition: none !important;
-    will-change: auto;
-    transform: translate3d(0, 0, 0);
+    animation: none !important;
 }
 
 .modal-footer .btn:hover {
@@ -499,25 +553,13 @@ function downloadReceipt(transactionId) {
     transform: none !important;
 }
 
-.modal-footer .btn:active,
-.modal-footer .btn:focus {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
-    transform: none !important;
-}
-
-/* Prevent modal body shifting */
-.modal-body {
-    overflow-y: auto;
-    max-height: calc(100vh - 200px);
-}
-
-/* Smooth table hover without jitter */
+/* Table - no transitions */
 .table {
     margin-bottom: 0;
 }
 
 .table tbody tr {
-    transition: background-color 0.15s ease;
+    transition: none !important;
 }
 
 .table tbody tr:hover {
@@ -530,9 +572,17 @@ function downloadReceipt(transactionId) {
     border: none !important;
 }
 
+/* Modal body */
+.modal-body {
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+    animation: none !important;
+}
+
 .badge {
     font-weight: 600;
     display: inline-block;
+    animation: none !important;
 }
 
 /* Print styles */
