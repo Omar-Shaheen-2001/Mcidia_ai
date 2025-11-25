@@ -217,6 +217,7 @@ def success():
         subscription_start_date = datetime.utcnow()
         subscription_renewal_date = None
         payment_method_info = 'Card via Stripe'
+        stripe_invoice_url = None
         
         # If it's a subscription, get details from Stripe
         if subscription_id:
@@ -232,6 +233,13 @@ def success():
                         else:
                             subscription_renewal_date = subscription_start_date + timedelta(days=30)
                     billing_period = interval
+                
+                # Get the latest invoice with hosted_invoice_url
+                invoices = stripe.Invoice.list(subscription=subscription_id, limit=1)
+                if invoices.data and len(invoices.data) > 0:
+                    latest_invoice = invoices.data[0]
+                    if latest_invoice.get('hosted_invoice_url'):
+                        stripe_invoice_url = latest_invoice.get('hosted_invoice_url')
             except Exception as e:
                 billing_period = 'monthly'
         
@@ -240,7 +248,7 @@ def success():
             user_id=user_id,
             stripe_payment_id=checkout_session.payment_intent,
             stripe_subscription_id=subscription_id,
-            stripe_invoice_url=checkout_session.get('invoice'),
+            stripe_invoice_url=stripe_invoice_url,
             amount=checkout_session.amount_total / 100,
             currency='usd',
             description='Mcidia Plan Subscription',
