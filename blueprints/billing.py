@@ -1,7 +1,7 @@
 from flask import current_app, Blueprint, render_template, request, flash, session, redirect, url_for, jsonify
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
-from models import User, Transaction
+from models import User, Transaction, SubscriptionPlan
 import stripe
 import os
 import unicodedata
@@ -157,13 +157,15 @@ def subscribe():
                     'quantity': 1,
                 }],
                 mode='subscription' if plan != 'pay_per_use' else 'payment',
-                success_url=request.host_url + 'billing/success?session_id={CHECKOUT_SESSION_ID}',
+                success_url=request.host_url + f'billing/success?session_id={{CHECKOUT_SESSION_ID}}&plan={plan}',
                 cancel_url=request.host_url + 'billing/pricing',
             )
             return redirect(checkout_session.url, code=303)
         else:
             # Pay per use - just update plan
-            user.subscription_plan = plan
+            subscription_plan = db.session.query(SubscriptionPlan).filter_by(name=plan).first()
+            if subscription_plan:
+                user.subscription_plan_id = subscription_plan.id
             user.subscription_status = 'active'
             db.session.commit()
             flash('تم تفعيل خطة الدفع حسب الاستخدام / Pay-per-use plan activated', 'success')
@@ -183,14 +185,20 @@ def success():
     user_id = int(get_jwt_identity())
     user = db.session.query(User).get(user_id)
     session_id = request.args.get('session_id')
+    plan = request.args.get('plan', 'monthly')  # Get plan from URL parameter
     
     try:
         checkout_session = stripe.checkout.Session.retrieve(session_id)
         
-        # Update user subscription
+        # Update user subscription and plan
         user.subscription_status = 'active'
         subscription_id = checkout_session.subscription if checkout_session.subscription else None
         user.stripe_subscription_id = subscription_id
+        
+        # Update the subscription plan in database
+        subscription_plan = db.session.query(SubscriptionPlan).filter_by(name=plan).first()
+        if subscription_plan:
+            user.subscription_plan_id = subscription_plan.id
         
         # Get subscription details if available
         billing_period = 'one_time'
