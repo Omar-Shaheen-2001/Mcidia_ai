@@ -161,11 +161,19 @@ class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     stripe_payment_id = db.Column(db.String(100))
+    stripe_subscription_id = db.Column(db.String(100))
+    stripe_invoice_url = db.Column(db.String(500))
     amount = db.Column(db.Float, nullable=False)
     currency = db.Column(db.String(10), default='usd')
     description = db.Column(db.String(255))
     status = db.Column(db.String(50))  # pending, succeeded, failed
     transaction_type = db.Column(db.String(50))  # subscription, one_time, pay_per_use
+    payment_method = db.Column(db.String(100))  # e.g., "Card ending in 4242"
+    billing_period = db.Column(db.String(50))  # monthly, yearly, one_time
+    subscription_start_date = db.Column(db.DateTime)  # When subscription starts
+    subscription_renewal_date = db.Column(db.DateTime)  # When subscription renews
+    tax_amount = db.Column(db.Float, default=0)
+    discount_amount = db.Column(db.Float, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):

@@ -147,6 +147,8 @@ def subscribe():
 @billing_bp.route('/success')
 @login_required
 def success():
+    from datetime import datetime, timedelta
+    
     db = current_app.extensions['sqlalchemy']
     user_id = int(get_jwt_identity())
     user = db.session.query(User).get(user_id)
@@ -157,23 +159,57 @@ def success():
         
         # Update user subscription
         user.subscription_status = 'active'
-        user.stripe_subscription_id = checkout_session.subscription if checkout_session.subscription else None
+        subscription_id = checkout_session.subscription if checkout_session.subscription else None
+        user.stripe_subscription_id = subscription_id
         
-        # Create transaction record
+        # Get subscription details if available
+        billing_period = 'one_time'
+        subscription_start_date = datetime.utcnow()
+        subscription_renewal_date = None
+        payment_method_info = 'Card via Stripe'
+        
+        # If it's a subscription, get details from Stripe
+        if subscription_id:
+            try:
+                subscription = stripe.Subscription.retrieve(subscription_id)
+                billing_period = subscription.get('billing_cycle_anchor')
+                if subscription.get('billing_cycle_anchor'):
+                    # Set renewal date based on interval
+                    if subscription.get('items', {}).get('data', [{}])[0].get('billing_thresholds') or True:
+                        interval = subscription.get('items', {}).get('data', [{}])[0].get('plan', {}).get('interval', 'month')
+                        if interval == 'year':
+                            subscription_renewal_date = subscription_start_date + timedelta(days=365)
+                        else:
+                            subscription_renewal_date = subscription_start_date + timedelta(days=30)
+                    billing_period = interval
+            except Exception as e:
+                billing_period = 'monthly'
+        
+        # Create transaction record with comprehensive data
         transaction = Transaction(
             user_id=user_id,
             stripe_payment_id=checkout_session.payment_intent,
+            stripe_subscription_id=subscription_id,
+            stripe_invoice_url=checkout_session.get('invoice'),
             amount=checkout_session.amount_total / 100,
             currency='usd',
-            description=f'Subscription Payment',
+            description='Mcidia Plan Subscription',
             status='succeeded',
-            transaction_type='subscription'
+            transaction_type='subscription',
+            payment_method=payment_method_info,
+            billing_period=billing_period,
+            subscription_start_date=subscription_start_date,
+            subscription_renewal_date=subscription_renewal_date,
+            tax_amount=0,
+            discount_amount=0
         )
         db.session.add(transaction)
         db.session.commit()
         
         flash('تم الاشتراك بنجاح! / Subscription successful!', 'success')
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         flash(f'خطأ في التحقق من الدفع / Payment verification error', 'danger')
     
     return redirect(url_for('dashboard.index'))
