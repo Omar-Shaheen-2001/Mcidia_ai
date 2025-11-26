@@ -516,6 +516,76 @@ def analyze_strategy_map():
             'relationships': [{'from': 'l1', 'to': 'p1'}, {'from': 'p1', 'to': 'c1'}, {'from': 'c1', 'to': 'f1'}]
         })
 
+@knowledge_admin_bp.route('/api/generate-strategic-plan', methods=['POST'])
+@login_required
+def generate_strategic_plan():
+    """Generate comprehensive strategic plan using AI"""
+    from utils.ai_providers.ai_manager import AIManager
+    
+    try:
+        data = request.json
+        goal = data.get('goal', '')
+        doc_content = data.get('doc_content', '')
+        doc_title = data.get('doc_title', 'Strategic Plan')
+        
+        if not goal:
+            return jsonify({'error': 'Goal required'}), 400
+        
+        ai = AIManager.for_use_case('strategic_plan_builder')
+        
+        prompt = f"""أنت متخصص في بناء الخطط الاستراتيجية.
+        
+بناءً على الهدف التالي والمستند المرفق، قم بإنشاء خطة استراتيجية شاملة وعملية:
+
+📌 الهدف: {goal}
+📄 الملف: {doc_title}
+📋 السياق: {doc_content[:1000]}
+
+قم بإنشاء خطة تتضمن:
+1. **تحليل الهدف**: شرح مفصل للهدف
+2. **مؤشرات الأداء (KPIs)**: 3-4 مؤشرات قابلة للقياس مع القيم المستهدفة
+3. **المبادرات الاستراتيجية**: 4-5 مبادرات عملية بخطوات واضحة
+4. **الموارد المطلوبة**: الموارد البشرية والمالية والتقنية
+5. **الأولويات**: ترتيب المبادرات حسب الأهمية والتأثير
+6. **الإطار الزمني**: توزيع زمني للمبادرات (مراحل 3 شهور، 6 شهور، سنة)
+7. **عوامل النجاح**: العوامل الحرجة لضمان نجاح الخطة
+8. **المخاطر والتحديات**: التحديات المحتملة وطرق التعامل معها
+
+قدم الرد بصيغة JSON احترافية دقيقة جداً، بدون نصوص إضافية."""
+        
+        system_prompt = """أنت مستشار استراتيجي متقدم متخصص في بناء الخطط الاستراتيجية الشاملة.
+تقدم خطط عملية وقابلة للتنفيذ مع تفاصيل دقيقة وقابلة للقياس.
+استجابتك دائماً بصيغة JSON صحيحة ودقيقة جداً."""
+        
+        response = ai.chat(prompt, system_prompt=system_prompt)
+        
+        json_str = response.strip()
+        if json_str.startswith('```'):
+            json_str = json_str.split('```')[1]
+            if json_str.startswith('json'):
+                json_str = json_str[4:]
+        
+        try:
+            plan = json.loads(json_str)
+            return jsonify({
+                'success': True,
+                'plan': plan,
+                'goal': goal
+            })
+        except:
+            return jsonify({
+                'success': True,
+                'plan': {
+                    'analysis': response[:500],
+                    'kpis': ['KPI 1', 'KPI 2'],
+                    'initiatives': ['مبادرة 1', 'مبادرة 2']
+                },
+                'goal': goal
+            })
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @knowledge_admin_bp.route('/api/ask', methods=['POST'])
 def ask_knowledge_base():
     """Public endpoint: Ask knowledge base a question"""

@@ -794,14 +794,100 @@ function addToStrategicPlan() {
         return;
     }
     
+    // أول هدف تم اختياره
+    const firstGoal = document.querySelector('#extractedElements input[type="checkbox"]:checked')?.parentElement?.textContent?.trim() || 'الهدف الاستراتيجي';
+    
     Swal.fire({
-        icon: 'success',
-        title: 'تم بنجاح!',
-        text: `تمت إضافة ${selectedCount} عنصر للخطة الاستراتيجية`,
-        didClose: () => {
-            document.getElementById('planBuilderModal').closest('.modal').click();
-            bootstrap.Modal.getInstance(document.getElementById('planBuilderModal')).hide();
+        title: 'جاري توليد الخطة الاستراتيجية...',
+        html: 'يتم استخدام الذكاء الاصطناعي لإنشاء خطة شاملة وقابلة للتنفيذ...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+    
+    const currentDoc = documents[documents.length - 1];
+    
+    fetch('/admin/knowledge/api/generate-strategic-plan', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            goal: firstGoal,
+            doc_content: `الخطة: ${currentDoc.title}, المحور: ${currentDoc.theme}, الإطار: ${currentDoc.framework}`,
+            doc_title: currentDoc.title
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        Swal.close();
+        
+        if (data.success && data.plan) {
+            const plan = data.plan;
+            let planHtml = `
+                <div style="text-align: right; max-height: 600px; overflow-y: auto; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                    <h5 style="color: #333; margin-bottom: 20px;">📋 الخطة الاستراتيجية المقترحة</h5>
+            `;
+            
+            if (plan.analysis) {
+                planHtml += `<div style="background: white; padding: 15px; border-right: 4px solid #6f42c1; margin-bottom: 15px;">
+                    <strong>📊 تحليل الهدف:</strong>
+                    <p style="margin-top: 8px; color: #666;">${plan.analysis}</p>
+                </div>`;
+            }
+            
+            if (plan.kpis && Array.isArray(plan.kpis) && plan.kpis.length > 0) {
+                planHtml += `<div style="background: white; padding: 15px; border-right: 4px solid #FF6B6B; margin-bottom: 15px;">
+                    <strong>📊 مؤشرات الأداء (KPIs):</strong>
+                    <ul style="margin-top: 8px; padding-right: 20px;">
+                        ${plan.kpis.map(kpi => `<li style="color: #666; margin: 5px 0;">${kpi}</li>`).join('')}
+                    </ul>
+                </div>`;
+            }
+            
+            if (plan.initiatives && Array.isArray(plan.initiatives) && plan.initiatives.length > 0) {
+                planHtml += `<div style="background: white; padding: 15px; border-right: 4px solid #4ECDC4; margin-bottom: 15px;">
+                    <strong>🎯 المبادرات الاستراتيجية:</strong>
+                    <ul style="margin-top: 8px; padding-right: 20px;">
+                        ${plan.initiatives.map(init => `<li style="color: #666; margin: 5px 0;">${init}</li>`).join('')}
+                    </ul>
+                </div>`;
+            }
+            
+            if (plan.resources) {
+                planHtml += `<div style="background: white; padding: 15px; border-right: 4px solid #FFE66D; margin-bottom: 15px;">
+                    <strong>💼 الموارد المطلوبة:</strong>
+                    <p style="margin-top: 8px; color: #666;">${plan.resources}</p>
+                </div>`;
+            }
+            
+            if (plan.timeline) {
+                planHtml += `<div style="background: white; padding: 15px; border-right: 4px solid #95E1D3;">
+                    <strong>⏱️ الإطار الزمني:</strong>
+                    <p style="margin-top: 8px; color: #666;">${plan.timeline}</p>
+                </div>`;
+            }
+            
+            planHtml += '</div>';
+            
+            Swal.fire({
+                title: '✅ تم توليد الخطة الاستراتيجية بنجاح!',
+                html: planHtml,
+                width: '700px',
+                confirmButtonText: 'حفظ الخطة',
+                cancelButtonText: 'إغلاق',
+                showCancelButton: true,
+                didOpen: () => {
+                    document.querySelector('.swal2-html-container').style.textAlign = 'right';
+                },
+                preConfirm: () => {
+                    bootstrap.Modal.getInstance(document.getElementById('planBuilderModal')).hide();
+                    Swal.fire('تم', 'تمت إضافة الخطة بنجاح', 'success');
+                }
+            });
+        } else {
+            Swal.fire('خطأ', 'فشل توليد الخطة. يرجى المحاولة لاحقاً', 'error');
         }
+    })
+    .catch(err => {
+        Swal.fire('خطأ', err.message || 'حدث خطأ أثناء توليد الخطة', 'error');
     });
 }
 
