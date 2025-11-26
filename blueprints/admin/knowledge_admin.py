@@ -288,6 +288,13 @@ def feasibility_studies():
     lang = get_lang()
     return render_template('admin/knowledge/feasibility-studies.html', lang=lang)
 
+@knowledge_admin_bp.route('/strategic-planning')
+@login_required
+def strategic_planning():
+    """Strategic Planning section"""
+    lang = get_lang()
+    return render_template('admin/knowledge/strategic-planning.html', lang=lang)
+
 @knowledge_admin_bp.route('/settings')
 @login_required
 def settings():
