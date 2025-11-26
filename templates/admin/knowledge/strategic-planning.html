@@ -848,53 +848,90 @@ function showStrategyMap(docId) {
         
         const nodes = [];
         const edges = [];
-        let nodeId = 0;
-        
-        // إضافة العقد من كل طبقة
-        const colorMap = { financial: '#FF6B6B', customer: '#4ECDC4', internal: '#FFE66D', learning: '#95E1D3' };
+        const layerLabels = { 
+            financial: '🏦 الأهداف المالية', 
+            customer: '👥 أهداف العملاء', 
+            internal: '⚙️ العمليات الداخلية', 
+            learning: '🎓 التعلم والنمو'
+        };
+        const colorMap = { 
+            financial: '#FF6B6B', 
+            customer: '#4ECDC4', 
+            internal: '#FFE66D', 
+            learning: '#95E1D3' 
+        };
         const layers = ['financial', 'customer', 'internal', 'learning'];
         const layerMap = {};
+        const yPositions = { learning: 0, internal: 1, customer: 2, financial: 3 };
         
+        // إضافة العقد من كل طبقة مع تموضع هرمي
+        let nodeCounter = 0;
         layers.forEach(layer => {
-            if (data[layer]) {
+            if (data[layer] && Array.isArray(data[layer])) {
                 layerMap[layer] = [];
-                data[layer].forEach(item => {
-                    nodes.push({
-                        data: { id: item.id, label: item.label, layer: layer },
-                        style: { 'background-color': colorMap[layer] }
-                    });
-                    layerMap[layer].push(item.id);
+                const layerItems = data[layer];
+                const itemsCount = layerItems.length;
+                
+                layerItems.forEach((item, idx) => {
+                    if (item.id && item.label) {
+                        const x = (idx - itemsCount / 2) * 200;
+                        const y = yPositions[layer] * 250;
+                        
+                        nodes.push({
+                            data: { 
+                                id: item.id, 
+                                label: item.label, 
+                                description: item.description || '',
+                                layer: layer 
+                            },
+                            position: { x, y },
+                            style: { 
+                                'background-color': colorMap[layer],
+                                'border-width': 3,
+                                'box-shadow': '0 2px 8px rgba(0,0,0,0.2)'
+                            }
+                        });
+                        layerMap[layer].push(item.id);
+                    }
                 });
             }
         });
         
-        // إضافة العلاقات
-        if (data.relationships) {
+        // إضافة العلاقات من البيانات المستخرجة
+        if (data.relationships && Array.isArray(data.relationships)) {
             data.relationships.forEach(rel => {
-                edges.push({ data: { source: rel.from, target: rel.to } });
+                if (rel.from && rel.to) {
+                    edges.push({ 
+                        data: { 
+                            source: rel.from, 
+                            target: rel.to,
+                            label: rel.label || ''
+                        }
+                    });
+                }
             });
         }
         
-        // إذا لم تكن هناك علاقات، أنشئ علاقات افتراضية
-        if (edges.length === 0) {
-            if (layerMap.learning && layerMap.internal) {
-                layerMap.learning.forEach((l, i) => {
-                    if (i < layerMap.internal.length) {
-                        edges.push({ data: { source: l, target: layerMap.internal[i] } });
+        // إذا لم تكن هناك علاقات، أنشئ علاقات من التحليل الحقيقي
+        if (edges.length === 0 && Object.keys(layerMap).some(k => layerMap[k].length > 0)) {
+            if (layerMap.learning && layerMap.learning.length > 0) {
+                layerMap.learning.forEach(l => {
+                    if (layerMap.internal && layerMap.internal.length > 0) {
+                        edges.push({ data: { source: l, target: layerMap.internal[0], label: 'يمكّن' } });
                     }
                 });
             }
-            if (layerMap.internal && layerMap.customer) {
-                layerMap.internal.forEach((p, i) => {
-                    if (i < layerMap.customer.length) {
-                        edges.push({ data: { source: p, target: layerMap.customer[i] } });
+            if (layerMap.internal && layerMap.internal.length > 0) {
+                layerMap.internal.forEach(p => {
+                    if (layerMap.customer && layerMap.customer.length > 0) {
+                        edges.push({ data: { source: p, target: layerMap.customer[0], label: 'يحسّن' } });
                     }
                 });
             }
-            if (layerMap.customer && layerMap.financial) {
-                layerMap.customer.forEach((c, i) => {
-                    if (i < layerMap.financial.length) {
-                        edges.push({ data: { source: c, target: layerMap.financial[i] } });
+            if (layerMap.customer && layerMap.customer.length > 0) {
+                layerMap.customer.forEach(c => {
+                    if (layerMap.financial && layerMap.financial.length > 0) {
+                        edges.push({ data: { source: c, target: layerMap.financial[0], label: 'يؤدي إلى' } });
                     }
                 });
             }
@@ -911,23 +948,57 @@ function showStrategyMap(docId) {
                     'content': 'data(label)',
                     'text-valign': 'center',
                     'text-halign': 'center',
-                    'width': '120px',
-                    'height': '80px',
-                    'border-width': 2,
-                    'border-color': '#333',
-                    'font-size': '12px',
+                    'width': '140px',
+                    'height': '100px',
+                    'border-width': 3,
+                    'border-color': '#fff',
+                    'font-size': '11px',
                     'font-weight': 'bold',
                     'color': '#fff',
-                    'text-wrap': 'wrap'
+                    'text-wrap': 'wrap',
+                    'text-overflow-wrap': 'whitespace',
+                    'padding': '10px',
+                    'shape': 'round-rectangle'
+                })
+                .selector('node:hover')
+                .css({
+                    'width': '160px',
+                    'height': '120px',
+                    'border-width': 4
                 })
                 .selector('edge')
                 .css({
-                    'target-arrow-shape': 'triangle',
-                    'line-color': '#999',
-                    'target-arrow-color': '#999',
-                    'width': 2
+                    'target-arrow-shape': 'triangle-backcurve',
+                    'line-color': '#666',
+                    'target-arrow-color': '#666',
+                    'width': 2,
+                    'curve-style': 'bezier',
+                    'edge-text-rotation': 'autorotate'
+                })
+                .selector('edge:hover')
+                .css({
+                    'line-color': '#333',
+                    'target-arrow-color': '#333',
+                    'width': 3
                 }),
-            layout: {name: 'grid', rows: 4, cols: 2, fit: true, padding: 50}
+            layout: { 
+                name: 'preset',
+                fit: true, 
+                padding: 80
+            }
+        });
+        
+        // إضافة معالج الضغط لعرض الوصف
+        strategyMapInstance.on('tap', 'node', function(e) {
+            const node = e.target;
+            const description = node.data('description');
+            if (description) {
+                Swal.fire({
+                    title: node.data('label'),
+                    html: `<p style="text-align: right;">${description}</p>`,
+                    confirmButtonText: 'حسناً'
+                });
+            }
         });
         
         const modal = new bootstrap.Modal(document.getElementById('strategyMapModal'));
