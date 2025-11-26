@@ -125,7 +125,7 @@ def upload_document():
             file_type=file.filename.rsplit('.', 1)[1].lower(),
             file_path=file_path,
             content_text=text[:50000],  # Store first 50k chars
-            doc_metadata=json.dumps({
+            embeddings=json.dumps({
                 'category': category,
                 'tags': tags,
                 'quality_score': quality_score,
