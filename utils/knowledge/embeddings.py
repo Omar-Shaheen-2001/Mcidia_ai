@@ -81,7 +81,7 @@ def create_embeddings_for_document(text: str, metadata: Dict = None) -> Dict:
 def extract_text_from_pdf(file_path: str) -> str:
     """Extract text from PDF file"""
     try:
-        from pypdf import PdfReader
+        from PyPDF2 import PdfReader
         reader = PdfReader(file_path)
         text = ""
         for page in reader.pages:
