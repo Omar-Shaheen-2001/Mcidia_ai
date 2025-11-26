@@ -70,9 +70,13 @@
                         </div>
                     </div>
                     <hr>
-                    <label class="fw-bold text-muted small">{{ 'المحتوى' if lang == 'ar' else 'Content' }}</label>
-                    <div class="bg-light p-3 rounded">
-                        <pre style="white-space: pre-wrap; word-wrap: break-word; max-height: 300px; overflow-y: auto;">{{ project.content[:1000] if project.content else 'No content' }}</pre>
+                    <label class="fw-bold text-muted small mb-3 d-block">{{ 'المحتوى' if lang == 'ar' else 'Content' }}</label>
+                    <div class="content-display border rounded p-4" style="background-color: #fafafa; line-height: 1.8;">
+                        {% if project.content %}
+                            {{ project.content|safe }}
+                        {% else %}
+                            <p class="text-muted text-center py-5">{{ 'لا يوجد محتوى' if lang == 'ar' else 'No content' }}</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
