@@ -809,77 +809,112 @@ let strategyMapInstance = null;
 
 function showStrategyMap(docId) {
     const doc = documents.find(d => d.id === docId);
-    const elements = extractIntelligentElements(doc);
-    
     document.getElementById('mapTitle').innerHTML = `🗺️ خريطة استراتيجية: <strong>${doc.title}</strong>`;
     
-    const nodes = [
-        // Financial Layer
-        { data: { id: 'f1', label: 'زيادة الإيرادات', layer: 'Financial' }, style: { 'background-color': '#FF6B6B' } },
-        { data: { id: 'f2', label: 'تحسين الأرباح', layer: 'Financial' }, style: { 'background-color': '#FF6B6B' } },
-        
-        // Customer Layer
-        { data: { id: 'c1', label: 'رضا العملاء', layer: 'Customer' }, style: { 'background-color': '#4ECDC4' } },
-        { data: { id: 'c2', label: 'جذب عملاء جدد', layer: 'Customer' }, style: { 'background-color': '#4ECDC4' } },
-        
-        // Internal Processes Layer
-        { data: { id: 'p1', label: 'تحسين الكفاءة', layer: 'Internal' }, style: { 'background-color': '#FFE66D' } },
-        { data: { id: 'p2', label: 'تطوير المنتج', layer: 'Internal' }, style: { 'background-color': '#FFE66D' } },
-        
-        // Learning & Growth Layer
-        { data: { id: 'l1', label: 'تطوير الموارد البشرية', layer: 'Learning' }, style: { 'background-color': '#95E1D3' } },
-        { data: { id: 'l2', label: 'الابتكار والتحسين', layer: 'Learning' }, style: { 'background-color': '#95E1D3' } },
-    ];
+    Swal.fire({title: 'جاري التحليل...', html: 'يتم تحليل المستند بالذكاء الاصطناعي...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
     
-    const edges = [
-        { data: { source: 'l1', target: 'p1' } },
-        { data: { source: 'l2', target: 'p2' } },
-        { data: { source: 'p1', target: 'c1' } },
-        { data: { source: 'p2', target: 'c2' } },
-        { data: { source: 'c1', target: 'f1' } },
-        { data: { source: 'c2', target: 'f2' } },
-    ];
+    // إرسال المحتوى للتحليل بـ AI
+    const content = `الخطة: ${doc.title}, المحور: ${doc.theme}, الإطار: ${doc.framework}`;
     
-    if (strategyMapInstance) {
-        strategyMapInstance.destroy();
-    }
-    
-    strategyMapInstance = cytoscape({
-        container: document.getElementById('strategyMapContainer'),
-        elements: [...nodes, ...edges],
-        style: cytoscape.stylesheet()
-            .selector('node')
-            .css({
-                'content': 'data(label)',
-                'text-valign': 'center',
-                'text-halign': 'center',
-                'width': '120px',
-                'height': '80px',
-                'border-width': 2,
-                'border-color': '#333',
-                'font-size': '12px',
-                'font-weight': 'bold',
-                'color': '#fff',
-                'text-wrap': 'wrap'
-            })
-            .selector('edge')
-            .css({
-                'target-arrow-shape': 'triangle',
-                'line-color': '#999',
-                'target-arrow-color': '#999',
-                'width': 2
-            }),
-        layout: {
-            name: 'grid',
-            rows: 4,
-            cols: 2,
-            fit: true,
-            padding: 50
+    fetch('/admin/knowledge/api/analyze-strategy-map', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content: content, title: doc.title})
+    })
+    .then(r => r.json())
+    .then(data => {
+        Swal.close();
+        
+        const nodes = [];
+        const edges = [];
+        let nodeId = 0;
+        
+        // إضافة العقد من كل طبقة
+        const colorMap = { financial: '#FF6B6B', customer: '#4ECDC4', internal: '#FFE66D', learning: '#95E1D3' };
+        const layers = ['financial', 'customer', 'internal', 'learning'];
+        const layerMap = {};
+        
+        layers.forEach(layer => {
+            if (data[layer]) {
+                layerMap[layer] = [];
+                data[layer].forEach(item => {
+                    nodes.push({
+                        data: { id: item.id, label: item.label, layer: layer },
+                        style: { 'background-color': colorMap[layer] }
+                    });
+                    layerMap[layer].push(item.id);
+                });
+            }
+        });
+        
+        // إضافة العلاقات
+        if (data.relationships) {
+            data.relationships.forEach(rel => {
+                edges.push({ data: { source: rel.from, target: rel.to } });
+            });
         }
+        
+        // إذا لم تكن هناك علاقات، أنشئ علاقات افتراضية
+        if (edges.length === 0) {
+            if (layerMap.learning && layerMap.internal) {
+                layerMap.learning.forEach((l, i) => {
+                    if (i < layerMap.internal.length) {
+                        edges.push({ data: { source: l, target: layerMap.internal[i] } });
+                    }
+                });
+            }
+            if (layerMap.internal && layerMap.customer) {
+                layerMap.internal.forEach((p, i) => {
+                    if (i < layerMap.customer.length) {
+                        edges.push({ data: { source: p, target: layerMap.customer[i] } });
+                    }
+                });
+            }
+            if (layerMap.customer && layerMap.financial) {
+                layerMap.customer.forEach((c, i) => {
+                    if (i < layerMap.financial.length) {
+                        edges.push({ data: { source: c, target: layerMap.financial[i] } });
+                    }
+                });
+            }
+        }
+        
+        if (strategyMapInstance) strategyMapInstance.destroy();
+        
+        strategyMapInstance = cytoscape({
+            container: document.getElementById('strategyMapContainer'),
+            elements: [...nodes, ...edges],
+            style: cytoscape.stylesheet()
+                .selector('node')
+                .css({
+                    'content': 'data(label)',
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'width': '120px',
+                    'height': '80px',
+                    'border-width': 2,
+                    'border-color': '#333',
+                    'font-size': '12px',
+                    'font-weight': 'bold',
+                    'color': '#fff',
+                    'text-wrap': 'wrap'
+                })
+                .selector('edge')
+                .css({
+                    'target-arrow-shape': 'triangle',
+                    'line-color': '#999',
+                    'target-arrow-color': '#999',
+                    'width': 2
+                }),
+            layout: {name: 'grid', rows: 4, cols: 2, fit: true, padding: 50}
+        });
+        
+        const modal = new bootstrap.Modal(document.getElementById('strategyMapModal'));
+        modal.show();
+    })
+    .catch(err => {
+        Swal.fire({icon: 'error', title: 'خطأ', text: err.message});
     });
-    
-    const modal = new bootstrap.Modal(document.getElementById('strategyMapModal'));
-    modal.show();
 }
 
 function zoomIn() {
