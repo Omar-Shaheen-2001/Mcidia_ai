@@ -145,7 +145,7 @@ class Document(db.Model):
     file_path = db.Column(db.String(500))
     content_text = db.Column(db.Text)  # Extracted text content
     embeddings = db.Column(db.Text)  # JSON string of embeddings
-    metadata = db.Column(db.Text, default='{}')  # JSON: category, tags, quality_score, etc.
+    doc_metadata = db.Column(db.Text, default='{}')  # JSON: category, tags, quality_score, etc.
     category = db.Column(db.String(100), default='General')  # Strategy, HR, Finance, Feasibility, General
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -155,7 +155,7 @@ class Document(db.Model):
             'filename': self.filename,
             'file_type': self.file_type,
             'category': self.category,
-            'metadata': self.metadata,
+            'doc_metadata': self.doc_metadata,
             'uploaded_at': self.uploaded_at.isoformat() if self.uploaded_at else None
         }
 
