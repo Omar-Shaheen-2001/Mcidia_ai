@@ -125,7 +125,7 @@ def analyze_swot(plan_id):
 @strategic_planning_bp.route('/plan/<int:plan_id>/generate-swot', methods=['POST'])
 @login_required
 def generate_swot(plan_id):
-    """Generate SWOT analysis using AI"""
+    """Generate SWOT analysis using AI with RAG context"""
     db = get_db()
     lang = get_lang()
     user_id = int(get_jwt_identity())
@@ -136,11 +136,32 @@ def generate_swot(plan_id):
         return jsonify({'success': False, 'error': 'Unauthorized access'}), 403
     
     try:
+        # RAG integration: Get relevant context from knowledge base
+        rag_context = ""
+        try:
+            from utils.knowledge.embeddings import create_embedding
+            from utils.knowledge.vector_store import get_vector_store
+            from models import User
+            
+            user = db.session.query(User).filter_by(id=user_id).first()
+            if user and user.organization_id:
+                query_embedding = create_embedding(f"SWOT {plan.title} {plan.industry_sector}")
+                if query_embedding:
+                    vector_store = get_vector_store()
+                    context_docs = vector_store.search(query_embedding, user.organization_id, top_k=3)
+                    
+                    if context_docs:
+                        rag_context = "\n**السياق من الملفات والمشاريع السابقة:**\n"
+                        for doc in context_docs:
+                            rag_context += f"- {doc['text'][:250]}\n"
+        except:
+            pass
+        
         # Prepare context for AI
         challenges = json.loads(plan.current_challenges) if plan.current_challenges else []
         opportunities_list = json.loads(plan.opportunities) if plan.opportunities else []
         
-        prompt = f"""قم بإجراء تحليل SWOT شامل للمؤسسة التالية:
+        prompt = f"""قم بإجراء تحليل SWOT شامل للمؤسسة التالية:{rag_context}
 
 **اسم المؤسسة:** {plan.title}
 **القطاع:** {plan.industry_sector}
@@ -218,7 +239,7 @@ def analyze_pestel(plan_id):
 @strategic_planning_bp.route('/plan/<int:plan_id>/generate-pestel', methods=['POST'])
 @login_required
 def generate_pestel(plan_id):
-    """Generate PESTEL analysis using AI"""
+    """Generate PESTEL analysis using AI with RAG context"""
     db = get_db()
     lang = get_lang()
     user_id = int(get_jwt_identity())
@@ -229,7 +250,28 @@ def generate_pestel(plan_id):
         return jsonify({'success': False, 'error': 'Unauthorized access'}), 403
     
     try:
-        prompt = f"""قم بإجراء تحليل PESTEL شامل للمؤسسة التالية:
+        # RAG integration: Get relevant context from knowledge base
+        rag_context = ""
+        try:
+            from utils.knowledge.embeddings import create_embedding
+            from utils.knowledge.vector_store import get_vector_store
+            from models import User
+            
+            user = db.session.query(User).filter_by(id=user_id).first()
+            if user and user.organization_id:
+                query_embedding = create_embedding(f"PESTEL {plan.title} {plan.industry_sector}")
+                if query_embedding:
+                    vector_store = get_vector_store()
+                    context_docs = vector_store.search(query_embedding, user.organization_id, top_k=3)
+                    
+                    if context_docs:
+                        rag_context = "\n**السياق من الملفات والمشاريع السابقة:**\n"
+                        for doc in context_docs:
+                            rag_context += f"- {doc['text'][:250]}\n"
+        except:
+            pass
+        
+        prompt = f"""قم بإجراء تحليل PESTEL شامل للمؤسسة التالية:{rag_context}
 
 **اسم المؤسسة:** {plan.title}
 **القطاع:** {plan.industry_sector}

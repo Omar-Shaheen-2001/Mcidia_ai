@@ -157,6 +157,7 @@ def create_app():
     from blueprints.erp import erp_bp
     from blueprints.hr_module import hr_module_bp
     from blueprints.admin.settings import settings_bp
+    from blueprints.knowledge_rag import knowledge_rag_bp
     
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -173,6 +174,7 @@ def create_app():
     app.register_blueprint(governance_bp, url_prefix='/governance')
     app.register_blueprint(innovation_bp, url_prefix='/innovation')
     app.register_blueprint(consultation_bp, url_prefix='/consultation')
+    app.register_blueprint(knowledge_rag_bp, url_prefix='/api')
     app.register_blueprint(billing_bp, url_prefix='/billing')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(org_dashboard_bp)

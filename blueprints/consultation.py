@@ -149,6 +149,27 @@ def send_message():
         return jsonify({'error': 'Message is required'}), 400
     
     try:
+        # RAG integration: Get relevant context from vector store
+        rag_context = ""
+        try:
+            from utils.knowledge.embeddings import create_embedding
+            from utils.knowledge.vector_store import get_vector_store
+            from models import User
+            
+            user = db.session.query(User).filter_by(id=user_id).first()
+            if user and user.organization_id:
+                query_embedding = create_embedding(message)
+                if query_embedding:
+                    vector_store = get_vector_store()
+                    context_docs = vector_store.search(query_embedding, user.organization_id, top_k=3)
+                    
+                    if context_docs:
+                        rag_context = "\n**السياق من قاعدة المعرفة:**\n"
+                        for doc in context_docs:
+                            rag_context += f"- {doc['text'][:200]}...\n"
+        except:
+            pass
+        
         # Call AI using AIManager (same as other consulting modules)
         ai = AIManager.for_use_case('consultation')
         
@@ -157,7 +178,8 @@ def send_message():
 كن موجزاً وفعالاً في إجابتك.
 الرد بالعربية إذا كانت الأسئلة بالعربية، والإنجليزية إذا كانت بالإنجليزية."""
         
-        ai_response = ai.chat(system_prompt, message)
+        augmented_message = f"{rag_context}\n\n**السؤال:** {message}" if rag_context else message
+        ai_response = ai.chat(system_prompt, augmented_message)
         execution_time_ms = int((time.time() - start_time) * 1000)
         
         # Estimate tokens and cost (rough estimation)
