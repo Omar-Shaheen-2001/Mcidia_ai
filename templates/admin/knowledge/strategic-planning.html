@@ -2,6 +2,7 @@
 
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.css">
 <style>
     .sp-container { display: flex; height: calc(100vh - 100px); }
     .sp-sidebar { width: 250px; border-right: 1px solid #ddd; overflow-y: auto; padding: 20px; }
@@ -47,6 +48,11 @@
     .action-btn-group button { font-size: 0.85rem; padding: 8px 12px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; }
     .action-btn-group button:hover { background: #5a32a3; }
     .theme-column { color: #6f42c1; font-weight: 600; }
+    #strategyMapContainer { width: 100%; height: 600px; border: 1px solid #ddd; border-radius: 8px; background: white; }
+    .map-controls { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
+    .map-layer-legend { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px; font-size: 0.9rem; }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-color { width: 20px; height: 20px; border-radius: 4px; }
     @media (max-width: 768px) {
         .sp-preview { width: 100%; border-left: none; border-top: 1px solid #ddd; padding: 15px; }
         .sp-container { flex-direction: column; }
@@ -275,6 +281,47 @@
     </div>
 </div>
 
+<!-- Strategy Map Modal -->
+<div class="modal fade" id="strategyMapModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #6f42c1; color: white;">
+                <h5 class="modal-title" id="mapTitle">🗺️ خريطة استراتيجية</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="map-layer-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FF6B6B;"></div>
+                        <span>تمويل (Financial)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4ECDC4;"></div>
+                        <span>العملاء (Customer)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FFE66D;"></div>
+                        <span>العمليات (Internal)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #95E1D3;"></div>
+                        <span>التعلم (Learning)</span>
+                    </div>
+                </div>
+                <div id="strategyMapContainer"></div>
+                <div class="map-controls">
+                    <button class="btn btn-sm btn-primary" onclick="zoomIn()"><i class="fas fa-plus"></i> تكبير</button>
+                    <button class="btn btn-sm btn-primary" onclick="zoomOut()"><i class="fas fa-minus"></i> تصغير</button>
+                    <button class="btn btn-sm btn-success" onclick="downloadMap()"><i class="fas fa-download"></i> حفظ صورة</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Strategic Plan Builder Modal -->
 <div class="modal fade" id="planBuilderModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -300,6 +347,8 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape-cose-bilkent@4.1.0/dist/cytoscape-cose-bilkent.cjs"></script>
 <script>
 let currentStep = 1;
 let currentFilter = 'all';
@@ -489,7 +538,7 @@ function showPreview(id) {
         
         <div class="action-btn-group">
             <button onclick="openPlanBuilder(${doc.id})"><i class="fas fa-plus"></i> استخدام في بناء الخطة</button>
-            <button><i class="fas fa-sitemap"></i> عرض خريطة استراتيجية</button>
+            <button onclick="showStrategyMap(${doc.id})"><i class="fas fa-sitemap"></i> عرض خريطة استراتيجية</button>
             <button><i class="fas fa-chart-line"></i> استخراج مؤشرات الأداء</button>
             <button><i class="fas fa-link"></i> ربط مع نموذج الحوكمة</button>
         </div>
@@ -754,6 +803,106 @@ function addToStrategicPlan() {
             bootstrap.Modal.getInstance(document.getElementById('planBuilderModal')).hide();
         }
     });
+}
+
+let strategyMapInstance = null;
+
+function showStrategyMap(docId) {
+    const doc = documents.find(d => d.id === docId);
+    const elements = extractIntelligentElements(doc);
+    
+    document.getElementById('mapTitle').innerHTML = `🗺️ خريطة استراتيجية: <strong>${doc.title}</strong>`;
+    
+    const nodes = [
+        // Financial Layer
+        { data: { id: 'f1', label: 'زيادة الإيرادات', layer: 'Financial' }, style: { 'background-color': '#FF6B6B' } },
+        { data: { id: 'f2', label: 'تحسين الأرباح', layer: 'Financial' }, style: { 'background-color': '#FF6B6B' } },
+        
+        // Customer Layer
+        { data: { id: 'c1', label: 'رضا العملاء', layer: 'Customer' }, style: { 'background-color': '#4ECDC4' } },
+        { data: { id: 'c2', label: 'جذب عملاء جدد', layer: 'Customer' }, style: { 'background-color': '#4ECDC4' } },
+        
+        // Internal Processes Layer
+        { data: { id: 'p1', label: 'تحسين الكفاءة', layer: 'Internal' }, style: { 'background-color': '#FFE66D' } },
+        { data: { id: 'p2', label: 'تطوير المنتج', layer: 'Internal' }, style: { 'background-color': '#FFE66D' } },
+        
+        // Learning & Growth Layer
+        { data: { id: 'l1', label: 'تطوير الموارد البشرية', layer: 'Learning' }, style: { 'background-color': '#95E1D3' } },
+        { data: { id: 'l2', label: 'الابتكار والتحسين', layer: 'Learning' }, style: { 'background-color': '#95E1D3' } },
+    ];
+    
+    const edges = [
+        { data: { source: 'l1', target: 'p1' } },
+        { data: { source: 'l2', target: 'p2' } },
+        { data: { source: 'p1', target: 'c1' } },
+        { data: { source: 'p2', target: 'c2' } },
+        { data: { source: 'c1', target: 'f1' } },
+        { data: { source: 'c2', target: 'f2' } },
+    ];
+    
+    if (strategyMapInstance) {
+        strategyMapInstance.destroy();
+    }
+    
+    strategyMapInstance = cytoscape({
+        container: document.getElementById('strategyMapContainer'),
+        elements: [...nodes, ...edges],
+        style: cytoscape.stylesheet()
+            .selector('node')
+            .css({
+                'content': 'data(label)',
+                'text-valign': 'center',
+                'text-halign': 'center',
+                'width': '120px',
+                'height': '80px',
+                'border-width': 2,
+                'border-color': '#333',
+                'font-size': '12px',
+                'font-weight': 'bold',
+                'color': '#fff',
+                'text-wrap': 'wrap'
+            })
+            .selector('edge')
+            .css({
+                'target-arrow-shape': 'triangle',
+                'line-color': '#999',
+                'target-arrow-color': '#999',
+                'width': 2
+            }),
+        layout: {
+            name: 'grid',
+            rows: 4,
+            cols: 2,
+            fit: true,
+            padding: 50
+        }
+    });
+    
+    const modal = new bootstrap.Modal(document.getElementById('strategyMapModal'));
+    modal.show();
+}
+
+function zoomIn() {
+    if (strategyMapInstance) {
+        strategyMapInstance.zoom(strategyMapInstance.zoom() * 1.2);
+    }
+}
+
+function zoomOut() {
+    if (strategyMapInstance) {
+        strategyMapInstance.zoom(strategyMapInstance.zoom() / 1.2);
+    }
+}
+
+function downloadMap() {
+    if (strategyMapInstance) {
+        const png = strategyMapInstance.png({ full: true, scale: 2 });
+        const link = document.createElement('a');
+        link.href = png;
+        link.download = 'strategy-map.png';
+        link.click();
+        Swal.fire({icon: 'success', title: 'تم', text: 'تم حفظ الخريطة بنجاح'});
+    }
 }
 </script>
 {% endblock %}
