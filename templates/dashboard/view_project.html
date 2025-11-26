@@ -2,134 +2,6 @@
 
 {% block title %}{{ project.title }} - Mcidia{% endblock %}
 
-{% block extra_css %}
-<style>
-    .content-display {
-        font-size: 16px;
-        line-height: 1.8;
-        color: #333;
-    }
-    
-    .content-display h1,
-    .content-display h2,
-    .content-display h3,
-    .content-display h4,
-    .content-display h5,
-    .content-display h6 {
-        margin-top: 1.5rem;
-        margin-bottom: 1rem;
-        font-weight: 600;
-        color: #0A2756;
-        border-bottom: 2px solid #f0f0f0;
-        padding-bottom: 0.5rem;
-    }
-    
-    .content-display h1 {
-        font-size: 2rem;
-    }
-    
-    .content-display h2 {
-        font-size: 1.75rem;
-    }
-    
-    .content-display h3 {
-        font-size: 1.5rem;
-    }
-    
-    .content-display p {
-        margin-bottom: 1rem;
-        text-align: justify;
-    }
-    
-    .content-display ul,
-    .content-display ol {
-        margin-left: 2rem;
-        margin-bottom: 1rem;
-    }
-    
-    .content-display li {
-        margin-bottom: 0.5rem;
-        line-height: 1.6;
-    }
-    
-    .content-display table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 1.5rem 0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .content-display table th {
-        background-color: #0A2756;
-        color: white;
-        padding: 1rem;
-        text-align: right;
-        font-weight: 600;
-    }
-    
-    .content-display table td {
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid #e0e0e0;
-    }
-    
-    .content-display table tbody tr:hover {
-        background-color: #f9f9f9;
-    }
-    
-    .content-display blockquote {
-        border-left: 4px solid #0A2756;
-        padding-left: 1rem;
-        margin: 1.5rem 0;
-        color: #666;
-        background-color: #f5f5f5;
-        padding: 1rem;
-    }
-    
-    .content-display strong,
-    .content-display b {
-        font-weight: 700;
-        color: #0A2756;
-    }
-    
-    .content-display em,
-    .content-display i {
-        font-style: italic;
-        color: #555;
-    }
-    
-    .content-display a {
-        color: #2767B1;
-        text-decoration: none;
-        border-bottom: 1px dotted #2767B1;
-    }
-    
-    .content-display a:hover {
-        border-bottom: 1px solid #2767B1;
-    }
-    
-    .content-display hr {
-        margin: 2rem 0;
-        border: none;
-        border-top: 2px solid #e0e0e0;
-    }
-    
-    .content-display code {
-        background-color: #f4f4f4;
-        padding: 0.2rem 0.4rem;
-        border-radius: 3px;
-        font-family: 'Courier New', monospace;
-        color: #d63384;
-    }
-    
-    .content-display pre {
-        background-color: #f4f4f4;
-        padding: 1rem;
-        border-radius: 4px;
-        overflow-x: auto;
-        margin: 1rem 0;
-        border-left: 4px solid #0A2756;
-    }
-</style>
 {% endblock %}
 
 {% block content %}
@@ -201,9 +73,14 @@
                     </div>
                     <hr class="my-4">
                     <label class="fw-bold text-muted small mb-4 d-block">{{ 'المحتوى' if lang == 'ar' else 'Content' }}</label>
-                    <div class="content-display border rounded-lg p-5" style="background-color: #fafafa; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <div id="ai-output-content" class="ai-output-content">
                         {% if project.content %}
-                            {{ project.content|md_to_html|safe }}
+                            {% set project_data = project.content|from_json %}
+                            {% if project_data.get('output') %}
+                                {{ project_data.get('output')|safe }}
+                            {% else %}
+                                {{ project.content|safe }}
+                            {% endif %}
                         {% else %}
                             <p class="text-muted text-center py-5">
                                 <i class="fas fa-file-alt fa-2x mb-3 d-block text-muted"></i>
