@@ -315,7 +315,7 @@
                                         name="content" 
                                         class="form-control"
                                         placeholder="{{ 'محتوى المشروع...' if lang == 'ar' else 'Project content...' }}"
-                                    >{% set project_data = project.content|from_json %}{% if project_data.get('output') %}{{ project_data.get('output') }}{% else %}{{ project.content or '' }}{% endif %}</textarea>
+                                    >{{ project.content or '' }}</textarea>
                                 </div>
                                 
                                 <!-- Preview Tab -->
@@ -424,6 +424,8 @@ $(document).ready(function() {
             onInit: function() {
                 // Store the initial content in a data attribute for reference
                 $('#content').data('initialContent', initialContent);
+                // Process initial content to extract output if it's JSON
+                processInitialContent(initialContent);
                 updatePreview();
             }
         }
@@ -441,6 +443,20 @@ $(document).ready(function() {
         }, 100);
     });
 });
+
+function processInitialContent(content) {
+    // Try to parse content as JSON and extract output
+    try {
+        let parsed = JSON.parse(content);
+        if (parsed.output) {
+            // Update the Summernote editor with the extracted output
+            $('#content').summernote('code', parsed.output);
+        }
+    } catch(e) {
+        // Not JSON or parsing failed, keep original content
+        // Content will be displayed as-is (HTML or text)
+    }
+}
 
 function updatePreview() {
     const content = $('#content').val() || $('#content').summernote('code');
