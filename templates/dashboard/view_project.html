@@ -74,7 +74,7 @@
                     <div id="ai-output-content" class="ai-output-content">
                         {% if project.content %}
                             {% set project_data = project.content|from_json %}
-                            {% if project_data.get('output') %}
+                            {% if project_data is mapping and project_data.get('output') %}
                                 {{ project_data.get('output')|safe }}
                             {% else %}
                                 {{ project.content|safe }}
