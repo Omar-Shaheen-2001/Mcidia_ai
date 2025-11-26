@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, session, current_app
+from flask import Blueprint, render_template, session, current_app, redirect, url_for, jsonify, request, flash
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
 from models import User, Project, AILog, Transaction, Service, ServiceOffering, ChatSession
+import json
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -114,3 +115,70 @@ def all_projects():
                          archived_projects=archived_projects,
                          current_page=page,
                          lang=lang)
+
+@dashboard_bp.route('/project/<int:project_id>')
+@login_required
+def view_project(project_id):
+    """View project details"""
+    db = current_app.extensions['sqlalchemy']
+    user_id = int(get_jwt_identity())
+    
+    project = db.session.query(Project).filter_by(id=project_id, user_id=user_id).first_or_404()
+    lang = session.get('language', 'ar')
+    
+    # Get service info
+    project_services = {}
+    if project.module and '_' in project.module:
+        parts = project.module.split('_', 1)
+        if len(parts) == 2:
+            service_slug, offering_slug = parts
+            service = db.session.query(Service).filter_by(slug=service_slug).first()
+            if service:
+                offering = db.session.query(ServiceOffering).filter_by(
+                    service_id=service.id,
+                    slug=offering_slug
+                ).first()
+                if offering:
+                    project_services = {'service': service, 'offering': offering}
+    
+    try:
+        content = json.loads(project.content) if project.content else {}
+    except:
+        content = {}
+    
+    return render_template('dashboard/view_project.html',
+                         project=project,
+                         project_services=project_services,
+                         content=content,
+                         lang=lang)
+
+@dashboard_bp.route('/project/<int:project_id>/edit')
+@login_required
+def edit_project(project_id):
+    """Edit project and generate consultation"""
+    db = current_app.extensions['sqlalchemy']
+    user_id = int(get_jwt_identity())
+    
+    project = db.session.query(Project).filter_by(id=project_id, user_id=user_id).first_or_404()
+    
+    # Redirect to edit page with consultation capability
+    return redirect(url_for('services.view_project', project_id=project_id))
+
+@dashboard_bp.route('/api/project/<int:project_id>/delete', methods=['DELETE'])
+@login_required
+def delete_project(project_id):
+    """Delete a project"""
+    db = current_app.extensions['sqlalchemy']
+    user_id = int(get_jwt_identity())
+    
+    project = db.session.query(Project).filter_by(id=project_id, user_id=user_id).first()
+    if not project:
+        return jsonify({'error': 'Project not found'}), 404
+    
+    try:
+        db.session.delete(project)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Project deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
