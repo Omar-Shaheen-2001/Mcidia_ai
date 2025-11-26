@@ -349,14 +349,51 @@ function deleteDocument(id) {
 }
 
 function nextStep() {
-    currentStep++;
-    document.querySelectorAll('[id^="step"]').forEach(e => e.style.display = 'none');
-    document.getElementById(`step${currentStep}`).style.display = 'block';
-    
-    if (currentStep === 4) {
-        document.getElementById('nextBtn').style.display = 'none';
-        document.getElementById('uploadBtnFinal').style.display = 'inline-block';
+    if (currentStep === 2) {
+        // Show processing step
+        currentStep = 3;
+        document.querySelectorAll('[id^="step"]').forEach(e => e.style.display = 'none');
+        document.getElementById('step3').style.display = 'block';
+        document.getElementById('nextBtn').disabled = true;
+        
+        // Simulate processing with delays
+        simulateProcessing();
+    } else {
+        currentStep++;
+        document.querySelectorAll('[id^="step"]').forEach(e => e.style.display = 'none');
+        document.getElementById(`step${currentStep}`).style.display = 'block';
+        
+        if (currentStep === 4) {
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('uploadBtnFinal').style.display = 'inline-block';
+        }
     }
+}
+
+function simulateProcessing() {
+    const steps = document.querySelectorAll('#step3 .progress-step');
+    let stepIndex = 2; // Start from "Chunking" (index 2)
+    
+    function markStepDone() {
+        if (stepIndex < steps.length) {
+            steps[stepIndex].classList.add('done');
+            const spinner = steps[stepIndex].querySelector('.spinner-border');
+            if (spinner) spinner.style.display = 'none';
+            stepIndex++;
+            setTimeout(markStepDone, 800);
+        } else {
+            // All done, move to step 4
+            setTimeout(() => {
+                currentStep = 4;
+                document.getElementById('step3').style.display = 'none';
+                document.getElementById('step4').style.display = 'block';
+                document.getElementById('nextBtn').disabled = false;
+                document.getElementById('nextBtn').style.display = 'none';
+                document.getElementById('uploadBtnFinal').style.display = 'inline-block';
+            }, 500);
+        }
+    }
+    markStepDone();
 }
 
 function finalUpload() {
