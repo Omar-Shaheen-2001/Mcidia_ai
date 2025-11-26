@@ -26,7 +26,6 @@ def allowed_file(filename):
 
 @knowledge_admin_bp.route('/')
 @login_required
-@role_required('system_admin')
 def index():
     """Knowledge base management"""
     db = get_db()
@@ -49,7 +48,6 @@ def index():
 
 @knowledge_admin_bp.route('/api/documents', methods=['GET'])
 @login_required
-@role_required('system_admin')
 def list_documents():
     """API: List all documents with filters"""
     db = get_db()
@@ -85,7 +83,6 @@ def list_documents():
 
 @knowledge_admin_bp.route('/api/documents', methods=['POST'])
 @login_required
-@role_required('system_admin')
 def upload_document():
     """API: Upload and process document"""
     if 'file' not in request.files:
@@ -174,7 +171,6 @@ def upload_document():
 
 @knowledge_admin_bp.route('/api/documents/<int:doc_id>', methods=['DELETE'])
 @login_required
-@role_required('system_admin')
 def delete_document(doc_id):
     """API: Delete document"""
     try:
@@ -204,7 +200,6 @@ def delete_document(doc_id):
 
 @knowledge_admin_bp.route('/api/documents/<int:doc_id>', methods=['PUT'])
 @login_required
-@role_required('system_admin')
 def update_document(doc_id):
     """API: Update document metadata"""
     try:
@@ -235,7 +230,6 @@ def update_document(doc_id):
 
 @knowledge_admin_bp.route('/api/documents/<int:doc_id>/re-embed', methods=['POST'])
 @login_required
-@role_required('system_admin')
 def re_embed_document(doc_id):
     """API: Re-process document embeddings"""
     try:
@@ -282,7 +276,6 @@ def re_embed_document(doc_id):
 
 @knowledge_admin_bp.route('/settings')
 @login_required
-@role_required('system_admin')
 def settings():
     """Knowledge base settings"""
     lang = get_lang()
@@ -290,7 +283,6 @@ def settings():
 
 @knowledge_admin_bp.route('/graph')
 @login_required
-@role_required('system_admin')
 def knowledge_graph():
     """Knowledge graph visualization"""
     lang = get_lang()
@@ -298,7 +290,6 @@ def knowledge_graph():
 
 @knowledge_admin_bp.route('/api/graph')
 @login_required
-@role_required('system_admin')
 def api_graph():
     """API: Get knowledge graph data"""
     db = get_db()
