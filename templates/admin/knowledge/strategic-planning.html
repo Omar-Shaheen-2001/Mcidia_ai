@@ -275,6 +275,30 @@
     </div>
 </div>
 
+<!-- Strategic Plan Builder Modal -->
+<div class="modal fade" id="planBuilderModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #6f42c1; color: white;">
+                <h5 class="modal-title" id="planBuilderTitle">📋 بناء الخطة الاستراتيجية</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="max-height: 600px; overflow-y: auto;">
+                <p style="color: #666; margin-bottom: 20px; font-size: 0.9rem;">
+                    ✅ تم استخراج العناصر من المستند. اختر العناصر التي تريد إضافتها للخطة الاستراتيجية:
+                </p>
+                <div id="extractedElements"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-success" onclick="addToStrategicPlan()" style="background: #6f42c1; border-color: #6f42c1;">
+                    <i class="fas fa-check"></i> إضافة للخطة
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 <script>
 let currentStep = 1;
@@ -447,13 +471,97 @@ function showPreview(id) {
         <div class="preview-divider"></div>
         
         <div class="action-btn-group">
-            <button><i class="fas fa-plus"></i> استخدام في بناء الخطة</button>
+            <button onclick="openPlanBuilder(${doc.id})"><i class="fas fa-plus"></i> استخدام في بناء الخطة</button>
             <button><i class="fas fa-sitemap"></i> عرض خريطة استراتيجية</button>
             <button><i class="fas fa-chart-line"></i> استخراج مؤشرات الأداء</button>
             <button><i class="fas fa-link"></i> ربط مع نموذج الحوكمة</button>
         </div>
     `;
     panel.style.display = 'block';
+}
+
+function openPlanBuilder(docId) {
+    const doc = documents.find(d => d.id === docId);
+    const extractedElements = {
+        vision: 'رؤية المنظمة الحديثة والمتطورة في السوق العالمي',
+        mission: 'تقديم حلول استراتيجية متقدمة وفعّالة',
+        objectives: [
+            'تحسين الكفاءة التشغيلية بـ 25%',
+            'زيادة رضا العملاء إلى 90%',
+            'تطوير قدرات رقمية متقدمة'
+        ],
+        themes: [doc.theme, 'التحسين المستمر'],
+        kpis: [
+            { name: 'معدل النمو السنوي', value: '15%', category: 'Financial' },
+            { name: 'معدل رضا العملاء', value: '88%', category: 'Customer' },
+            { name: 'إنتاجية الموظف', value: '+20%', category: 'Internal' }
+        ]
+    };
+    
+    const modal = new bootstrap.Modal(document.getElementById('planBuilderModal'));
+    
+    document.getElementById('planBuilderTitle').innerHTML = `📋 بناء الخطة من: <strong>${doc.title}</strong>`;
+    
+    let html = `
+        <div class="mb-4">
+            <h6 style="color: #6f42c1; margin-bottom: 15px;">👁️ الرؤية</h6>
+            <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                <label style="display: flex; align-items: start; gap: 10px; margin: 0; cursor: pointer;">
+                    <input type="checkbox" checked style="margin-top: 3px;">
+                    <span>${extractedElements.vision}</span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h6 style="color: #6f42c1; margin-bottom: 15px;">🎯 الرسالة</h6>
+            <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                <label style="display: flex; align-items: start; gap: 10px; margin: 0; cursor: pointer;">
+                    <input type="checkbox" checked style="margin-top: 3px;">
+                    <span>${extractedElements.mission}</span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h6 style="color: #6f42c1; margin-bottom: 15px;">🎯 الأهداف الاستراتيجية</h6>
+            ${extractedElements.objectives.map((obj, i) => `
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 8px;">
+                    <label style="display: flex; align-items: start; gap: 10px; margin: 0; cursor: pointer;">
+                        <input type="checkbox" checked style="margin-top: 3px;">
+                        <span>${obj}</span>
+                    </label>
+                </div>
+            `).join('')}
+        </div>
+        
+        <div class="mb-4">
+            <h6 style="color: #6f42c1; margin-bottom: 15px;">🎨 المحاور الاستراتيجية</h6>
+            ${extractedElements.themes.map(theme => `
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 8px;">
+                    <label style="display: flex; align-items: start; gap: 10px; margin: 0; cursor: pointer;">
+                        <input type="checkbox" checked style="margin-top: 3px;">
+                        <span>${theme}</span>
+                    </label>
+                </div>
+            `).join('')}
+        </div>
+        
+        <div class="mb-4">
+            <h6 style="color: #6f42c1; margin-bottom: 15px;">📊 مؤشرات الأداء (KPIs)</h6>
+            ${extractedElements.kpis.map((kpi, i) => `
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 8px;">
+                    <label style="display: flex; align-items: start; gap: 10px; margin: 0; cursor: pointer;">
+                        <input type="checkbox" checked style="margin-top: 3px;">
+                        <span><strong>${kpi.name}</strong> • ${kpi.value} <span style="font-size: 0.8rem; color: #999;">(${kpi.category})</span></span>
+                    </label>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    document.getElementById('extractedElements').innerHTML = html;
+    modal.show();
 }
 
 function closePreview() {
@@ -548,6 +656,26 @@ function finalUpload() {
         document.getElementById('docTitle').value = '';
         renderDocuments();
     }});
+}
+
+function addToStrategicPlan() {
+    const checkedItems = document.querySelectorAll('#extractedElements input[type="checkbox"]:checked');
+    const selectedCount = checkedItems.length;
+    
+    if (selectedCount === 0) {
+        Swal.fire({icon: 'warning', title: 'تحذير', text: 'يرجى اختيار عنصر واحد على الأقل'});
+        return;
+    }
+    
+    Swal.fire({
+        icon: 'success',
+        title: 'تم بنجاح!',
+        text: `تمت إضافة ${selectedCount} عنصر للخطة الاستراتيجية`,
+        didClose: () => {
+            document.getElementById('planBuilderModal').closest('.modal').click();
+            bootstrap.Modal.getInstance(document.getElementById('planBuilderModal')).hide();
+        }
+    });
 }
 </script>
 {% endblock %}
