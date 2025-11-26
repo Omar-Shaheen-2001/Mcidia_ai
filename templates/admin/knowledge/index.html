@@ -1,6 +1,8 @@
 {% extends "admin/base.html" %}
 
 {% block content %}
+<!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
@@ -176,6 +178,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 <script>
 const lang = '{{ lang }}';
 
@@ -183,12 +186,24 @@ const lang = '{{ lang }}';
 async function uploadFile() {
     const fileInput = document.getElementById('fileInput');
     const categoryInput = document.getElementById('categoryInput');
+    const uploadBtn = document.querySelector('.modal-footer .btn-primary');
     const formData = new FormData();
     
     if (!fileInput.files.length) {
-        alert(lang === 'ar' ? 'اختر ملفاً' : 'Please choose a file');
+        Swal.fire({
+            icon: 'warning',
+            title: lang === 'ar' ? 'تحذير' : 'Warning',
+            text: lang === 'ar' ? 'الرجاء اختيار ملفاً' : 'Please choose a file',
+            confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+        });
         return;
     }
+    
+    // Disable button and show loading state
+    uploadBtn.disabled = true;
+    const originalText = uploadBtn.innerHTML;
+    uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>' + 
+                         (lang === 'ar' ? 'جاري الرفع...' : 'Uploading...');
     
     formData.append('file', fileInput.files[0]);
     formData.append('category', categoryInput.value || 'General');
@@ -200,54 +215,118 @@ async function uploadFile() {
         });
         
         if (response.ok) {
-            alert(lang === 'ar' ? 'تم رفع الملف بنجاح' : 'File uploaded successfully');
-            location.reload();
+            const data = await response.json();
+            Swal.fire({
+                icon: 'success',
+                title: lang === 'ar' ? 'نجاح!' : 'Success!',
+                text: lang === 'ar' ? 'تم رفع الملف بنجاح' : 'File uploaded successfully',
+                confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK',
+                didClose: () => location.reload()
+            });
         } else {
-            alert(lang === 'ar' ? 'خطأ في الرفع' : 'Upload failed');
+            const error = await response.json();
+            Swal.fire({
+                icon: 'error',
+                title: lang === 'ar' ? 'خطأ' : 'Error',
+                text: error.error || (lang === 'ar' ? 'فشل الرفع' : 'Upload failed'),
+                confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+            });
         }
     } catch (error) {
         console.error('Upload error:', error);
-        alert(lang === 'ar' ? 'خطأ: ' + error : 'Error: ' + error);
+        Swal.fire({
+            icon: 'error',
+            title: lang === 'ar' ? 'خطأ' : 'Error',
+            text: (lang === 'ar' ? 'خطأ: ' : 'Error: ') + error.message,
+            confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+        });
+    } finally {
+        // Re-enable button
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = originalText;
     }
 }
 
 // Delete Document
 async function deleteDocument(docId) {
-    if (!confirm(lang === 'ar' ? 'هل تريد حذف هذا الملف؟' : 'Are you sure?')) return;
-    
-    try {
-        const response = await fetch(`/admin/knowledge/api/documents/${docId}`, {
-            method: 'DELETE'
-        });
-        
-        if (response.ok) {
-            alert(lang === 'ar' ? 'تم الحذف بنجاح' : 'Deleted successfully');
-            location.reload();
+    Swal.fire({
+        icon: 'question',
+        title: lang === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete',
+        text: lang === 'ar' ? 'هل تريد حذف هذا الملف؟' : 'Are you sure you want to delete this file?',
+        showCancelButton: true,
+        confirmButtonText: lang === 'ar' ? 'نعم، احذفه' : 'Yes, delete it',
+        cancelButtonText: lang === 'ar' ? 'إلغاء' : 'Cancel'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`/admin/knowledge/api/documents/${docId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: lang === 'ar' ? 'تم الحذف' : 'Deleted',
+                        text: lang === 'ar' ? 'تم الحذف بنجاح' : 'Deleted successfully',
+                        confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK',
+                        didClose: () => location.reload()
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: lang === 'ar' ? 'خطأ' : 'Error',
+                    text: (lang === 'ar' ? 'خطأ: ' : 'Error: ') + error.message,
+                    confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+                });
+            }
         }
-    } catch (error) {
-        alert(lang === 'ar' ? 'خطأ: ' + error : 'Error: ' + error);
-    }
+    });
 }
 
 // Re-embed Document
 async function reembedDocument(docId) {
-    try {
-        const response = await fetch(`/admin/knowledge/api/documents/${docId}/re-embed`, {
-            method: 'POST'
-        });
-        
-        if (response.ok) {
-            alert(lang === 'ar' ? 'تم إعادة المعالجة بنجاح' : 'Reprocessed successfully');
-            location.reload();
+    Swal.fire({
+        icon: 'info',
+        title: lang === 'ar' ? 'إعادة المعالجة' : 'Reprocessing',
+        text: lang === 'ar' ? 'جاري إعادة معالجة الملف...' : 'Reprocessing file...',
+        allowOutsideClick: false,
+        didOpen: async () => {
+            Swal.showLoading();
+            try {
+                const response = await fetch(`/admin/knowledge/api/documents/${docId}/re-embed`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: lang === 'ar' ? 'تم' : 'Done',
+                        text: lang === 'ar' ? 'تم إعادة المعالجة بنجاح' : 'Reprocessed successfully',
+                        confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK',
+                        didClose: () => location.reload()
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: lang === 'ar' ? 'خطأ' : 'Error',
+                    text: (lang === 'ar' ? 'خطأ: ' : 'Error: ') + error.message,
+                    confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+                });
+            }
         }
-    } catch (error) {
-        alert(lang === 'ar' ? 'خطأ: ' + error : 'Error: ' + error);
-    }
+    });
 }
 
 // Edit Document
 function editDocument(docId) {
-    alert(lang === 'ar' ? 'قريباً...' : 'Coming soon...');
+    Swal.fire({
+        icon: 'info',
+        title: lang === 'ar' ? 'قريباً' : 'Coming Soon',
+        text: lang === 'ar' ? 'هذه الميزة قيد التطوير' : 'This feature is coming soon',
+        confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+    });
 }
 
 // Refresh
