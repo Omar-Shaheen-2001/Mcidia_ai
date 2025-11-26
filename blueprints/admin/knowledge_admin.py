@@ -274,6 +274,13 @@ def re_embed_document(doc_id):
         current_app.logger.error(f"Re-embed error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@knowledge_admin_bp.route('/business-fundamentals')
+@login_required
+def business_fundamentals():
+    """Business Fundamentals section"""
+    lang = get_lang()
+    return render_template('admin/knowledge/business-fundamentals.html', lang=lang)
+
 @knowledge_admin_bp.route('/settings')
 @login_required
 def settings():
