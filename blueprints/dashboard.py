@@ -59,3 +59,58 @@ def index():
                          project_services=project_services,
                          all_services=all_services,
                          lang=lang)
+
+@dashboard_bp.route('/projects')
+@login_required
+def all_projects():
+    """View all projects with pagination and filters"""
+    db = current_app.extensions['sqlalchemy']
+    user_id = int(get_jwt_identity())
+    user = db.session.query(User).get(user_id)
+    
+    # Pagination
+    page = session.get('projects_page', 1) if isinstance(session.get('projects_page'), int) else 1
+    per_page = 10
+    
+    # Get all projects with pagination
+    projects_query = db.session.query(Project).filter_by(user_id=user_id).order_by(Project.updated_at.desc())
+    projects_paginated = projects_query.paginate(page=page, per_page=per_page, error_out=False)
+    
+    # Build service info map for all projects
+    project_services = {}
+    for project in projects_paginated.items:
+        if project.module and '_' in project.module:
+            parts = project.module.split('_', 1)
+            if len(parts) == 2:
+                service_slug, offering_slug = parts
+                service = db.session.query(Service).filter_by(slug=service_slug).first()
+                if service:
+                    offering = db.session.query(ServiceOffering).filter_by(
+                        service_id=service.id,
+                        slug=offering_slug
+                    ).first()
+                    if offering:
+                        project_services[project.id] = {
+                            'service': service,
+                            'offering': offering
+                        }
+    
+    # Get statistics
+    total_projects = projects_query.count()
+    draft_projects = db.session.query(Project).filter_by(user_id=user_id, status='draft').count()
+    completed_projects = db.session.query(Project).filter_by(user_id=user_id, status='completed').count()
+    archived_projects = db.session.query(Project).filter_by(user_id=user_id, status='archived').count()
+    
+    lang = session.get('language', 'ar')
+    
+    return render_template('dashboard/projects.html',
+                         user=user,
+                         projects=projects_paginated.items,
+                         pagination=projects_paginated,
+                         project_services=project_services,
+                         total_projects=total_projects,
+                         draft_projects=draft_projects,
+                         completed_projects=completed_projects,
+                         archived_projects=archived_projects,
+                         current_page=page,
+                         lang=lang)
