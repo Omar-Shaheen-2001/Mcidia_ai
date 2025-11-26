@@ -10,7 +10,7 @@ from utils.knowledge.vector_store import get_vector_store
 from datetime import datetime
 import uuid
 
-knowledge_admin_bp = Blueprint('knowledge_admin', __name__, url_prefix='/admin/knowledge')
+knowledge_admin_bp = Blueprint('knowledge_admin', __name__, url_prefix='/knowledge')
 
 ALLOWED_EXTENSIONS = {'pdf', 'docx', 'txt', 'md', 'doc'}
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), '../../uploads/documents')
