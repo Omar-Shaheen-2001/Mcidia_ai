@@ -170,7 +170,7 @@
                     </li>
                     {% endif %}
 
-                    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=5, left_margin=1, right_margin=1) %}
+                    {% for page_num in pagination.iter_pages() %}
                         {% if page_num %}
                             {% if page_num == pagination.page %}
                             <li class="page-item active">
