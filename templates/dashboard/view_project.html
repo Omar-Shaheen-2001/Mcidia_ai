@@ -134,7 +134,7 @@ function deleteProject(projectId) {
         cancelButtonText: '{{ "إلغاء" if lang == "ar" else "Cancel" }}'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/api/project/${projectId}/delete`, {
+            fetch(`/dashboard/api/project/${projectId}/delete`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
