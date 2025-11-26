@@ -997,10 +997,11 @@ function showStrategyMap(docId) {
             }
         });
         
-        // إضافة العلاقات من البيانات المستخرجة
+        // إضافة العلاقات من البيانات المستخرجة مع التحقق من وجود nodes
         if (data.relationships && Array.isArray(data.relationships)) {
+            const nodeIds = new Set(nodes.map(n => n.data.id));
             data.relationships.forEach(rel => {
-                if (rel.from && rel.to) {
+                if (rel.from && rel.to && nodeIds.has(rel.from) && nodeIds.has(rel.to)) {
                     edges.push({ 
                         data: { 
                             source: rel.from, 
@@ -1012,7 +1013,7 @@ function showStrategyMap(docId) {
             });
         }
         
-        // إذا لم تكن هناك علاقات، أنشئ علاقات من التحليل الحقيقي
+        // إذا لم تكن هناك علاقات صحيحة، أنشئ علاقات من التحليل الحقيقي
         if (edges.length === 0 && Object.keys(layerMap).some(k => layerMap[k].length > 0)) {
             if (layerMap.learning && layerMap.learning.length > 0) {
                 layerMap.learning.forEach(l => {
