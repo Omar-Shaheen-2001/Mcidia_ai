@@ -321,10 +321,8 @@
                                 
                                 <!-- Preview Tab -->
                                 <div class="tab-pane fade" id="preview-panel" role="tabpanel">
-                                    <div class="card p-4" style="background-color: #fafafa; min-height: 300px;">
-                                        <div id="preview-content" class="ai-output-content">
-                                            <p class="text-muted text-center">{{ 'جاري تحضير المعاينة...' if lang == 'ar' else 'Preparing preview...' }}</p>
-                                        </div>
+                                    <div id="preview-content" class="ai-output-content" style="background-color: #fafafa; padding: 1.5rem; border-radius: 8px; min-height: 300px; line-height: 2; font-size: 1.05rem;">
+                                        <p class="text-muted text-center" style="margin-top: 2rem;">{{ 'جاري تحضير المعاينة...' if lang == 'ar' else 'Preparing preview...' }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -426,42 +424,54 @@ $(document).ready(function() {
     
     // Update preview when switching to preview tab
     $('#preview-tab').on('click', function() {
-        updatePreview();
+        setTimeout(updatePreview, 100);
     });
     
     // Initial preview update
-    updatePreview();
+    setTimeout(updatePreview, 500);
 });
 
 function updatePreview() {
-    let content = $('#content').summernote('code');
+    const content = $('#content').val() || $('#content').summernote('code');
     const previewElement = document.getElementById('preview-content');
     
     if (!previewElement) return;
     
+    if (!content || content.trim() === '' || content.trim() === '<p><br></p>') {
+        previewElement.innerHTML = '<p class="text-muted text-center" style="margin-top: 2rem;">{{ "لا يوجد محتوى" if lang == "ar" else "No content" }}</p>';
+        return;
+    }
+    
+    let html = '';
     try {
-        // Parse markdown if needed
-        marked.setOptions({
-            breaks: true,
-            gfm: true,
-            headerIds: false,
-            mangle: false
-        });
-        
-        let html = marked.parse(content);
+        // Try to parse as JSON first (for output from consultations)
+        try {
+            let parsed = JSON.parse(content);
+            if (parsed.output) {
+                html = parsed.output;
+            } else if (parsed.content) {
+                html = parsed.content;
+            } else {
+                html = JSON.stringify(parsed, null, 2);
+            }
+        } catch(e) {
+            // Not JSON, use content directly (already HTML from Summernote)
+            html = content;
+        }
         
         // Sanitize HTML
         html = DOMPurify.sanitize(html, {
             ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'b', 'i', 'u', 
                           'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 
                           'blockquote', 'code', 'pre', 'a', 'hr', 'div', 'span'],
-            ALLOWED_ATTR: ['href', 'target', 'class', 'id'],
+            ALLOWED_ATTR: ['href', 'target', 'class', 'id', 'colspan', 'rowspan'],
             ALLOW_DATA_ATTR: false
         });
         
         previewElement.innerHTML = html;
     } catch(e) {
-        previewElement.innerHTML = content.replace(/\n/g, '<br>');
+        console.error('Preview error:', e);
+        previewElement.innerHTML = (content || '').replace(/\n/g, '<br>');
     }
     
     processOutput();
