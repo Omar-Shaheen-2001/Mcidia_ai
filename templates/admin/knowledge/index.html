@@ -581,6 +581,12 @@ function closePanels() {
 // Sidebar Navigation
 document.querySelectorAll('.kb-sidebar .nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
+        const href = link.getAttribute('href');
+        // If it's an external link (starts with /), allow normal navigation
+        if (href && href.startsWith('/')) {
+            return; // Let the link work normally
+        }
+        
         e.preventDefault();
         document.querySelectorAll('.kb-sidebar .nav-link').forEach(l => l.classList.remove('active'));
         link.classList.add('active');
