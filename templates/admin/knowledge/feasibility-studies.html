@@ -289,12 +289,14 @@
 <script>
 let currentStep = 1;
 let currentFilter = 'all';
-let documents = [
+const defaultDocuments = [
     { id: 1, title: 'متوسط تكاليف المطاعم الخليج', sector: 'مطاعم', type: 'Cost Data', roi: 'high', year: 2025, accuracy: 'High Confidence', tags: ['Labor', 'Rent', 'COGS'] },
     { id: 2, title: 'حجم سوق التعليم الإلكتروني', sector: 'تعليم', type: 'Market Study', roi: 'high', year: 2024, accuracy: 'High Confidence', tags: ['Market', 'CAGR'] },
-    { id: 3, title: 'نموذج دراسة جدوى متجر إلكتروني', sector: 'تجارة إلكترونية', type: 'Feasibility Template', roi: 'medium', year: 2025, accuracy: 'Medium', tags: ['Revenue', 'Template'] },
-    { id: 4, title: 'بيانات أسعار SaaS', sector: 'SaaS', type: 'Pricing Benchmarks', roi: 'medium', year: 2025, accuracy: 'Medium', tags: ['Pricing', 'ARR'] },
+    { id: 3, title: 'نموذج دراسة جدوى متجر إلكتروني', sector: 'تجارة إلكترونية', type: 'Revenue Model', roi: 'medium', year: 2025, accuracy: 'Medium', tags: ['Revenue', 'Template'] },
+    { id: 4, title: 'بيانات أسعار SaaS', sector: 'SaaS', type: 'Cost Data', roi: 'medium', year: 2025, accuracy: 'Medium', tags: ['Pricing', 'ARR'] },
 ];
+
+let documents = JSON.parse(JSON.stringify(defaultDocuments));
 
 const suggestions = ['متوسط التكاليف', 'حجم السوق', 'نموذج الإيرادات', 'تحليل المنافسين', 'معايير السعر', 'دراسة جدوى', 'نقطة التعادل'];
 
@@ -302,10 +304,14 @@ function loadDocuments() {
     const saved = localStorage.getItem('fs-documents');
     if (saved) {
         try {
-            documents = JSON.parse(saved);
+            const savedDocs = JSON.parse(saved);
+            documents = savedDocs.length > 0 ? savedDocs : JSON.parse(JSON.stringify(defaultDocuments));
         } catch (e) {
             console.error('خطأ في تحميل البيانات:', e);
+            documents = JSON.parse(JSON.stringify(defaultDocuments));
         }
+    } else {
+        documents = JSON.parse(JSON.stringify(defaultDocuments));
     }
 }
 
@@ -502,7 +508,20 @@ function deleteDocument(id) {
 }
 
 function nextStep() {
-    if (currentStep === 2) {
+    if (currentStep === 1) {
+        const fileInput = document.getElementById('fileInput');
+        if (!fileInput.value) {
+            Swal.fire({icon: 'error', title: 'تحذير', text: 'يرجى اختيار ملف أولاً'});
+            return;
+        }
+        currentStep = 2;
+    } else if (currentStep === 2) {
+        const title = document.getElementById('docTitle').value.trim();
+        const sector = document.getElementById('docSector').value.trim();
+        if (!title || !sector) {
+            Swal.fire({icon: 'error', title: 'تحذير', text: 'يرجى ملء جميع الحقول المطلوبة'});
+            return;
+        }
         currentStep = 3;
     } else if (currentStep === 3) {
         currentStep = 4;

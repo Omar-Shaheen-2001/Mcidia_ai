@@ -649,7 +649,14 @@ function deleteDocument(id) {
 }
 
 function nextStep() {
-    if (currentStep === 3) {
+    if (currentStep === 1) {
+        const fileInput = document.getElementById('fileInput');
+        if (!fileInput.value) {
+            Swal.fire({icon: 'error', title: 'تحذير', text: 'يرجى اختيار ملف أولاً'});
+            return;
+        }
+        currentStep = 2;
+    } else if (currentStep === 3) {
         currentStep = 4;
         document.querySelectorAll('[id^="step"]').forEach(e => e.style.display = 'none');
         document.getElementById('step4').style.display = 'block';

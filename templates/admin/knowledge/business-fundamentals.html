@@ -448,7 +448,20 @@ function deleteDocument(id) {
 }
 
 function nextStep() {
-    if (currentStep === 2) {
+    if (currentStep === 1) {
+        const fileInput = document.getElementById('fileInput');
+        if (!fileInput.value) {
+            Swal.fire({icon: 'error', title: 'تحذير', text: 'يرجى اختيار ملف أولاً'});
+            return;
+        }
+        currentStep = 2;
+    } else if (currentStep === 2) {
+        const title = document.getElementById('docTitle').value.trim();
+        const type = document.getElementById('docType').value.trim();
+        if (!title || !type) {
+            Swal.fire({icon: 'error', title: 'تحذير', text: 'يرجى ملء جميع الحقول المطلوبة'});
+            return;
+        }
         // Show processing step
         currentStep = 3;
         document.querySelectorAll('[id^="step"]').forEach(e => e.style.display = 'none');
