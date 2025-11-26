@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'تعديل المشروع' if lang == 'ar' else 'Edit Project' }} - Mcidia{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+<style>
+    .note-editor.note-frame {
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+    }
+    
+    .form-control:focus {
+        border-color: #0A2756;
+        box-shadow: 0 0 0 0.2rem rgba(10, 39, 86, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<section class="bg-gradient-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="fw-bold mb-2">
+                    <i class="fas fa-edit me-2"></i>
+                    {{ 'تعديل المشروع' if lang == 'ar' else 'Edit Project' }}
+                </h1>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a href="{{ url_for('dashboard.view_project', project_id=project.id) }}" class="btn btn-light">
+                    <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>
+                    {{ 'إلغاء' if lang == 'ar' else 'Cancel' }}
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">{{ 'معلومات المشروع' if lang == 'ar' else 'Project Information' }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="editProjectForm">
+                        <!-- Title -->
+                        <div class="mb-4">
+                            <label for="title" class="form-label fw-bold">
+                                {{ 'عنوان المشروع' if lang == 'ar' else 'Project Title' }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                class="form-control form-control-lg" 
+                                id="title" 
+                                name="title" 
+                                value="{{ project.title }}"
+                                required
+                                placeholder="{{ 'أدخل عنوان المشروع' if lang == 'ar' else 'Enter project title' }}"
+                            >
+                        </div>
+
+                        <!-- Content Editor -->
+                        <div class="mb-4">
+                            <label for="content" class="form-label fw-bold">
+                                {{ 'محتوى المشروع' if lang == 'ar' else 'Project Content' }}
+                            </label>
+                            <textarea 
+                                id="content" 
+                                name="content" 
+                                class="form-control"
+                                rows="15"
+                                placeholder="{{ 'محتوى المشروع...' if lang == 'ar' else 'Project content...' }}"
+                            >{{ project.content or '' }}</textarea>
+                        </div>
+
+                        <!-- Project Metadata -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">{{ 'الحالة' if lang == 'ar' else 'Status' }}</label>
+                                <p>
+                                    {% if project.status == 'draft' %}
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-pencil me-1"></i>{{ 'مسودة' if lang == 'ar' else 'Draft' }}</span>
+                                    {% elif project.status == 'completed' %}
+                                        <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ 'مكتمل' if lang == 'ar' else 'Completed' }}</span>
+                                    {% else %}
+                                        <span class="badge bg-info">{{ project.status }}</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">{{ 'تاريخ الإنشاء' if lang == 'ar' else 'Created' }}</label>
+                                <p class="text-muted">{{ project.created_at.strftime('%d-%m-%Y %H:%M') if project.created_at else 'N/A' }}</p>
+                            </div>
+                        </div>
+
+                        {% if project_services.service %}
+                        <div class="alert alert-info border-0">
+                            <strong>{{ 'الخدمة:' if lang == 'ar' else 'Service:' }}</strong>
+                            {{ project_services.service.title_ar if lang == 'ar' else project_services.service.title_en }}
+                            <br>
+                            <strong>{{ 'الوحدة الفرعية:' if lang == 'ar' else 'Offering:' }}</strong>
+                            {{ project_services.offering.title_ar if lang == 'ar' else project_services.offering.title_en }}
+                        </div>
+                        {% endif %}
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2 mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>{{ 'حفظ التغييرات' if lang == 'ar' else 'Save Changes' }}
+                            </button>
+                            <a href="{{ url_for('dashboard.view_project', project_id=project.id) }}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>{{ 'إلغاء' if lang == 'ar' else 'Cancel' }}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Generate Consultation Section -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-comments me-2"></i>{{ 'توليد استشارة لنفس المشروع' if lang == 'ar' else 'Generate Consultation' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">
+                        {{ 'يمكنك طلب استشارة إضافية بناءً على محتوى هذا المشروع' if lang == 'ar' else 'Generate an additional consultation based on this project content' }}
+                    </p>
+                    <button type="button" class="btn btn-primary" onclick="generateConsultation({{ project.id }})">
+                        <i class="fas fa-plus me-2"></i>{{ 'طلب استشارة جديدة' if lang == 'ar' else 'Request New Consultation' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sweet Alert & Summernote -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize Summernote editor
+    $('#content').summernote({
+        height: 300,
+        lang: '{{ "ar-AR" if lang == "ar" else "en-US" }}',
+        toolbar: [
+            ['style', ['bold', 'italic', 'underline', 'clear']],
+            ['font', ['strikethrough', 'superscript', 'subscript']],
+            ['fontsize', ['fontsize']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['height', ['height']],
+            ['table', ['table']],
+            ['insert', ['link', 'hr']],
+            ['view', ['fullscreen', 'codeview', 'help']]
+        ]
+    });
+});
+
+function generateConsultation(projectId) {
+    Swal.fire({
+        title: '{{ "توليد استشارة جديدة" if lang == "ar" else "Generate New Consultation" }}',
+        text: '{{ "هل تريد توليد استشارة جديدة لهذا المشروع؟" if lang == "ar" else "Would you like to generate a new consultation for this project?" }}',
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonColor: '#0A2756',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '{{ "نعم، توليد الآن" if lang == "ar" else "Yes, Generate Now" }}',
+        cancelButtonText: '{{ "إلغاء" if lang == "ar" else "Cancel" }}'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Redirect to consultation with project context
+            window.location.href = '{{ url_for("consultation.start_session") }}?project_id=' + projectId;
+        }
+    });
+}
+
+// Form submission feedback
+document.getElementById('editProjectForm').addEventListener('submit', function(e) {
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ "جاري الحفظ..." if lang == "ar" else "Saving..." }}';
+});
+</script>
+{% endblock %}

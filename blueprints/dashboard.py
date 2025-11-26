@@ -152,17 +152,50 @@ def view_project(project_id):
                          content=content,
                          lang=lang)
 
-@dashboard_bp.route('/project/<int:project_id>/edit')
+@dashboard_bp.route('/project/<int:project_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_project(project_id):
-    """Edit project and generate consultation"""
+    """Edit project content and metadata"""
     db = current_app.extensions['sqlalchemy']
     user_id = int(get_jwt_identity())
+    lang = session.get('language', 'ar')
     
     project = db.session.query(Project).filter_by(id=project_id, user_id=user_id).first_or_404()
     
-    # Redirect to edit page with consultation capability
-    return redirect(url_for('services.view_project', project_id=project_id))
+    if request.method == 'POST':
+        # Update project content
+        new_title = request.form.get('title', project.title)
+        new_content = request.form.get('content', project.content)
+        
+        try:
+            project.title = new_title
+            project.content = new_content
+            db.session.commit()
+            flash('تم تحديث المشروع بنجاح / Project updated successfully' if lang == 'ar' else 'Project updated successfully', 'success')
+            return redirect(url_for('dashboard.view_project', project_id=project_id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'خطأ: {str(e)} / Error: {str(e)}' if lang == 'ar' else f'Error: {str(e)}', 'danger')
+    
+    # Get service info
+    project_services = {}
+    if project.module and '_' in project.module:
+        parts = project.module.split('_', 1)
+        if len(parts) == 2:
+            service_slug, offering_slug = parts
+            service = db.session.query(Service).filter_by(slug=service_slug).first()
+            if service:
+                offering = db.session.query(ServiceOffering).filter_by(
+                    service_id=service.id,
+                    slug=offering_slug
+                ).first()
+                if offering:
+                    project_services = {'service': service, 'offering': offering}
+    
+    return render_template('dashboard/edit_project.html',
+                         project=project,
+                         project_services=project_services,
+                         lang=lang)
 
 @dashboard_bp.route('/api/project/<int:project_id>/delete', methods=['DELETE'])
 @login_required
