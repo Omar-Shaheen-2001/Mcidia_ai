@@ -11,7 +11,27 @@
     .biz-main { flex: 1; display: flex; flex-direction: column; }
     .biz-header { background: white; border-bottom: 1px solid #ddd; padding: 20px; }
     .biz-content { flex: 1; overflow-y: auto; padding: 20px; }
-    .biz-preview { width: 300px; border-left: 1px solid #ddd; overflow-y: auto; padding: 20px; background: #f8f9fa; display: none; }
+    .biz-preview { 
+        width: 350px; 
+        border-left: 1px solid #ddd; 
+        overflow-y: auto; 
+        padding: 20px; 
+        background: #f8f9fa; 
+        display: none; 
+        box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+    }
+    .preview-item { margin-bottom: 20px; }
+    .preview-item-label { font-size: 0.85rem; font-weight: 600; color: #666; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+    .preview-item-value { font-size: 0.95rem; color: #333; word-break: break-word; }
+    .preview-badge { display: inline-block; background: #007bff; color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; margin-bottom: 8px; }
+    .preview-tags-container { display: flex; flex-wrap: wrap; gap: 8px; }
+    .preview-tag { display: inline-block; background: #e9ecef; color: #495057; padding: 6px 12px; border-radius: 15px; font-size: 0.85rem; }
+    .preview-divider { border-top: 1px solid #ddd; margin: 15px 0; }
+    @media (max-width: 768px) {
+        .biz-preview { width: 100%; border-left: none; border-top: 1px solid #ddd; padding: 15px; }
+        .biz-container { flex-direction: column; }
+        .biz-sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ddd; }
+    }
     .biz-sidebar .nav-link { padding: 10px 15px; cursor: pointer; border-radius: 5px; margin-bottom: 10px; transition: all 0.3s; display: block; color: #333; }
     .biz-sidebar .nav-link:hover { background: #f0f0f0; }
     .biz-sidebar .nav-link.active { background: #007bff; color: white; }
@@ -330,7 +350,47 @@ function showPreview(id) {
     const panel = document.getElementById('previewPanel');
     const content = document.getElementById('previewContent');
     
-    content.innerHTML = `<h5>${doc.title}</h5><p class="text-muted">${doc.type}</p><div class="mb-3">${doc.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div><p>الحجم: ${doc.size}</p><p>آخر تحديث: ${doc.date}</p>`;
+    const qualityLabel = doc.quality === 'high' ? 'عالية ⭐' : doc.quality === 'medium' ? 'متوسطة' : 'منخفضة';
+    const qualityColor = doc.quality === 'high' ? '#28a745' : doc.quality === 'medium' ? '#ffc107' : '#dc3545';
+    
+    content.innerHTML = `
+        <div class="preview-item">
+            <div class="preview-item-label">📄 العنوان</div>
+            <h5 style="color: #007bff; margin: 0; word-wrap: break-word;">${doc.title}</h5>
+        </div>
+        
+        <div class="preview-divider"></div>
+        
+        <div class="preview-item">
+            <div class="preview-item-label">🏷️ النوع</div>
+            <div class="preview-badge">${doc.type}</div>
+        </div>
+        
+        <div class="preview-item">
+            <div class="preview-item-label">⭐ الجودة</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="quality-circle" style="background: ${qualityColor}; width: 16px; height: 16px;"></span>
+                <span class="preview-item-value">${qualityLabel}</span>
+            </div>
+        </div>
+        
+        <div class="preview-item">
+            <div class="preview-item-label">🏷️ الوسوم</div>
+            <div class="preview-tags-container">
+                ${doc.tags.map(t => `<span class="preview-tag">${t}</span>`).join('')}
+            </div>
+        </div>
+        
+        <div class="preview-item">
+            <div class="preview-item-label">📊 الحجم</div>
+            <div class="preview-item-value">${doc.size}</div>
+        </div>
+        
+        <div class="preview-item">
+            <div class="preview-item-label">📅 آخر تحديث</div>
+            <div class="preview-item-value">${doc.date}</div>
+        </div>
+    `;
     panel.style.display = 'block';
 }
 
