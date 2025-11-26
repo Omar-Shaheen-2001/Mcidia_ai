@@ -269,6 +269,9 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" id="editProjectForm">
+                        <!-- CSRF Token -->
+                        {{ csrf_token() }}
+                        
                         <!-- Title -->
                         <div class="mb-4">
                             <label for="title" class="form-label fw-bold">
