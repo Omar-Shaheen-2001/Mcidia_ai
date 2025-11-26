@@ -279,7 +279,9 @@ function renderDocuments() {
     
     filteredDocs.forEach(doc => {
         const qualityCircle = `<span class="quality-circle quality-${doc.quality}"></span>`;
+        const qualityLabel = doc.quality === 'high' ? '⭐⭐⭐' : doc.quality === 'medium' ? '⭐⭐' : '⭐';
         
+        // List View
         const row = document.createElement('tr');
         row.innerHTML = `
             <td><a href="#" onclick="showPreview(${doc.id}); return false;"><strong>${doc.title}</strong></a></td>
@@ -296,6 +298,26 @@ function renderDocuments() {
             </td>
         `;
         tbody.appendChild(row);
+        
+        // Grid View
+        const gridItem = document.createElement('div');
+        gridItem.className = 'doc-grid-item';
+        gridItem.innerHTML = `
+            <div style="text-align: center;">
+                <h6 style="margin: 0 0 10px 0; color: #007bff; min-height: 40px; word-wrap: break-word;">${doc.title}</h6>
+                <p style="margin: 0 0 8px 0; font-size: 0.85rem; color: #999;">${doc.type}</p>
+                <div style="margin-bottom: 10px; display: flex; justify-content: center; gap: 5px; flex-wrap: wrap;">
+                    ${doc.tags.map(t => `<span class="preview-tag">${t}</span>`).join('')}
+                </div>
+                <p style="margin: 0 0 8px 0; font-size: 0.85rem;">الجودة: ${qualityLabel}</p>
+                <p style="margin: 0 0 12px 0; font-size: 0.8rem; color: #999;">${doc.date}</p>
+                <div style="display: flex; gap: 5px; justify-content: center;">
+                    <button class="btn btn-sm btn-primary" onclick="showPreview(${doc.id})"><i class="fas fa-eye"></i> عرض</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteDocument(${doc.id})"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+        gridView.appendChild(gridItem);
     });
 }
 
