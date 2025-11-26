@@ -12,16 +12,14 @@
     .biz-header { background: white; border-bottom: 1px solid #ddd; padding: 20px; }
     .biz-content { flex: 1; overflow-y: auto; padding: 20px; }
     .biz-preview { width: 300px; border-left: 1px solid #ddd; overflow-y: auto; padding: 20px; background: #f8f9fa; display: none; }
+    .biz-sidebar .nav-link { padding: 10px 15px; cursor: pointer; border-radius: 5px; margin-bottom: 10px; transition: all 0.3s; display: block; color: #333; }
+    .biz-sidebar .nav-link:hover { background: #f0f0f0; }
+    .biz-sidebar .nav-link.active { background: #007bff; color: white; }
     .search-box { position: relative; }
     .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; display: none; max-height: 300px; overflow-y: auto; z-index: 1000; }
     .suggestions.show { display: block; }
     .suggestion-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee; }
     .suggestion-item:hover { background: #f0f0f0; }
-    .doc-card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; cursor: pointer; transition: all 0.3s; }
-    .doc-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .doc-card.low-quality { border-left: 3px solid #dc3545; }
-    .doc-card.med-quality { border-left: 3px solid #ffc107; }
-    .doc-card.high-quality { border-left: 3px solid #28a745; }
     .quality-circle { width: 20px; height: 20px; border-radius: 50%; display: inline-block; }
     .quality-high { background: #28a745; }
     .quality-medium { background: #ffc107; }
@@ -39,20 +37,17 @@
     .step.done::before { content: '✓'; color: #28a745; font-weight: bold; }
     .progress-step { background: #e9ecef; padding: 10px; border-radius: 4px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
     .progress-step.done { background: #d4edda; }
-    .progress-step.done::before { content: '✓'; color: #28a745; font-weight: bold; }
 </style>
 
 <div class="biz-container">
     <!-- Sidebar Navigation -->
     <div class="biz-sidebar">
         <h5 class="mb-4">📚 أساسيات الأعمال</h5>
-        <div class="nav flex-column">
-            <a href="#" class="nav-link active px-0 mb-2">📄 الملفات</a>
-            <a href="#" class="nav-link px-0 mb-2" onclick="showCategory('definitions')">📖 التعريفات</a>
-            <a href="#" class="nav-link px-0 mb-2" onclick="showCategory('frameworks')">🎯 الإطارات</a>
-            <a href="#" class="nav-link px-0 mb-2" onclick="showCategory('guides')">📚 الأدلة</a>
-            <a href="#" class="nav-link px-0 mb-2" onclick="showCategory('templates')">📋 القوالب</a>
-        </div>
+        <a href="#" class="nav-link active" data-filter="all" onclick="filterByCategory('all', event)">📄 الملفات</a>
+        <a href="#" class="nav-link" data-filter="definitions" onclick="filterByCategory('Definition', event)">📖 التعريفات</a>
+        <a href="#" class="nav-link" data-filter="frameworks" onclick="filterByCategory('Framework', event)">🎯 الإطارات</a>
+        <a href="#" class="nav-link" data-filter="guides" onclick="filterByCategory('Guide', event)">📚 الأدلة</a>
+        <a href="#" class="nav-link" data-filter="templates" onclick="filterByCategory('Template', event)">📋 القوالب</a>
     </div>
 
     <!-- Main Content -->
@@ -75,7 +70,7 @@
                 </div>
             </div>
             
-            <!-- Search Bar -->
+            <!-- Search & Filters -->
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <div class="search-box">
@@ -86,10 +81,10 @@
                 <div class="col-md-2">
                     <select class="form-select" id="filterType">
                         <option value="">النوع</option>
-                        <option value="pdf">PDF</option>
-                        <option value="docx">DOCX</option>
-                        <option value="template">Template</option>
-                        <option value="notes">Notes</option>
+                        <option value="Framework">إطار عمل</option>
+                        <option value="Template">قالب</option>
+                        <option value="Guide">دليل</option>
+                        <option value="Definition">تعريف</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -116,12 +111,6 @@
                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
                         <i class="fas fa-cloud-upload-alt"></i> رفع ملف جديد
                     </button>
-                    <button class="btn btn-danger btn-sm" id="bulkDeleteBtn" style="display:none;">
-                        <i class="fas fa-trash"></i> حذف المحدد
-                    </button>
-                    <button class="btn btn-warning btn-sm" id="bulkReprocessBtn" style="display:none;">
-                        <i class="fas fa-sync"></i> إعادة معالجة
-                    </button>
                 </div>
             </div>
         </div>
@@ -133,7 +122,6 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th style="width: 30px;"><input type="checkbox" id="selectAll"></th>
                                 <th>📄 العنوان</th>
                                 <th>النوع</th>
                                 <th>الوسوم</th>
@@ -147,7 +135,7 @@
                     </table>
                 </div>
                 <div id="emptyState" class="empty-state" style="display:none;">
-                    <p>لا توجد مستندات في أساسيات الأعمال.</p>
+                    <p>لا توجد مستندات في هذا القسم.</p>
                     <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#uploadModal">
                         📤 رفع ملفك الأول
                     </button>
@@ -176,7 +164,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <!-- Step Indicator -->
                 <div class="step-indicator mb-4">
                     <div class="step active">اختر الملف</div>
                     <div class="step">المعلومات</div>
@@ -184,63 +171,40 @@
                     <div class="step">التأكيد</div>
                 </div>
 
-                <!-- Step 1: File Upload -->
                 <div id="step1">
                     <label class="form-label">اختر الملف</label>
                     <input type="file" class="form-control mb-3" id="fileInput" accept=".pdf,.docx,.txt,.md,.doc">
                     <small class="text-muted">أنواع مدعومة: PDF, DOCX, TXT, Markdown</small>
                 </div>
 
-                <!-- Step 2: Basic Info -->
                 <div id="step2" style="display:none;">
                     <div class="mb-3">
                         <label class="form-label">العنوان</label>
                         <input type="text" class="form-control" id="docTitle">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">الوصف</label>
-                        <textarea class="form-control" id="docDesc" rows="3"></textarea>
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label">النوع</label>
                         <select class="form-select" id="docType">
-                            <option value="Reference">مرجع</option>
+                            <option value="Definition">تعريف</option>
                             <option value="Framework">إطار عمل</option>
                             <option value="Guide">دليل</option>
-                            <option value="Definition">تعريف</option>
                             <option value="Template">قالب</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">الوسوم (فصل بفواصل)</label>
+                        <label class="form-label">الوسوم</label>
                         <input type="text" class="form-control" id="docTags" placeholder="Market, Strategy, Finance">
                     </div>
                 </div>
 
-                <!-- Step 3: Processing -->
                 <div id="step3" style="display:none;">
-                    <div class="progress-step done">
-                        <span>استخراج النص</span>
-                    </div>
-                    <div class="progress-step done">
-                        <span>تنظيف المحتوى</span>
-                    </div>
-                    <div class="progress-step">
-                        <span>تقسيم Chunks</span>
-                        <div class="spinner-border spinner-border-sm ms-auto" role="status"></div>
-                    </div>
-                    <div class="progress-step">
-                        <span>إنشاء Embeddings</span>
-                    </div>
-                    <div class="progress-step">
-                        <span>فحص الجودة</span>
-                    </div>
-                    <div class="progress-step">
-                        <span>كشف التكرار</span>
-                    </div>
+                    <div class="progress-step done"><span>استخراج النص</span></div>
+                    <div class="progress-step done"><span>تنظيف المحتوى</span></div>
+                    <div class="progress-step"><span>تقسيم Chunks</span><div class="spinner-border spinner-border-sm ms-auto"></div></div>
+                    <div class="progress-step"><span>إنشاء Embeddings</span></div>
+                    <div class="progress-step"><span>فحص الجودة</span></div>
                 </div>
 
-                <!-- Step 4: Confirm -->
                 <div id="step4" style="display:none;">
                     <div class="alert alert-success">
                         <strong>✅ تم الرفع بنجاح!</strong>
@@ -251,7 +215,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
                 <button type="button" class="btn btn-primary" id="nextBtn" onclick="nextStep()">التالي</button>
-                <button type="button" class="btn btn-success" id="uploadBtnFinal" onclick="finalUpload()" style="display:none;">حفظ في أساسيات الأعمال</button>
+                <button type="button" class="btn btn-success" id="uploadBtnFinal" onclick="finalUpload()" style="display:none;">حفظ</button>
             </div>
         </div>
     </div>
@@ -260,14 +224,15 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 <script>
 let currentStep = 1;
-let selectedDocs = new Set();
-const suggestions = ['ROI', 'Business Model Canvas', 'McKinsey 7S', 'Porter 5 Forces', 'SWOT', 'Break-even', 'Market Size', 'CAC', 'CLV'];
-
-const sampleDocs = [
+let currentFilter = 'all';
+let documents = [
     { id: 1, title: 'Business Model Canvas', type: 'Framework', tags: ['Business', 'Model'], quality: 'high', date: '2025-11-26', size: '2.5 MB' },
     { id: 2, title: 'ROI Calculator', type: 'Template', tags: ['Finance', 'ROI'], quality: 'high', date: '2025-11-25', size: '1.2 MB' },
     { id: 3, title: 'Market Size Analysis', type: 'Guide', tags: ['Market', 'Strategy'], quality: 'medium', date: '2025-11-24', size: '3.1 MB' },
+    { id: 4, title: 'ROI Definition', type: 'Definition', tags: ['Finance'], quality: 'high', date: '2025-11-23', size: '0.8 MB' },
 ];
+
+const suggestions = ['ROI', 'Business Model Canvas', 'McKinsey 7S', 'Porter 5 Forces', 'SWOT', 'Break-even', 'Market Size', 'CAC', 'CLV'];
 
 document.addEventListener('DOMContentLoaded', () => {
     renderDocuments();
@@ -281,19 +246,23 @@ function renderDocuments() {
     tbody.innerHTML = '';
     gridView.innerHTML = '';
     
-    if (sampleDocs.length === 0) {
+    let filteredDocs = documents;
+    if (currentFilter !== 'all') {
+        filteredDocs = documents.filter(d => d.type === currentFilter);
+    }
+    
+    if (filteredDocs.length === 0) {
         document.getElementById('emptyState').style.display = 'block';
         return;
     }
+    document.getElementById('emptyState').style.display = 'none';
     
-    sampleDocs.forEach(doc => {
-        const qualityClass = doc.quality === 'high' ? 'high-quality' : doc.quality === 'medium' ? 'med-quality' : 'low-quality';
+    filteredDocs.forEach(doc => {
         const qualityCircle = `<span class="quality-circle quality-${doc.quality}"></span>`;
         
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td><input type="checkbox" class="doc-checkbox" value="${doc.id}"></td>
-            <td><a href="#" onclick="showPreview(${doc.id})"><strong>${doc.title}</strong></a></td>
+            <td><a href="#" onclick="showPreview(${doc.id}); return false;"><strong>${doc.title}</strong></a></td>
             <td><span class="badge bg-secondary">${doc.type}</span></td>
             <td>${doc.tags.map(t => `<span class="tag">${t}</span>`).join('')}</td>
             <td>${qualityCircle}</td>
@@ -302,13 +271,22 @@ function renderDocuments() {
             <td>
                 <div class="btn-group btn-group-sm" role="group">
                     <button class="btn btn-info" onclick="showPreview(${doc.id})"><i class="fas fa-eye"></i></button>
-                    <button class="btn btn-warning" onclick="editMetadata(${doc.id})"><i class="fas fa-edit"></i></button>
                     <button class="btn btn-danger" onclick="deleteDocument(${doc.id})"><i class="fas fa-trash"></i></button>
                 </div>
             </td>
         `;
         tbody.appendChild(row);
     });
+}
+
+function filterByCategory(filter, event) {
+    event.preventDefault();
+    currentFilter = filter;
+    
+    document.querySelectorAll('.biz-sidebar .nav-link').forEach(l => l.classList.remove('active'));
+    event.target.closest('.nav-link').classList.add('active');
+    
+    renderDocuments();
 }
 
 function setupSearch() {
@@ -345,32 +323,14 @@ function setupFilters() {
 function switchView(view) {
     document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
     document.getElementById('gridView').style.display = view === 'grid' ? 'grid' : 'none';
-    if (view === 'grid') renderGridView();
-}
-
-function renderGridView() {
-    const grid = document.getElementById('gridView');
-    grid.innerHTML = sampleDocs.map(doc => `
-        <div class="doc-grid-item">
-            <h6>${doc.title}</h6>
-            <p class="text-muted small">${doc.tags.join(', ')}</p>
-            <button class="btn btn-sm btn-primary" onclick="showPreview(${doc.id})">عرض</button>
-        </div>
-    `).join('');
 }
 
 function showPreview(id) {
+    const doc = documents.find(d => d.id === id);
     const panel = document.getElementById('previewPanel');
     const content = document.getElementById('previewContent');
-    const doc = sampleDocs.find(d => d.id === id);
     
-    content.innerHTML = `
-        <h5>${doc.title}</h5>
-        <p class="text-muted">${doc.type}</p>
-        <div class="mb-3">${doc.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
-        <p>الحجم: ${doc.size}</p>
-        <p>آخر تحديث: ${doc.date}</p>
-    `;
+    content.innerHTML = `<h5>${doc.title}</h5><p class="text-muted">${doc.type}</p><div class="mb-3">${doc.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div><p>الحجم: ${doc.size}</p><p>آخر تحديث: ${doc.date}</p>`;
     panel.style.display = 'block';
 }
 
@@ -378,19 +338,14 @@ function closePreview() {
     document.getElementById('previewPanel').style.display = 'none';
 }
 
-function editMetadata(id) {
-    Swal.fire('قريباً', 'سيتم إضافة محرر البيانات الوصفية قريباً', 'info');
-}
-
 function deleteDocument(id) {
-    Swal.fire({
-        icon: 'question',
-        title: 'تأكيد الحذف',
-        text: 'هل تريد حذف هذا الملف؟',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then(r => r.isConfirmed && Swal.fire('تم الحذف', '', 'success').then(() => location.reload()));
+    Swal.fire({icon: 'question', title: 'تأكيد الحذف', text: 'هل تريد حذف هذا الملف؟', showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء'}).then(r => {
+        if (r.isConfirmed) {
+            documents = documents.filter(d => d.id !== id);
+            renderDocuments();
+            Swal.fire('تم الحذف', '', 'success');
+        }
+    });
 }
 
 function nextStep() {
@@ -405,11 +360,34 @@ function nextStep() {
 }
 
 function finalUpload() {
-    Swal.fire('نجاح!', 'تم حفظ الملف بنجاح', 'success').then(() => location.reload());
-}
-
-function showCategory(cat) {
-    renderDocuments();
+    const title = document.getElementById('docTitle').value;
+    const type = document.getElementById('docType').value;
+    const tags = document.getElementById('docTags').value.split(',').map(t => t.trim());
+    
+    const newDoc = {
+        id: documents.length + 1,
+        title: title || 'ملف جديد',
+        type: type,
+        tags: tags,
+        quality: 'medium',
+        date: new Date().toISOString().split('T')[0],
+        size: '1.0 MB'
+    };
+    
+    documents.push(newDoc);
+    
+    Swal.fire({icon: 'success', title: 'نجاح!', text: 'تم حفظ الملف بنجاح', didClose: () => {
+        document.getElementById('uploadModal').querySelector('.btn-close').click();
+        currentStep = 1;
+        document.querySelectorAll('[id^="step"]').forEach(e => e.style.display = 'none');
+        document.getElementById('step1').style.display = 'block';
+        document.getElementById('nextBtn').style.display = 'inline-block';
+        document.getElementById('uploadBtnFinal').style.display = 'none';
+        document.getElementById('fileInput').value = '';
+        document.getElementById('docTitle').value = '';
+        document.getElementById('docTags').value = '';
+        renderDocuments();
+    }});
 }
 </script>
 {% endblock %}
