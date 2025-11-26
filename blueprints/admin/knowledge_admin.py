@@ -37,7 +37,7 @@ def index():
     total_docs = len(documents)
     categories = {}
     for doc in documents:
-        cat = json.loads(doc.doc_metadata or '{}').get('category', 'General')
+        cat = json.loads(doc.embeddings or '{}').get('category', 'General')
         categories[cat] = categories.get(cat, 0) + 1
     
     return render_template('admin/knowledge/index.html', 
@@ -57,7 +57,7 @@ def list_documents():
     query = db.session.query(Document).order_by(Document.uploaded_at.desc())
     
     if category:
-        query = query.filter(Document.doc_metadata.contains(f'"category": "{category}"'))
+        query = query.filter(Document.embeddings.contains(f'"category": "{category}"'))
     
     documents = query.all()
     
@@ -67,7 +67,7 @@ def list_documents():
     
     result = []
     for doc in documents:
-        meta = json.loads(doc.doc_metadata or '{}')
+        meta = json.loads(doc.embeddings or '{}')
         result.append({
             'id': doc.id,
             'filename': doc.filename,
@@ -210,7 +210,7 @@ def update_document(doc_id):
             return jsonify({'error': 'Document not found'}), 404
         
         data = request.json
-        meta = json.loads(doc.doc_metadata or '{}')
+        meta = json.loads(doc.embeddings or '{}')
         
         if 'filename' in data:
             doc.filename = data['filename']
@@ -219,7 +219,7 @@ def update_document(doc_id):
         if 'tags' in data:
             meta['tags'] = data['tags']
         
-        doc.doc_metadata = json.dumps(meta)
+        doc.embeddings = json.dumps(meta)
         db.session.commit()
         
         return jsonify({'message': 'Document updated successfully'})
@@ -245,7 +245,7 @@ def re_embed_document(doc_id):
         
         # Re-process
         text = doc.content_text
-        meta = json.loads(doc.doc_metadata or '{}')
+        meta = json.loads(doc.embeddings or '{}')
         category = meta.get('category', 'General')
         tags = meta.get('tags', [])
         
@@ -302,7 +302,7 @@ def api_graph():
     doc_categories = {}
     
     for doc in documents:
-        meta = json.loads(doc.doc_metadata or '{}')
+        meta = json.loads(doc.embeddings or '{}')
         category = meta.get('category', 'General')
         
         # Add document node
