@@ -988,15 +988,86 @@ function showStrategyMap(docId) {
             }
         });
         
-        // إضافة معالج الضغط لعرض الوصف
+        // إضافة معالج الضغط لعرض التفاصيل الكاملة
         strategyMapInstance.on('tap', 'node', function(e) {
             const node = e.target;
-            const description = node.data('description');
-            if (description) {
+            const nodeData = node.data();
+            const originalData = data[nodeData.layer].find(item => item.id === nodeData.id);
+            
+            if (originalData) {
+                let detailsHtml = `
+                    <div style="text-align: right; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                        <h4 style="color: #333; margin-bottom: 15px;">${nodeData.label}</h4>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <strong>📝 الوصف:</strong>
+                            <p style="color: #555; margin-top: 8px;">${originalData.description || '-'}</p>
+                        </div>
+                `;
+                
+                if (originalData.kpis && originalData.kpis.length > 0) {
+                    detailsHtml += `
+                        <div style="margin-bottom: 15px; background: white; padding: 10px; border-right: 4px solid #FF6B6B;">
+                            <strong>📊 مؤشرات الأداء (KPIs):</strong>
+                            <ul style="margin-top: 8px; padding-right: 20px;">
+                                ${originalData.kpis.map(kpi => `<li style="color: #666; margin: 5px 0;">${kpi}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                if (originalData.initiatives && originalData.initiatives.length > 0) {
+                    detailsHtml += `
+                        <div style="margin-bottom: 15px; background: white; padding: 10px; border-right: 4px solid #4ECDC4;">
+                            <strong>🎯 المبادرات الاستراتيجية:</strong>
+                            <ul style="margin-top: 8px; padding-right: 20px;">
+                                ${originalData.initiatives.map(init => `<li style="color: #666; margin: 5px 0;">${init}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                if (originalData.timeline) {
+                    detailsHtml += `
+                        <div style="margin-bottom: 15px; background: white; padding: 10px;">
+                            <strong>⏱️ الإطار الزمني:</strong>
+                            <p style="color: #666; margin-top: 8px;">${originalData.timeline}</p>
+                        </div>
+                    `;
+                }
+                
+                if (originalData.priority) {
+                    const priorityColor = originalData.priority === 'عالية جداً' ? '#FF6B6B' : originalData.priority === 'عالية' ? '#FFA500' : '#FFC107';
+                    detailsHtml += `
+                        <div style="margin-bottom: 15px; background: white; padding: 10px;">
+                            <strong>⚡ الأولوية:</strong>
+                            <p style="color: white; background: ${priorityColor}; margin-top: 8px; padding: 8px; border-radius: 4px; text-align: center; font-weight: bold;">${originalData.priority}</p>
+                        </div>
+                    `;
+                }
+                
+                if (originalData.success_factors && originalData.success_factors.length > 0) {
+                    detailsHtml += `
+                        <div style="background: white; padding: 10px; border-right: 4px solid #95E1D3;">
+                            <strong>✓ عوامل النجاح الحرجة:</strong>
+                            <ul style="margin-top: 8px; padding-right: 20px;">
+                                ${originalData.success_factors.map(factor => `<li style="color: #666; margin: 5px 0;">${factor}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                detailsHtml += '</div>';
+                
                 Swal.fire({
-                    title: node.data('label'),
-                    html: `<p style="text-align: right;">${description}</p>`,
-                    confirmButtonText: 'حسناً'
+                    title: '📊 تفاصيل الهدف الاستراتيجي',
+                    html: detailsHtml,
+                    width: '600px',
+                    confirmButtonText: 'حسناً',
+                    allowOutsideClick: true,
+                    didOpen: () => {
+                        document.querySelector('.swal2-html-container').style.textAlign = 'right';
+                    }
                 });
             }
         });
