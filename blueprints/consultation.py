@@ -298,3 +298,18 @@ def create_session():
         'domain': chat_session.domain,
         'created_at': chat_session.created_at.isoformat()
     })
+
+# ==================== STRATEGIC PLANNING SUBMODULE ====================
+
+@consultation_bp.route('/strategic-planning')
+@login_required
+def strategic_planning_module():
+    """Strategic Planning consulting submodule - entry point"""
+    lang = session.get('language', 'ar')
+    return redirect(url_for('strategic_planning_ai.index'))
+
+@consultation_bp.route('/strategic-planning/create', methods=['GET', 'POST'])
+@login_required
+def strategic_planning_create():
+    """Create new strategic plan through consultation"""
+    return redirect(url_for('strategic_planning_ai.create_plan'))

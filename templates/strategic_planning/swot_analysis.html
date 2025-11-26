@@ -1,8 +1,5 @@
-{% extends "base.html" %}
-
-{% block title %}{{ 'تحليل SWOT' if lang == 'ar' else 'SWOT Analysis' }}{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}{{ 'تحليل SWOT' if lang == 'ar' else
+'SWOT Analysis' }}{% endblock %} {% block content %}
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-12">
@@ -20,13 +17,20 @@
             <div class="card shadow-sm text-center py-5">
                 <div class="card-body">
                     <i class="fas fa-robot fa-4x text-primary mb-4"></i>
-                    <h4>{{ 'قم بتوليد تحليل SWOT بواسطة الذكاء الاصطناعي' if lang == 'ar' else 'Generate SWOT Analysis with AI' }}</h4>
+                    <h4>
+                        {{ 'قم بتوليد تحليل SWOT بواسطة الذكاء الاصطناعي' if
+                        lang == 'ar' else 'Generate SWOT Analysis with AI' }}
+                    </h4>
                     <p class="text-muted mb-4">
-                        {{ 'سيقوم الذكاء الاصطناعي بتحليل المعلومات المقدمة وتوليد تحليل SWOT شامل' if lang == 'ar' else 'AI will analyze the provided information and generate a comprehensive SWOT analysis' }}
+                        {{ 'سيقوم الذكاء الاصطناعي بتحليل المعلومات المقدمة
+                        وتوليد تحليل SWOT شامل' if lang == 'ar' else 'AI will
+                        analyze the provided information and generate a
+                        comprehensive SWOT analysis' }}
                     </p>
                     <button id="generateSwotBtn" class="btn btn-primary btn-lg">
                         <i class="fas fa-magic me-2"></i>
-                        {{ 'توليد التحليل' if lang == 'ar' else 'Generate Analysis' }}
+                        {{ 'توليد التحليل' if lang == 'ar' else 'Generate
+                        Analysis' }}
                     </button>
                 </div>
             </div>
@@ -40,14 +44,17 @@
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-thumbs-up me-2"></i>
-                        {{ 'نقاط القوة (Strengths)' if lang == 'ar' else 'Strengths' }}
+                        {{ 'نقاط القوة (Strengths)' if lang == 'ar' else
+                        'Strengths' }}
                     </h5>
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled">
                         {% for strength in swot_data.strengths %}
                         <li class="mb-2">
-                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <i
+                                class="fas fa-check-circle text-success me-2"
+                            ></i>
                             {{ strength }}
                         </li>
                         {% endfor %}
@@ -62,14 +69,17 @@
                 <div class="card-header bg-warning text-dark">
                     <h5 class="mb-0">
                         <i class="fas fa-exclamation-triangle me-2"></i>
-                        {{ 'نقاط الضعف (Weaknesses)' if lang == 'ar' else 'Weaknesses' }}
+                        {{ 'نقاط الضعف (Weaknesses)' if lang == 'ar' else
+                        'Weaknesses' }}
                     </h5>
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled">
                         {% for weakness in swot_data.weaknesses %}
                         <li class="mb-2">
-                            <i class="fas fa-minus-circle text-warning me-2"></i>
+                            <i
+                                class="fas fa-minus-circle text-warning me-2"
+                            ></i>
                             {{ weakness }}
                         </li>
                         {% endfor %}
@@ -84,7 +94,8 @@
                 <div class="card-header bg-info text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-lightbulb me-2"></i>
-                        {{ 'الفرص (Opportunities)' if lang == 'ar' else 'Opportunities' }}
+                        {{ 'الفرص (Opportunities)' if lang == 'ar' else
+                        'Opportunities' }}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -106,7 +117,8 @@
                 <div class="card-header bg-danger text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-shield-alt me-2"></i>
-                        {{ 'التهديدات (Threats)' if lang == 'ar' else 'Threats' }}
+                        {{ 'التهديدات (Threats)' if lang == 'ar' else 'Threats'
+                        }}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -126,13 +138,24 @@
     <div class="row mt-4">
         <div class="col-12">
             <div class="d-flex justify-content-between">
-                <a href="{{ url_for('strategic_planning_ai.index') }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>
+                <a
+                    href="{{ url_for('strategic_planning_ai.index') }}"
+                    class="btn btn-outline-secondary"
+                >
+                    <i
+                        class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"
+                    ></i>
                     {{ 'رجوع' if lang == 'ar' else 'Back' }}
                 </a>
-                <a href="{{ url_for('strategic_planning_ai.analyze_pestel', plan_id=plan.id) }}" class="btn btn-primary">
-                    {{ 'التالي: تحليل PESTEL' if lang == 'ar' else 'Next: PESTEL Analysis' }}
-                    <i class="fas fa-arrow-{{ 'left' if lang == 'ar' else 'right' }} ms-2"></i>
+                <a
+                    href="{{ url_for('strategic_planning_ai.analyze_pestel', plan_id=plan.id) }}"
+                    class="btn btn-primary"
+                >
+                    {{ 'التالي: تحليل PESTEL' if lang == 'ar' else 'Next: PESTEL
+                    Analysis' }}
+                    <i
+                        class="fas fa-arrow-{{ 'left' if lang == 'ar' else 'right' }} ms-2"
+                    ></i>
                 </a>
             </div>
         </div>
@@ -141,35 +164,46 @@
 </div>
 
 <script>
-document.getElementById('generateSwotBtn')?.addEventListener('click', async function() {
-    const btn = this;
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ "جاري التوليد..." if lang == "ar" else "Generating..." }}';
-    
-    try {
-        const response = await fetch('{{ url_for("strategic_planning_ai.generate_swot", plan_id=plan.id) }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
+    document
+        .getElementById("generateSwotBtn")
+        ?.addEventListener("click", async function () {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML =
+                '<i class="fas fa-spinner fa-spin me-2"></i>{{ "جاري التوليد..." if lang == "ar" else "Generating..." }}';
+
+            try {
+                const response = await fetch(
+                    '{{ url_for("strategic_planning_ai.generate_swot", plan_id=plan.id) }}',
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                    },
+                );
+
+                const data = await response.json();
+
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(
+                        '{{ "خطأ: " if lang == "ar" else "Error: " }}' +
+                            data.error,
+                    );
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            } catch (error) {
+                alert(
+                    '{{ "حدث خطأ في الاتصال" if lang == "ar" else "Connection error" }}',
+                );
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('{{ "خطأ: " if lang == "ar" else "Error: " }}' + data.error);
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        }
-    } catch (error) {
-        alert('{{ "حدث خطأ في الاتصال" if lang == "ar" else "Connection error" }}');
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-    }
-});
 </script>
 {% endblock %}
