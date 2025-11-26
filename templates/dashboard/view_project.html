@@ -131,9 +131,339 @@
     </div>
 </div>
 
+<style>
+.ai-output-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    line-height: 2;
+    font-size: 1.05rem;
+}
+
+.ai-output-content p {
+    margin-bottom: 1.2rem;
+}
+
+.ai-output-content ul,
+.ai-output-content ol {
+    margin-bottom: 1.5rem;
+}
+
+[dir="rtl"] .ai-output-content ul,
+[dir="rtl"] .ai-output-content ol {
+    padding-right: 2rem;
+    padding-left: 0;
+}
+
+[dir="ltr"] .ai-output-content ul,
+[dir="ltr"] .ai-output-content ol {
+    padding-left: 2rem;
+    padding-right: 0;
+}
+
+.ai-output-content li {
+    margin-bottom: 0.8rem;
+    line-height: 1.8;
+}
+
+.ai-output-content h1,
+.ai-output-content h2,
+.ai-output-content h3,
+.ai-output-content h4 {
+    color: var(--color-primary);
+    font-weight: 700;
+    margin-top: 2rem;
+    margin-bottom: 1.2rem;
+}
+
+.ai-output-content h1 {
+    font-size: 1.8rem;
+    border-bottom: 2px solid var(--color-primary);
+    padding-bottom: 0.5rem;
+}
+
+.ai-output-content h2 {
+    font-size: 1.5rem;
+}
+
+[dir="rtl"] .ai-output-content h2 {
+    border-right: 4px solid var(--color-primary);
+    padding-right: 1rem;
+}
+
+[dir="ltr"] .ai-output-content h2 {
+    border-left: 4px solid var(--color-primary);
+    padding-left: 1rem;
+}
+
+.ai-output-content h3 {
+    font-size: 1.3rem;
+}
+
+.ai-output-content h4 {
+    font-size: 1.1rem;
+}
+
+.ai-output-content code {
+    background-color: var(--color-bg-subtle);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.ai-output-content pre {
+    background-color: var(--color-bg-subtle);
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+}
+
+.ai-output-content pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.ai-output-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+}
+
+.ai-output-content table th,
+.ai-output-content table td {
+    border: 1px solid #dee2e6;
+    padding: 0.75rem;
+}
+
+[dir="rtl"] .ai-output-content table th,
+[dir="rtl"] .ai-output-content table td {
+    text-align: right;
+}
+
+[dir="ltr"] .ai-output-content table th,
+[dir="ltr"] .ai-output-content table td {
+    text-align: left;
+}
+
+.ai-output-content table th {
+    background-color: var(--color-bg-subtle);
+    font-weight: 600;
+}
+
+.ai-output-content blockquote {
+    margin-bottom: 1.5rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+[dir="rtl"] .ai-output-content blockquote {
+    border-right: 4px solid var(--color-primary);
+    padding-right: 1rem;
+    padding-left: 0;
+}
+
+[dir="ltr"] .ai-output-content blockquote {
+    border-left: 4px solid var(--color-primary);
+    padding-left: 1rem;
+    padding-right: 0;
+}
+
+.ai-output-content strong {
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.ai-output-content em {
+    font-style: italic;
+}
+
+.ai-output-content a {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.ai-output-content hr {
+    margin: 2rem 0;
+    border: none;
+    border-top: 2px solid #dee2e6;
+}
+
+.card-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.card-list li {
+    background: var(--color-bg-subtle);
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-grid-item {
+    background: var(--color-bg-subtle);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--color-primary);
+}
+
+.stat-box {
+    background: var(--color-bg-subtle);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+}
+
+.stat-box .stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.stat-box .stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const outputElement = document.getElementById('ai-output-content');
+    if (!outputElement) return;
+    
+    let content = outputElement.textContent.trim();
+    
+    try {
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: false,
+            mangle: false
+        });
+        
+        content = marked.parse(content);
+        
+        content = DOMPurify.sanitize(content, {
+            ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'b', 'i', 'u', 
+                          'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 
+                          'blockquote', 'code', 'pre', 'a', 'hr', 'div', 'span'],
+            ALLOWED_ATTR: ['href', 'target', 'class', 'id'],
+            ALLOW_DATA_ATTR: false
+        });
+        
+        outputElement.innerHTML = content;
+    } catch(e) {
+        content = content.replace(/\n/g, '<br>');
+        content = DOMPurify.sanitize(content);
+        outputElement.innerHTML = content;
+    }
+    
+    processOutput();
+});
+
+function processOutput() {
+    const outputElement = document.getElementById('ai-output-content');
+    if (!outputElement) return;
+    
+    const lists = outputElement.querySelectorAll('ul');
+    lists.forEach(list => {
+        if (list.children.length >= 3 && !list.classList.contains('no-cards')) {
+            list.classList.add('card-list');
+        }
+    });
+    
+    const tables = outputElement.querySelectorAll('table');
+    tables.forEach(table => {
+        if (!table.parentElement.classList.contains('table-responsive')) {
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('table-responsive');
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+        }
+    });
+    
+    const paragraphs = outputElement.querySelectorAll('p');
+    paragraphs.forEach(p => {
+        const text = p.textContent;
+        const numberPattern = /^(\d+[%$]?|\$?\d+(?:,\d{3})*(?:\.\d+)?)\s*[-:–]\s*(.+)$/;
+        const match = text.match(numberPattern);
+        
+        if (match && match[1] && match[2]) {
+            const statBox = document.createElement('div');
+            statBox.classList.add('stat-box');
+            statBox.innerHTML = `
+                <span class="stat-number">${match[1]}</span>
+                <span class="stat-label">${match[2]}</span>
+            `;
+            p.replaceWith(statBox);
+        }
+    });
+    
+    const strongElements = outputElement.querySelectorAll('strong');
+    const gridItems = [];
+    
+    strongElements.forEach(strong => {
+        const nextSibling = strong.nextSibling;
+        if (nextSibling && nextSibling.nodeType === 3) {
+            const text = nextSibling.textContent.trim();
+            if (text.startsWith(':') || text.startsWith('-')) {
+                const value = text.substring(1).trim();
+                gridItems.push({
+                    label: strong.textContent,
+                    value: value,
+                    element: strong.parentElement
+                });
+            }
+        }
+    });
+    
+    if (gridItems.length >= 3) {
+        const firstElement = gridItems[0].element;
+        const gridContainer = document.createElement('div');
+        gridContainer.classList.add('info-grid');
+        
+        gridItems.forEach(item => {
+            const gridItem = document.createElement('div');
+            gridItem.classList.add('info-grid-item');
+            gridItem.innerHTML = `
+                <strong>${item.label}</strong>
+                <p>${item.value}</p>
+            `;
+            gridContainer.appendChild(gridItem);
+            
+            if (item.element && item.element.parentNode) {
+                item.element.parentNode.removeChild(item.element);
+            }
+        });
+        
+        if (firstElement && firstElement.parentNode) {
+            firstElement.parentNode.insertBefore(gridContainer, firstElement);
+        } else {
+            outputElement.insertBefore(gridContainer, outputElement.firstChild);
+        }
+    }
+}
+
 function deleteProject(projectId) {
     Swal.fire({
         title: '{{ "تأكيد الحذف" if lang == "ar" else "Confirm Delete" }}',
