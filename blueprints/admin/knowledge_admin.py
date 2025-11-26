@@ -281,6 +281,13 @@ def business_fundamentals():
     lang = get_lang()
     return render_template('admin/knowledge/business-fundamentals.html', lang=lang)
 
+@knowledge_admin_bp.route('/feasibility-studies')
+@login_required
+def feasibility_studies():
+    """Feasibility Studies section"""
+    lang = get_lang()
+    return render_template('admin/knowledge/feasibility-studies.html', lang=lang)
+
 @knowledge_admin_bp.route('/settings')
 @login_required
 def settings():

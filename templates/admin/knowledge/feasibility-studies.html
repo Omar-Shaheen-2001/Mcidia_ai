@@ -1,0 +1,571 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<style>
+    .fs-container { display: flex; height: calc(100vh - 100px); }
+    .fs-sidebar { width: 250px; border-right: 1px solid #ddd; overflow-y: auto; padding: 20px; }
+    .fs-main { flex: 1; display: flex; flex-direction: column; }
+    .fs-header { background: white; border-bottom: 1px solid #ddd; padding: 20px; }
+    .fs-content { flex: 1; overflow-y: auto; padding: 20px; }
+    .fs-preview { width: 400px; border-left: 1px solid #ddd; overflow-y: auto; padding: 20px; background: #f8f9fa; display: none; box-shadow: -2px 0 8px rgba(0,0,0,0.1); }
+    .fs-sidebar .nav-link { padding: 10px 15px; cursor: pointer; border-radius: 5px; margin-bottom: 10px; transition: all 0.3s; display: block; color: #333; }
+    .fs-sidebar .nav-link:hover { background: #f0f0f0; }
+    .fs-sidebar .nav-link.active { background: #28a745; color: white; }
+    .search-box { position: relative; }
+    .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; display: none; max-height: 300px; overflow-y: auto; z-index: 1000; }
+    .suggestions.show { display: block; }
+    .suggestion-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee; }
+    .suggestion-item:hover { background: #f0f0f0; }
+    .quality-circle { width: 20px; height: 20px; border-radius: 50%; display: inline-block; }
+    .quality-high { background: #28a745; }
+    .quality-medium { background: #ffc107; }
+    .quality-low { background: #dc3545; }
+    .view-toggle { display: flex; gap: 10px; }
+    .view-toggle button { padding: 5px 10px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 4px; }
+    .view-toggle button.active { background: #28a745; color: white; border-color: #28a745; }
+    .grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .doc-grid-item { border: 1px solid #ddd; border-radius: 8px; padding: 15px; text-align: center; background: white; }
+    .tag { display: inline-block; background: #e9ecef; color: #495057; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; margin-right: 5px; }
+    .empty-state { text-align: center; padding: 40px; color: #999; }
+    .step-indicator { display: flex; justify-content: space-between; margin-bottom: 20px; }
+    .step { text-align: center; flex: 1; font-size: 0.9rem; }
+    .step.active { color: #28a745; font-weight: bold; }
+    .step.done::before { content: '✓'; color: #28a745; font-weight: bold; }
+    .progress-step { background: #e9ecef; padding: 10px; border-radius: 4px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+    .progress-step.done { background: #d4edda; }
+    .preview-item { margin-bottom: 20px; }
+    .preview-item-label { font-size: 0.85rem; font-weight: 600; color: #666; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+    .preview-item-value { font-size: 0.95rem; color: #333; word-break: break-word; }
+    .preview-badge { display: inline-block; background: #28a745; color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; margin-bottom: 8px; }
+    .preview-tags-container { display: flex; flex-wrap: wrap; gap: 8px; }
+    .preview-tag { display: inline-block; background: #e9ecef; color: #495057; padding: 6px 12px; border-radius: 15px; font-size: 0.85rem; }
+    .preview-divider { border-top: 1px solid #ddd; margin: 15px 0; }
+    .financial-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-right: 5px; }
+    .roi-high { background: #d4edda; color: #155724; }
+    .roi-med { background: #fff3cd; color: #856404; }
+    .roi-low { background: #f8d7da; color: #721c24; }
+    .sector-badge { display: inline-block; background: #e7f3ff; color: #004085; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; margin-right: 5px; }
+    .action-btn-group { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
+    .action-btn-group button { font-size: 0.85rem; padding: 8px 12px; }
+    .sector-column { color: #28a745; font-weight: 600; }
+    @media (max-width: 768px) {
+        .fs-preview { width: 100%; border-left: none; border-top: 1px solid #ddd; padding: 15px; }
+        .fs-container { flex-direction: column; }
+        .fs-sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ddd; }
+    }
+</style>
+
+<div class="fs-container">
+    <!-- Sidebar Navigation -->
+    <div class="fs-sidebar">
+        <h5 class="mb-4">📊 دراسات الجدوى</h5>
+        <a href="#" class="nav-link active" data-filter="all" onclick="filterByCategory('all', event)">📄 الملفات</a>
+        <a href="#" class="nav-link" data-filter="cost-data" onclick="filterByCategory('Cost Data', event)">💰 بيانات التكاليف</a>
+        <a href="#" class="nav-link" data-filter="market-research" onclick="filterByCategory('Market Study', event)">📈 دراسات السوق</a>
+        <a href="#" class="nav-link" data-filter="revenue-models" onclick="filterByCategory('Revenue Model', event)">💵 نماذج الإيرادات</a>
+        <a href="#" class="nav-link" data-filter="templates" onclick="filterByCategory('Feasibility Template', event)">📋 القوالب</a>
+        <a href="#" class="nav-link" data-filter="benchmarks" onclick="filterByCategory('Pricing Benchmarks', event)">📊 المقارنات</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="fs-main">
+        <!-- Top Bar -->
+        <div class="fs-header">
+            <div class="row align-items-center mb-3">
+                <div class="col-md-8">
+                    <h4 class="mb-0">📊 دراسات الجدوى - Feasibility Studies</h4>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="view-toggle">
+                        <button class="active" onclick="switchView('list')" title="List View">
+                            <i class="fas fa-list"></i>
+                        </button>
+                        <button onclick="switchView('grid')" title="Grid View">
+                            <i class="fas fa-th"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Search & Filters -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-5">
+                    <div class="search-box">
+                        <input type="text" class="form-control" id="searchInput" placeholder="ابحث داخل دراسات الجدوى…" autocomplete="off">
+                        <div class="suggestions" id="suggestions"></div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="filterSector">
+                        <option value="">القطاع</option>
+                        <option value="مطاعم">🍽️ مطاعم</option>
+                        <option value="مقاهي">☕ مقاهي</option>
+                        <option value="تجارة إلكترونية">🛍️ تجارة إلكترونية</option>
+                        <option value="SaaS">💻 SaaS</option>
+                        <option value="تعليم">📚 تعليم</option>
+                        <option value="لوجستيات">🚚 لوجستيات</option>
+                        <option value="عقار">🏢 عقار</option>
+                        <option value="صناعة">🏭 صناعة</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="filterType">
+                        <option value="">نوع البيانات</option>
+                        <option value="Cost Data">التكاليف</option>
+                        <option value="Revenue Model">الإيرادات</option>
+                        <option value="Market Study">السوق</option>
+                        <option value="Risk">المخاطر</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="filterROI">
+                        <option value="">درجة الأهمية</option>
+                        <option value="high">عالية</option>
+                        <option value="medium">متوسطة</option>
+                        <option value="low">منخفضة</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row">
+                <div class="col-md-12">
+                    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                        <i class="fas fa-cloud-upload-alt"></i> رفع دراسة جدوى
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="fs-content">
+            <div id="listView">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>📄 العنوان</th>
+                                <th>🏢 القطاع</th>
+                                <th>📊 النوع</th>
+                                <th>⭐ الأهمية</th>
+                                <th>📅 السنة</th>
+                                <th>🎯 التقدير</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentsList"></tbody>
+                    </table>
+                </div>
+                <div id="emptyState" class="empty-state" style="display:none;">
+                    <p>لا توجد دراسات جدوى في هذا القسم.</p>
+                    <button class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                        📤 رفع دراسة جدوى جديدة
+                    </button>
+                </div>
+            </div>
+
+            <div id="gridView" style="display:none;" class="grid-view"></div>
+        </div>
+    </div>
+
+    <!-- Preview Panel -->
+    <div class="fs-preview" id="previewPanel">
+        <button class="btn btn-sm btn-outline-secondary mb-3 w-100" onclick="closePreview()">
+            <i class="fas fa-times"></i> إغلاق
+        </button>
+        <div id="previewContent"></div>
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">📤 رفع دراسة جدوى جديدة</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="step-indicator mb-4">
+                    <div class="step active">الملف</div>
+                    <div class="step">المعلومات</div>
+                    <div class="step">البيانات المالية</div>
+                    <div class="step">المعالجة</div>
+                    <div class="step">التأكيد</div>
+                </div>
+
+                <!-- Step 1: File Upload -->
+                <div id="step1">
+                    <label class="form-label">اختر الملف</label>
+                    <input type="file" class="form-control mb-3" id="fileInput" accept=".pdf,.docx,.xlsx,.xls,.txt">
+                    <small class="text-muted">أنواع مدعومة: PDF, DOCX, Excel, TXT</small>
+                </div>
+
+                <!-- Step 2: Basic Info -->
+                <div id="step2" style="display:none;">
+                    <div class="mb-3">
+                        <label class="form-label">العنوان</label>
+                        <input type="text" class="form-control" id="docTitle">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">القطاع</label>
+                        <select class="form-select" id="docSector">
+                            <option value="">اختر القطاع</option>
+                            <option value="مطاعم">🍽️ مطاعم</option>
+                            <option value="مقاهي">☕ مقاهي</option>
+                            <option value="تجارة إلكترونية">🛍️ تجارة إلكترونية</option>
+                            <option value="SaaS">💻 SaaS</option>
+                            <option value="تعليم">📚 تعليم</option>
+                            <option value="لوجستيات">🚚 لوجستيات</option>
+                            <option value="عقار">🏢 عقار</option>
+                            <option value="صناعة">🏭 صناعة</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">الدولة / المنطقة</label>
+                        <input type="text" class="form-control" id="docCountry" placeholder="السعودية، الإمارات، مصر، إلخ">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">نوع البيانات</label>
+                        <select class="form-select" id="docDataType">
+                            <option value="Cost Data">💰 بيانات التكاليف</option>
+                            <option value="Revenue Model">💵 نموذج الإيرادات</option>
+                            <option value="Market Study">📈 دراسة السوق</option>
+                            <option value="Risk">⚠️ تحليل المخاطر</option>
+                            <option value="CAPEX">🏗️ رأس مال استثماري</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Step 3: Financial Data -->
+                <div id="step3" style="display:none;">
+                    <div class="mb-3">
+                        <label class="form-label">سنة البيانات</label>
+                        <input type="number" class="form-control" id="docYear" placeholder="2025">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">مستوى الدقة</label>
+                        <select class="form-select" id="docAccuracy">
+                            <option value="High Confidence">✅ عالية الثقة</option>
+                            <option value="Medium">🟡 متوسطة</option>
+                            <option value="Low">⚠️ منخفضة</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">الوسوم (فصل بفواصل)</label>
+                        <input type="text" class="form-control" id="docTags" placeholder="مثال: Cost, Rent, Labor, COGS">
+                    </div>
+                </div>
+
+                <!-- Step 4: Processing -->
+                <div id="step4" style="display:none;">
+                    <div class="progress-step done"><span>استخراج النص</span></div>
+                    <div class="progress-step done"><span>تنظيف المحتوى</span></div>
+                    <div class="progress-step"><span>كشف القطاع</span><div class="spinner-border spinner-border-sm ms-auto"></div></div>
+                    <div class="progress-step"><span>استخراج الافتراضات المالية</span></div>
+                    <div class="progress-step"><span>كشف المخاطر</span></div>
+                    <div class="progress-step"><span>فحص الجودة</span></div>
+                </div>
+
+                <!-- Step 5: Confirm -->
+                <div id="step5" style="display:none;">
+                    <div class="alert alert-success">
+                        <strong>✅ تم الرفع بنجاح!</strong>
+                        <p class="mb-0 mt-2">تمت إضافة دراسة الجدوى إلى قسم دراسات الجدوى.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-success" id="nextBtn" onclick="nextStep()">التالي</button>
+                <button type="button" class="btn btn-success" id="uploadBtnFinal" onclick="finalUpload()" style="display:none;">حفظ الدراسة</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+<script>
+let currentStep = 1;
+let currentFilter = 'all';
+let documents = [
+    { id: 1, title: 'متوسط تكاليف المطاعم الخليج', sector: 'مطاعم', type: 'Cost Data', roi: 'high', year: 2025, accuracy: 'High Confidence', tags: ['Labor', 'Rent', 'COGS'] },
+    { id: 2, title: 'حجم سوق التعليم الإلكتروني', sector: 'تعليم', type: 'Market Study', roi: 'high', year: 2024, accuracy: 'High Confidence', tags: ['Market', 'CAGR'] },
+    { id: 3, title: 'نموذج دراسة جدوى متجر إلكتروني', sector: 'تجارة إلكترونية', type: 'Feasibility Template', roi: 'medium', year: 2025, accuracy: 'Medium', tags: ['Revenue', 'Template'] },
+    { id: 4, title: 'بيانات أسعار SaaS', sector: 'SaaS', type: 'Pricing Benchmarks', roi: 'medium', year: 2025, accuracy: 'Medium', tags: ['Pricing', 'ARR'] },
+];
+
+const suggestions = ['متوسط التكاليف', 'حجم السوق', 'نموذج الإيرادات', 'تحليل المنافسين', 'معايير السعر', 'دراسة جدوى', 'نقطة التعادل'];
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderDocuments();
+    setupSearch();
+    setupFilters();
+});
+
+function renderDocuments() {
+    const tbody = document.getElementById('documentsList');
+    const gridView = document.getElementById('gridView');
+    tbody.innerHTML = '';
+    gridView.innerHTML = '';
+    
+    let filteredDocs = documents;
+    if (currentFilter !== 'all') {
+        filteredDocs = documents.filter(d => d.type === currentFilter);
+    }
+    
+    if (filteredDocs.length === 0) {
+        document.getElementById('emptyState').style.display = 'block';
+        return;
+    }
+    document.getElementById('emptyState').style.display = 'none';
+    
+    filteredDocs.forEach(doc => {
+        const roiClass = doc.roi === 'high' ? 'roi-high' : doc.roi === 'medium' ? 'roi-med' : 'roi-low';
+        const roiLabel = doc.roi === 'high' ? '⭐⭐⭐' : doc.roi === 'medium' ? '⭐⭐' : '⭐';
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><a href="#" onclick="showPreview(${doc.id}); return false;"><strong>${doc.title}</strong></a></td>
+            <td><span class="sector-column">${doc.sector}</span></td>
+            <td><span class="badge bg-info">${doc.type}</span></td>
+            <td><span class="financial-badge ${roiClass}">${roiLabel}</span></td>
+            <td>${doc.year}</td>
+            <td>${doc.accuracy}</td>
+            <td>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-info" onclick="showPreview(${doc.id})"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-danger" onclick="deleteDocument(${doc.id})"><i class="fas fa-trash"></i></button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+        
+        // Grid View
+        const gridItem = document.createElement('div');
+        gridItem.className = 'doc-grid-item';
+        gridItem.innerHTML = `
+            <div style="text-align: center;">
+                <h6 style="margin: 0 0 10px 0; color: #28a745; min-height: 40px; word-wrap: break-word;">${doc.title}</h6>
+                <p style="margin: 0 0 8px 0;"><span class="sector-badge">${doc.sector}</span></p>
+                <p style="margin: 0 0 8px 0; font-size: 0.85rem; color: #666;">${doc.type}</p>
+                <p style="margin: 0 0 8px 0;"><span class="financial-badge ${roiClass}">${roiLabel}</span></p>
+                <p style="margin: 0 0 8px 0; font-size: 0.8rem; color: #999;">السنة: ${doc.year}</p>
+                <div style="display: flex; gap: 5px; justify-content: center; margin-top: 12px;">
+                    <button class="btn btn-sm btn-success" onclick="showPreview(${doc.id})"><i class="fas fa-eye"></i> عرض</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteDocument(${doc.id})"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+        gridView.appendChild(gridItem);
+    });
+}
+
+function filterByCategory(filter, event) {
+    event.preventDefault();
+    currentFilter = filter;
+    
+    document.querySelectorAll('.fs-sidebar .nav-link').forEach(l => l.classList.remove('active'));
+    event.target.closest('.nav-link').classList.add('active');
+    
+    renderDocuments();
+}
+
+function setupSearch() {
+    const input = document.getElementById('searchInput');
+    const suggestionsDiv = document.getElementById('suggestions');
+    
+    input.addEventListener('focus', () => {
+        suggestionsDiv.innerHTML = suggestions.map(s => `<div class="suggestion-item" onclick="selectSuggestion('${s}')">${s}</div>`).join('');
+        suggestionsDiv.classList.add('show');
+    });
+    
+    input.addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        const filtered = suggestions.filter(s => s.toLowerCase().includes(val));
+        suggestionsDiv.innerHTML = filtered.map(s => `<div class="suggestion-item" onclick="selectSuggestion('${s}')">${s}</div>`).join('');
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target)) suggestionsDiv.classList.remove('show');
+    });
+}
+
+function selectSuggestion(text) {
+    document.getElementById('searchInput').value = text;
+    document.getElementById('suggestions').classList.remove('show');
+}
+
+function setupFilters() {
+    document.getElementById('filterSector').addEventListener('change', renderDocuments);
+    document.getElementById('filterType').addEventListener('change', renderDocuments);
+    document.getElementById('filterROI').addEventListener('change', renderDocuments);
+}
+
+function switchView(view) {
+    document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
+    document.getElementById('gridView').style.display = view === 'grid' ? 'grid' : 'none';
+}
+
+function showPreview(id) {
+    const doc = documents.find(d => d.id === id);
+    const panel = document.getElementById('previewPanel');
+    const content = document.getElementById('previewContent');
+    
+    const roiLabel = doc.roi === 'high' ? 'عالية جداً ⭐⭐⭐' : doc.roi === 'medium' ? 'متوسطة ⭐⭐' : 'منخفضة ⭐';
+    const roiColor = doc.roi === 'high' ? '#28a745' : doc.roi === 'medium' ? '#ffc107' : '#dc3545';
+    
+    content.innerHTML = `
+        <div class="preview-item">
+            <div class="preview-item-label">📄 العنوان</div>
+            <h5 style="color: #28a745; margin: 0; word-wrap: break-word;">${doc.title}</h5>
+        </div>
+        
+        <div class="preview-divider"></div>
+        
+        <div class="preview-item">
+            <div class="preview-item-label">🏢 القطاع</div>
+            <div><span class="sector-badge">${doc.sector}</span></div>
+        </div>
+        
+        <div class="preview-item">
+            <div class="preview-item-label">📊 نوع البيانات</div>
+            <div class="preview-badge" style="background: #007bff;">${doc.type}</div>
+        </div>
+        
+        <div class="preview-item">
+            <div class="preview-item-label">⭐ درجة الأهمية المالية</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: ${roiColor};"></span>
+                <span class="preview-item-value">${roiLabel}</span>
+            </div>
+        </div>
+        
+        <div class="preview-item">
+            <div class="preview-item-label">📅 سنة البيانات</div>
+            <div class="preview-item-value">${doc.year}</div>
+        </div>
+        
+        <div class="preview-item">
+            <div class="preview-item-label">🎯 مستوى التقدير</div>
+            <div class="preview-item-value">${doc.accuracy}</div>
+        </div>
+        
+        <div class="preview-item">
+            <div class="preview-item-label">🏷️ الوسوم</div>
+            <div class="preview-tags-container">
+                ${doc.tags.map(t => `<span class="preview-tag">${t}</span>`).join('')}
+            </div>
+        </div>
+        
+        <div class="preview-divider"></div>
+        
+        <div class="action-btn-group">
+            <button class="btn btn-sm btn-success"><i class="fas fa-plus"></i> استخدام في النموذج المالي</button>
+            <button class="btn btn-sm btn-info"><i class="fas fa-chart-bar"></i> مقارنة مالية</button>
+            <button class="btn btn-sm btn-warning"><i class="fas fa-flask"></i> استخراج الافتراضات</button>
+        </div>
+    `;
+    panel.style.display = 'block';
+}
+
+function closePreview() {
+    document.getElementById('previewPanel').style.display = 'none';
+}
+
+function deleteDocument(id) {
+    Swal.fire({icon: 'question', title: 'تأكيد الحذف', text: 'هل تريد حذف هذه الدراسة؟', showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء'}).then(r => {
+        if (r.isConfirmed) {
+            documents = documents.filter(d => d.id !== id);
+            renderDocuments();
+            Swal.fire('تم الحذف', '', 'success');
+        }
+    });
+}
+
+function nextStep() {
+    if (currentStep === 2) {
+        currentStep = 3;
+    } else if (currentStep === 3) {
+        currentStep = 4;
+        document.querySelectorAll('[id^="step"]').forEach(e => e.style.display = 'none');
+        document.getElementById('step4').style.display = 'block';
+        document.getElementById('nextBtn').disabled = true;
+        simulateProcessing();
+        return;
+    } else {
+        currentStep++;
+    }
+    
+    document.querySelectorAll('[id^="step"]').forEach(e => e.style.display = 'none');
+    document.getElementById(`step${currentStep}`).style.display = 'block';
+    
+    if (currentStep === 5) {
+        document.getElementById('nextBtn').style.display = 'none';
+        document.getElementById('uploadBtnFinal').style.display = 'inline-block';
+    }
+}
+
+function simulateProcessing() {
+    const steps = document.querySelectorAll('#step4 .progress-step');
+    let stepIndex = 2;
+    
+    function markStepDone() {
+        if (stepIndex < steps.length) {
+            steps[stepIndex].classList.add('done');
+            const spinner = steps[stepIndex].querySelector('.spinner-border');
+            if (spinner) spinner.style.display = 'none';
+            stepIndex++;
+            setTimeout(markStepDone, 600);
+        } else {
+            setTimeout(() => {
+                currentStep = 5;
+                document.getElementById('step4').style.display = 'none';
+                document.getElementById('step5').style.display = 'block';
+                document.getElementById('nextBtn').disabled = false;
+                document.getElementById('nextBtn').style.display = 'none';
+                document.getElementById('uploadBtnFinal').style.display = 'inline-block';
+            }, 500);
+        }
+    }
+    markStepDone();
+}
+
+function finalUpload() {
+    const title = document.getElementById('docTitle').value;
+    const sector = document.getElementById('docSector').value;
+    const dataType = document.getElementById('docDataType').value;
+    const tags = document.getElementById('docTags').value.split(',').map(t => t.trim()).filter(t => t);
+    const year = parseInt(document.getElementById('docYear').value) || 2025;
+    const accuracy = document.getElementById('docAccuracy').value;
+    
+    const newDoc = {
+        id: documents.length + 1,
+        title: title || 'دراسة جدوى جديدة',
+        sector: sector || 'عام',
+        type: dataType,
+        roi: 'medium',
+        year: year,
+        accuracy: accuracy,
+        tags: tags.length > 0 ? tags : ['جديد']
+    };
+    
+    documents.push(newDoc);
+    
+    Swal.fire({icon: 'success', title: 'نجاح!', text: 'تمت إضافة الدراسة بنجاح', didClose: () => {
+        document.getElementById('uploadModal').querySelector('.btn-close').click();
+        currentStep = 1;
+        document.querySelectorAll('[id^="step"]').forEach(e => e.style.display = 'none');
+        document.getElementById('step1').style.display = 'block';
+        document.getElementById('nextBtn').disabled = false;
+        document.getElementById('nextBtn').style.display = 'inline-block';
+        document.getElementById('uploadBtnFinal').style.display = 'none';
+        document.getElementById('fileInput').value = '';
+        document.getElementById('docTitle').value = '';
+        document.getElementById('docTags').value = '';
+        renderDocuments();
+    }});
+}
+</script>
+{% endblock %}
