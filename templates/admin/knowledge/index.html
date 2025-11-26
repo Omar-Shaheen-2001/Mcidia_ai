@@ -1,147 +1,294 @@
 {% extends "admin/base.html" %}
 
 {% block content %}
-<!-- SweetAlert2 CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<style>
+    .kb-sidebar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+    .kb-sidebar .nav-link {
+        color: rgba(255,255,255,0.8);
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin: 5px 0;
+        transition: all 0.3s;
+    }
+    .kb-sidebar .nav-link:hover {
+        color: white;
+        background: rgba(255,255,255,0.1);
+    }
+    .kb-sidebar .nav-link.active {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border-left: 3px solid white;
+    }
+    .kb-sidebar .section-title {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.6);
+        margin: 15px 0 10px 0;
+        padding: 0 15px;
+        font-weight: bold;
+    }
+    .quality-badge {
+        font-size: 0.75rem;
+        padding: 3px 8px;
+        border-radius: 20px;
+    }
+    .quality-excellent { background: #28a745; color: white; }
+    .quality-good { background: #17a2b8; color: white; }
+    .quality-fair { background: #ffc107; color: black; }
+    .quality-poor { background: #dc3545; color: white; }
+    .main-content {
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+</style>
+
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2>{{ 'قاعدة المعرفة' if lang == 'ar' else 'Knowledge Base' }}</h2>
-                    <p class="text-muted">{{ 'إدارة وتنظيم المستندات والملفات الذكية' if lang == 'ar' else 'Manage and organize smart documents and files' }}</p>
-                </div>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    {{ 'رفع ملف' if lang == 'ar' else 'Upload File' }}
-                </button>
-            </div>
-        </div>
-    </div>
+    <div class="row h-100">
+        <!-- Sidebar -->
+        <div class="col-md-2 kb-sidebar p-3">
+            <h5 class="mb-3">📚 قاعدة المعرفة</h5>
+            
+            <div class="section-title">الأقسام الأساسية</div>
+            <nav class="nav flex-column">
+                <a href="#" class="nav-link active" data-category="all">
+                    <i class="fas fa-layer-group"></i> الكل
+                </a>
+                <a href="#" class="nav-link" data-category="business">
+                    <i class="fas fa-book"></i> أساسيات الأعمال
+                </a>
+                <a href="#" class="nav-link" data-category="feasibility">
+                    <i class="fas fa-chart-bar"></i> دراسات الجدوى
+                </a>
+                <a href="#" class="nav-link" data-category="strategy">
+                    <i class="fas fa-compass"></i> التخطيط الاستراتيجي
+                </a>
+                <a href="#" class="nav-link" data-category="hr">
+                    <i class="fas fa-building"></i> الموارد البشرية
+                </a>
+                <a href="#" class="nav-link" data-category="finance">
+                    <i class="fas fa-coins"></i> النمذجة المالية
+                </a>
+                <a href="#" class="nav-link" data-category="market">
+                    <i class="fas fa-chart-line"></i> أبحاث السوق
+                </a>
+                <a href="#" class="nav-link" data-category="operations">
+                    <i class="fas fa-cog"></i> العمليات والعمليات
+                </a>
+            </nav>
 
-    <!-- Stats -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">{{ 'إجمالي الملفات' if lang == 'ar' else 'Total Files' }}</h5>
-                    <h2 id="total-docs">{{ total_docs }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">{{ 'الفئات' if lang == 'ar' else 'Categories' }}</h5>
-                    <h2>{{ categories|length }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <h5 class="card-title">{{ 'الحالة' if lang == 'ar' else 'Status' }}</h5>
-                    <h2><span class="badge bg-success">{{ 'نشط' if lang == 'ar' else 'Active' }}</span></h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <h5 class="card-title">{{ 'معالج' if lang == 'ar' else 'Processed' }}</h5>
-                    <h2>{{ documents|length }}</h2>
-                </div>
-            </div>
-        </div>
-    </div>
+            <div class="section-title mt-4">المشاريع</div>
+            <nav class="nav flex-column">
+                <a href="#" class="nav-link" data-category="user-projects">
+                    <i class="fas fa-lock"></i> معرفة المستخدم
+                </a>
+                <a href="#" class="nav-link" data-category="templates">
+                    <i class="fas fa-file-alt"></i> مكتبة القوالب
+                </a>
+            </nav>
 
-    <!-- Filter Bar -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
+            <div class="section-title mt-4">أدوات الإدارة</div>
+            <nav class="nav flex-column">
+                <a href="#" class="nav-link" data-tool="quality">
+                    <i class="fas fa-check-circle"></i> فحص الجودة
+                </a>
+                <a href="#" class="nav-link" data-tool="duplicates">
+                    <i class="fas fa-copy"></i> كشف التكرار
+                </a>
+                <a href="#" class="nav-link" data-tool="reembed">
+                    <i class="fas fa-sync-alt"></i> إعادة المعالجة
+                </a>
+                <a href="#" class="nav-link" data-tool="analytics">
+                    <i class="fas fa-chart-pie"></i> التحليلات
+                </a>
+                <a href="#" class="nav-link" data-tool="agents">
+                    <i class="fas fa-robot"></i> تخطيط الوكلاء
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 main-content p-4">
+            <!-- Top Navigation Bar -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h4>🔍 قاعدة المعرفة الرئيسية</h4>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                                <i class="fas fa-cloud-upload-alt"></i> رفع ملف جديد
+                            </button>
+                            <button class="btn btn-success btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#templateModal">
+                                <i class="fas fa-plus"></i> قالب جديد
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm ms-2" id="searchToggle">
+                                <i class="fas fa-sliders-h"></i> الفلاتر
+                            </button>
+                            <button class="btn btn-outline-info btn-sm ms-2" href="/admin/knowledge/settings">
+                                <i class="fas fa-cog"></i> الإعدادات
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Stats -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center shadow-sm">
+                        <div class="card-body">
+                            <h6 class="text-muted">إجمالي الملفات</h6>
+                            <h3 id="stat-total">{{ total_docs }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center shadow-sm">
+                        <div class="card-body">
+                            <h6 class="text-muted">الأقسام</h6>
+                            <h3 id="stat-categories">{{ categories|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center shadow-sm">
+                        <div class="card-body">
+                            <h6 class="text-muted">متوسط الجودة</h6>
+                            <h3 id="stat-quality"><span class="badge bg-success">جيد</span></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center shadow-sm">
+                        <div class="card-body">
+                            <h6 class="text-muted">Chunks المعالجة</h6>
+                            <h3 id="stat-chunks">{{ documents|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search & Filters Panel -->
+            <div class="card mb-4 shadow-sm" id="filtersPanel" style="display:none;">
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <input type="text" class="form-control" id="searchInput" 
-                                   placeholder="{{ 'ابحث عن الملفات...' if lang == 'ar' else 'Search files...' }}">
+                        <div class="col-md-3">
+                            <label class="form-label">البحث</label>
+                            <input type="text" class="form-control" id="searchInput" placeholder="ابحث...">
                         </div>
                         <div class="col-md-3">
+                            <label class="form-label">القسم</label>
                             <select class="form-select" id="categoryFilter">
-                                <option value="">{{ 'جميع الفئات' if lang == 'ar' else 'All Categories' }}</option>
+                                <option value="">الكل</option>
                                 {% for category in categories %}
                                 <option value="{{ category }}">{{ category }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <button class="btn btn-outline-secondary w-100" id="refreshBtn">
-                                <i class="fas fa-sync-alt"></i>
-                                {{ 'تحديث' if lang == 'ar' else 'Refresh' }}
-                            </button>
+                            <label class="form-label">الجودة</label>
+                            <select class="form-select" id="qualityFilter">
+                                <option value="">الكل</option>
+                                <option value="excellent">ممتاز</option>
+                                <option value="good">جيد</option>
+                                <option value="fair">مقبول</option>
+                                <option value="poor">ضعيف</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">النوع</label>
+                            <select class="form-select" id="typeFilter">
+                                <option value="">الكل</option>
+                                <option value="PDF">PDF</option>
+                                <option value="DOCX">Word</option>
+                                <option value="TXT">Text</option>
+                                <option value="MD">Markdown</option>
+                            </select>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Documents Table -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">{{ 'الملفات المرفوعة' if lang == 'ar' else 'Uploaded Files' }}</h5>
+            <!-- Documents Table -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">📄 الملفات المرفوعة</h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover" id="documentsTable">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>{{ 'الاسم' if lang == 'ar' else 'Name' }}</th>
-                                    <th>{{ 'النوع' if lang == 'ar' else 'Type' }}</th>
-                                    <th>{{ 'تاريخ الرفع' if lang == 'ar' else 'Upload Date' }}</th>
-                                    <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
-                                    <th>{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody">
-                                {% for doc in documents %}
-                                <tr>
-                                    <td>
-                                        <i class="fas fa-file"></i> {{ doc.filename }}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary">{{ doc.file_type|upper }}</span>
-                                    </td>
-                                    <td>{{ doc.uploaded_at.strftime('%Y-%m-%d %H:%M') if doc.uploaded_at else 'N/A' }}</td>
-                                    <td>
-                                        <span class="badge bg-success">{{ 'معالج' if lang == 'ar' else 'Processed' }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <button class="btn btn-info" onclick="editDocument({{ doc.id }})">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-warning" onclick="reembedDocument({{ doc.id }})">
-                                                <i class="fas fa-sync"></i>
-                                            </button>
-                                            <button class="btn btn-danger" onclick="deleteDocument({{ doc.id }})">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% else %}
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted">
-                                        {{ 'لا توجد ملفات مرفوعة' if lang == 'ar' else 'No files uploaded' }}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 30px;">📌</th>
+                                <th>اسم الملف</th>
+                                <th>النوع</th>
+                                <th>القسم</th>
+                                <th>Chunks</th>
+                                <th>الجودة</th>
+                                <th>التاريخ</th>
+                                <th style="width: 200px;">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentsTable">
+                            {% for doc in documents %}
+                            <tr>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-warning" onclick="pinDocument({{ doc.id }})" title="تثبيت">
+                                        <i class="fas fa-thumbtack"></i>
+                                    </button>
+                                </td>
+                                <td>
+                                    <i class="fas fa-file"></i> 
+                                    <strong>{{ doc.filename }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ doc.file_type|upper }}</span>
+                                </td>
+                                <td>
+                                    {% if doc.embeddings %}
+                                        {% set meta = doc.embeddings|from_json %}
+                                        {{ meta.get('category', 'عام') }}
+                                    {% else %}
+                                        عام
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge bg-info">{{ documents|length }}</span></td>
+                                <td>
+                                    <span class="quality-badge quality-good">جيد</span>
+                                </td>
+                                <td>{{ doc.uploaded_at.strftime('%Y-%m-%d') if doc.uploaded_at else '-' }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button class="btn btn-info" onclick="previewDocument({{ doc.id }})" title="معاينة">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-warning" onclick="editMetadata({{ doc.id }})" title="تعديل">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-success" onclick="reembedDocument({{ doc.id }})" title="إعادة معالجة">
+                                            <i class="fas fa-sync"></i>
+                                        </button>
+                                        <button class="btn btn-danger" onclick="deleteDocument({{ doc.id }})" title="حذف">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    لا توجد ملفات مرفوعة حالياً
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -150,29 +297,68 @@
 
 <!-- Upload Modal -->
 <div class="modal fade" id="uploadModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ 'رفع ملف جديد' if lang == 'ar' else 'Upload New File' }}</h5>
+                <h5 class="modal-title">📤 رفع ملف جديد</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="uploadForm" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label class="form-label">{{ 'اختر ملفاً' if lang == 'ar' else 'Choose a file' }}</label>
-                        <input type="file" class="form-control" id="fileInput" required 
-                               accept=".pdf,.docx,.txt,.md,.doc">
-                        <small class="text-muted">{{ 'أنواع الملفات المدعومة: PDF, DOCX, TXT, MD, DOC' if lang == 'ar' else 'Supported file types: PDF, DOCX, TXT, MD, DOC' }}</small>
+                <div class="mb-3">
+                    <label class="form-label">اختر الملف</label>
+                    <input type="file" class="form-control" id="fileInput" accept=".pdf,.docx,.txt,.md,.doc">
+                    <small class="text-muted">أنواع مدعومة: PDF, DOCX, TXT, MD, DOC</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">القسم</label>
+                    <select class="form-select" id="categorySelect">
+                        <option value="Business Fundamentals">أساسيات الأعمال</option>
+                        <option value="Feasibility Studies">دراسات الجدوى</option>
+                        <option value="Strategic Planning">التخطيط الاستراتيجي</option>
+                        <option value="HR">الموارد البشرية</option>
+                        <option value="Finance">التمويل</option>
+                        <option value="Market Research">أبحاث السوق</option>
+                        <option value="Operations">العمليات</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">الوسوم (Tags)</label>
+                    <input type="text" class="form-control" id="tagsInput" placeholder="فصل بين الوسوم بفواصل">
+                </div>
+                <div id="uploadProgress" style="display:none;">
+                    <div class="text-center mb-2">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">جاري المعالجة...</span>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">{{ 'الفئة' if lang == 'ar' else 'Category' }}</label>
-                        <input type="text" class="form-control" id="categoryInput" placeholder="{{ 'مثال: استراتيجية' if lang == 'ar' else 'E.g., Strategy' }}">
-                    </div>
-                </form>
+                    <ul id="processingSteps" class="list-group">
+                        <li class="list-group-item"><i class="fas fa-check text-success"></i> استخراج النص</li>
+                        <li class="list-group-item"><i class="fas fa-hourglass-start text-warning"></i> تنظيف المحتوى</li>
+                        <li class="list-group-item"><i class="fas fa-hourglass-start text-warning"></i> تقسيم Chunks</li>
+                        <li class="list-group-item"><i class="fas fa-hourglass-start text-warning"></i> إنشاء Embeddings</li>
+                    </ul>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'إلغاء' if lang == 'ar' else 'Cancel' }}</button>
-                <button type="button" class="btn btn-primary" onclick="uploadFile()">{{ 'رفع' if lang == 'ar' else 'Upload' }}</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" id="uploadBtn" onclick="uploadFile()">
+                    <i class="fas fa-cloud-upload-alt"></i> رفع
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template Modal -->
+<div class="modal fade" id="templateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">➕ إنشاء قالب جديد</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">قريباً - سيتم إضافة هذه الميزة قريباً</p>
             </div>
         </div>
     </div>
@@ -180,33 +366,34 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 <script>
-const lang = '{{ lang }}';
+const lang = 'ar';
+
+// Toggle Filters
+document.getElementById('searchToggle').addEventListener('click', () => {
+    const panel = document.getElementById('filtersPanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+});
 
 // Upload File
 async function uploadFile() {
     const fileInput = document.getElementById('fileInput');
-    const categoryInput = document.getElementById('categoryInput');
-    const uploadBtn = document.querySelector('.modal-footer .btn-primary');
-    const formData = new FormData();
+    const categorySelect = document.getElementById('categorySelect');
+    const tagsInput = document.getElementById('tagsInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadProgress = document.getElementById('uploadProgress');
     
     if (!fileInput.files.length) {
-        Swal.fire({
-            icon: 'warning',
-            title: lang === 'ar' ? 'تحذير' : 'Warning',
-            text: lang === 'ar' ? 'الرجاء اختيار ملفاً' : 'Please choose a file',
-            confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
-        });
+        Swal.fire('تحذير', 'اختر ملفاً', 'warning');
         return;
     }
     
-    // Disable button and show loading state
     uploadBtn.disabled = true;
-    const originalText = uploadBtn.innerHTML;
-    uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>' + 
-                         (lang === 'ar' ? 'جاري الرفع...' : 'Uploading...');
+    uploadProgress.style.display = 'block';
     
+    const formData = new FormData();
     formData.append('file', fileInput.files[0]);
-    formData.append('category', categoryInput.value || 'General');
+    formData.append('category', categorySelect.value);
+    formData.append('tags', tagsInput.value);
     
     try {
         const response = await fetch('/admin/knowledge/api/documents', {
@@ -215,81 +402,41 @@ async function uploadFile() {
         });
         
         if (response.ok) {
-            const data = await response.json();
+            uploadProgress.style.display = 'none';
             Swal.fire({
                 icon: 'success',
-                title: lang === 'ar' ? 'نجاح!' : 'Success!',
-                text: lang === 'ar' ? 'تم رفع الملف بنجاح' : 'File uploaded successfully',
-                confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK',
+                title: 'نجاح!',
+                text: 'تم رفع الملف بنجاح',
                 didClose: () => location.reload()
             });
         } else {
             const error = await response.json();
-            Swal.fire({
-                icon: 'error',
-                title: lang === 'ar' ? 'خطأ' : 'Error',
-                text: error.error || (lang === 'ar' ? 'فشل الرفع' : 'Upload failed'),
-                confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
-            });
+            Swal.fire('خطأ', error.error || 'فشل الرفع', 'error');
         }
     } catch (error) {
-        console.error('Upload error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: lang === 'ar' ? 'خطأ' : 'Error',
-            text: (lang === 'ar' ? 'خطأ: ' : 'Error: ') + error.message,
-            confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
-        });
+        Swal.fire('خطأ', error.message, 'error');
     } finally {
-        // Re-enable button
         uploadBtn.disabled = false;
-        uploadBtn.innerHTML = originalText;
+        uploadProgress.style.display = 'none';
     }
 }
 
-// Delete Document
-async function deleteDocument(docId) {
-    Swal.fire({
-        icon: 'question',
-        title: lang === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete',
-        text: lang === 'ar' ? 'هل تريد حذف هذا الملف؟' : 'Are you sure you want to delete this file?',
-        showCancelButton: true,
-        confirmButtonText: lang === 'ar' ? 'نعم، احذفه' : 'Yes, delete it',
-        cancelButtonText: lang === 'ar' ? 'إلغاء' : 'Cancel'
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            try {
-                const response = await fetch(`/admin/knowledge/api/documents/${docId}`, {
-                    method: 'DELETE'
-                });
-                
-                if (response.ok) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: lang === 'ar' ? 'تم الحذف' : 'Deleted',
-                        text: lang === 'ar' ? 'تم الحذف بنجاح' : 'Deleted successfully',
-                        confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK',
-                        didClose: () => location.reload()
-                    });
-                }
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: lang === 'ar' ? 'خطأ' : 'Error',
-                    text: (lang === 'ar' ? 'خطأ: ' : 'Error: ') + error.message,
-                    confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
-                });
-            }
-        }
-    });
+// Preview Document
+function previewDocument(docId) {
+    Swal.fire('قريباً', 'سيتم إضافة هذه الميزة قريباً', 'info');
+}
+
+// Edit Metadata
+function editMetadata(docId) {
+    Swal.fire('قريباً', 'سيتم إضافة محرر البيانات الوصفية قريباً', 'info');
 }
 
 // Re-embed Document
 async function reembedDocument(docId) {
     Swal.fire({
         icon: 'info',
-        title: lang === 'ar' ? 'إعادة المعالجة' : 'Reprocessing',
-        text: lang === 'ar' ? 'جاري إعادة معالجة الملف...' : 'Reprocessing file...',
+        title: 'إعادة المعالجة',
+        text: 'جاري إعادة معالجة الملف...',
         allowOutsideClick: false,
         didOpen: async () => {
             Swal.showLoading();
@@ -297,47 +444,52 @@ async function reembedDocument(docId) {
                 const response = await fetch(`/admin/knowledge/api/documents/${docId}/re-embed`, {
                     method: 'POST'
                 });
-                
                 if (response.ok) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: lang === 'ar' ? 'تم' : 'Done',
-                        text: lang === 'ar' ? 'تم إعادة المعالجة بنجاح' : 'Reprocessed successfully',
-                        confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK',
-                        didClose: () => location.reload()
-                    });
+                    Swal.fire('تم', 'تم إعادة المعالجة بنجاح', 'success').then(() => location.reload());
                 }
             } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: lang === 'ar' ? 'خطأ' : 'Error',
-                    text: (lang === 'ar' ? 'خطأ: ' : 'Error: ') + error.message,
-                    confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
-                });
+                Swal.fire('خطأ', error.message, 'error');
             }
         }
     });
 }
 
-// Edit Document
-function editDocument(docId) {
+// Delete Document
+async function deleteDocument(docId) {
     Swal.fire({
-        icon: 'info',
-        title: lang === 'ar' ? 'قريباً' : 'Coming Soon',
-        text: lang === 'ar' ? 'هذه الميزة قيد التطوير' : 'This feature is coming soon',
-        confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+        icon: 'question',
+        title: 'تأكيد الحذف',
+        text: 'هل تريد حذف هذا الملف؟',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، احذفه',
+        cancelButtonText: 'إلغاء'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`/admin/knowledge/api/documents/${docId}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    Swal.fire('تم الحذف', 'تم الحذف بنجاح', 'success').then(() => location.reload());
+                }
+            } catch (error) {
+                Swal.fire('خطأ', error.message, 'error');
+            }
+        }
     });
 }
 
-// Refresh
-document.getElementById('refreshBtn').addEventListener('click', () => location.reload());
+// Pin Document
+function pinDocument(docId) {
+    Swal.fire('قريباً', 'سيتم إضافة ميزة التثبيت قريباً', 'info');
+}
 
-// Search
-document.getElementById('searchInput').addEventListener('keyup', function() {
-    const query = this.value.toLowerCase();
-    document.querySelectorAll('#tableBody tr').forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(query) ? '' : 'none';
+// Sidebar Navigation
+document.querySelectorAll('.kb-sidebar .nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelectorAll('.kb-sidebar .nav-link').forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
     });
 });
 </script>
