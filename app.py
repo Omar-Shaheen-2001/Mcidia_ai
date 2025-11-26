@@ -79,6 +79,8 @@ def create_app():
     
     # Add Jinja filters
     import json
+    import markdown
+    
     @app.template_filter('from_json')
     def from_json_filter(value):
         """Convert JSON string to Python object"""
@@ -88,6 +90,17 @@ def create_app():
             return json.loads(value) if isinstance(value, str) else value
         except:
             return []
+    
+    @app.template_filter('md_to_html')
+    def md_to_html(value):
+        """Convert Markdown to HTML"""
+        if not value:
+            return ""
+        try:
+            html = markdown.markdown(value, extensions=['tables', 'fenced_code', 'codehilite', 'nl2br'])
+            return html
+        except:
+            return value
     
     # Enable CSRF only for form pages (HTML POST requests)
     # API endpoints are protected by JWT instead
