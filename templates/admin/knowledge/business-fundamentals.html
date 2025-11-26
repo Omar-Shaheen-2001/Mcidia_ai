@@ -254,7 +254,23 @@ let documents = [
 
 const suggestions = ['ROI', 'Business Model Canvas', 'McKinsey 7S', 'Porter 5 Forces', 'SWOT', 'Break-even', 'Market Size', 'CAC', 'CLV'];
 
+function loadDocuments() {
+    const saved = localStorage.getItem('bf-documents');
+    if (saved) {
+        try {
+            documents = JSON.parse(saved);
+        } catch (e) {
+            console.error('خطأ في تحميل البيانات:', e);
+        }
+    }
+}
+
+function saveDocuments() {
+    localStorage.setItem('bf-documents', JSON.stringify(documents));
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    loadDocuments();
     renderDocuments();
     setupSearch();
     setupFilters();
@@ -424,6 +440,7 @@ function deleteDocument(id) {
     Swal.fire({icon: 'question', title: 'تأكيد الحذف', text: 'هل تريد حذف هذا الملف؟', showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء'}).then(r => {
         if (r.isConfirmed) {
             documents = documents.filter(d => d.id !== id);
+            saveDocuments();
             renderDocuments();
             Swal.fire('تم الحذف', '', 'success');
         }
@@ -494,6 +511,7 @@ function finalUpload() {
     };
     
     documents.push(newDoc);
+    saveDocuments();
     
     Swal.fire({icon: 'success', title: 'نجاح!', text: 'تم حفظ الملف بنجاح', didClose: () => {
         document.getElementById('uploadModal').querySelector('.btn-close').click();

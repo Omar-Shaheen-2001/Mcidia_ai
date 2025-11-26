@@ -298,7 +298,23 @@ let documents = [
 
 const suggestions = ['متوسط التكاليف', 'حجم السوق', 'نموذج الإيرادات', 'تحليل المنافسين', 'معايير السعر', 'دراسة جدوى', 'نقطة التعادل'];
 
+function loadDocuments() {
+    const saved = localStorage.getItem('fs-documents');
+    if (saved) {
+        try {
+            documents = JSON.parse(saved);
+        } catch (e) {
+            console.error('خطأ في تحميل البيانات:', e);
+        }
+    }
+}
+
+function saveDocuments() {
+    localStorage.setItem('fs-documents', JSON.stringify(documents));
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    loadDocuments();
     renderDocuments();
     setupSearch();
     setupFilters();
@@ -478,6 +494,7 @@ function deleteDocument(id) {
     Swal.fire({icon: 'question', title: 'تأكيد الحذف', text: 'هل تريد حذف هذه الدراسة؟', showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء'}).then(r => {
         if (r.isConfirmed) {
             documents = documents.filter(d => d.id !== id);
+            saveDocuments();
             renderDocuments();
             Swal.fire('تم الحذف', '', 'success');
         }
@@ -552,6 +569,7 @@ function finalUpload() {
     };
     
     documents.push(newDoc);
+    saveDocuments();
     
     Swal.fire({icon: 'success', title: 'نجاح!', text: 'تمت إضافة الدراسة بنجاح', didClose: () => {
         document.getElementById('uploadModal').querySelector('.btn-close').click();
