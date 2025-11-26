@@ -312,7 +312,24 @@ let documents = [
 
 const suggestions = ['رؤية ورسالة', 'أهداف استراتيجية', 'مؤشرات الأداء', 'خريطة استراتيجية', 'حوكمة', 'OKRs', 'Balanced Scorecard'];
 
+// localStorage للحفظ الدائم
+function loadDocuments() {
+    const saved = localStorage.getItem('sp-documents');
+    if (saved) {
+        try {
+            documents = JSON.parse(saved);
+        } catch (e) {
+            console.error('خطأ في تحميل البيانات:', e);
+        }
+    }
+}
+
+function saveDocuments() {
+    localStorage.setItem('sp-documents', JSON.stringify(documents));
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    loadDocuments();
     renderDocuments();
     setupSearch();
     setupFilters();
@@ -480,23 +497,75 @@ function showPreview(id) {
     panel.style.display = 'block';
 }
 
-function openPlanBuilder(docId) {
-    const doc = documents.find(d => d.id === docId);
-    const extractedElements = {
-        vision: 'رؤية المنظمة الحديثة والمتطورة في السوق العالمي',
-        mission: 'تقديم حلول استراتيجية متقدمة وفعّالة',
-        objectives: [
-            'تحسين الكفاءة التشغيلية بـ 25%',
-            'زيادة رضا العملاء إلى 90%',
-            'تطوير قدرات رقمية متقدمة'
+function extractIntelligentElements(doc) {
+    // استخراج ذكي من بيانات المستند
+    const visionMap = {
+        'النمو': 'تحقيق نمو مستدام وتوسع في حصتنا من السوق',
+        'التحول الرقمي': 'بناء منظمة رقمية متطورة مع تقنيات حديثة',
+        'التمييز': 'تحقيق التميز التشغيلي والجودة العالية',
+        'الموارد البشرية': 'بناء فريق عمل موهوب وملتزم',
+        'الابتكار': 'قيادة السوق بالابتكار والحلول المتقدمة'
+    };
+    
+    const missionMap = {
+        'النمو': 'تحقيق عائد استثماري عالي وخلق قيمة للمساهمين',
+        'التحول الرقمي': 'توفير حلول رقمية متكاملة وآمنة',
+        'التمييز': 'تقديم منتجات وخدمات بجودة عالية جداً',
+        'الموارد البشرية': 'تطوير المواهب وتوفير بيئة عمل محفزة',
+        'الابتكار': 'تحويل الأفكار إلى حلول عملية وقابلة للتنفيذ'
+    };
+    
+    const objectivesMap = {
+        'النمو': ['زيادة الإيرادات بـ 35% خلال 3 سنوات', 'التوسع إلى أسواق جديدة', 'تحسين استحواذ العملاء'],
+        'التحول الرقمي': ['تطبيق تقنيات سحابية متقدمة', 'أتمتة 70% من العمليات', 'تحسين سرعة الخدمات'],
+        'التمييز': ['تحسين الكفاءة التشغيلية بـ 40%', 'تقليل الأخطاء إلى أقل من 1%', 'رفع رضا العملاء إلى 95%'],
+        'الموارد البشرية': ['تطوير مهارات 100% من الموظفين', 'تقليل نسبة دوران الموظفين', 'زيادة الإنتاجية بـ 25%'],
+        'الابتكار': ['إطلاق 5 منتجات جديدة سنوياً', 'تخصيص 15% من الموازنة للبحث والتطوير', 'بناء شراكات إستراتيجية']
+    };
+    
+    const kpisMap = {
+        'النمو': [
+            { name: 'معدل النمو السنوي', value: '30-35%', category: 'Financial' },
+            { name: 'عدد العملاء الجدد', value: '+40%', category: 'Customer' },
+            { name: 'الحصة السوقية', value: '+5%', category: 'Customer' }
         ],
-        themes: [doc.theme, 'التحسين المستمر'],
-        kpis: [
-            { name: 'معدل النمو السنوي', value: '15%', category: 'Financial' },
-            { name: 'معدل رضا العملاء', value: '88%', category: 'Customer' },
-            { name: 'إنتاجية الموظف', value: '+20%', category: 'Internal' }
+        'التحول الرقمي': [
+            { name: 'نسبة الرقمنة', value: '85%', category: 'Internal' },
+            { name: 'سرعة المعاملات', value: '-60%', category: 'Internal' },
+            { name: 'رضا المستخدمين الرقميين', value: '92%', category: 'Customer' }
+        ],
+        'التمييز': [
+            { name: 'معدل الكفاءة التشغيلية', value: '92%', category: 'Internal' },
+            { name: 'معدل رضا العملاء', value: '94%', category: 'Customer' },
+            { name: 'الالتزام بالمواعيد', value: '98%', category: 'Internal' }
+        ],
+        'الموارد البشرية': [
+            { name: 'معدل تطوير الموظفين', value: '100%', category: 'Learning' },
+            { name: 'معدل الاحتفاظ', value: '92%', category: 'Internal' },
+            { name: 'الإنتاجية لكل موظف', value: '+25%', category: 'Internal' }
+        ],
+        'الابتكار': [
+            { name: 'عدد براءات الاختراع', value: '5+ سنوياً', category: 'Learning' },
+            { name: 'الاستثمار في R&D', value: '15%', category: 'Financial' },
+            { name: 'نسبة المنتجات الجديدة', value: '40%', category: 'Customer' }
         ]
     };
+    
+    return {
+        vision: visionMap[doc.theme] || 'رؤية المنظمة المتقدمة والمستدامة',
+        mission: missionMap[doc.theme] || 'تقديم حلول متقدمة وفعالة',
+        objectives: objectivesMap[doc.theme] || ['تحسين الأداء', 'زيادة الكفاءة'],
+        themes: [doc.theme, 'التحسين المستمر', doc.scope],
+        kpis: kpisMap[doc.theme] || [
+            { name: 'معدل النمو', value: '25%', category: 'Financial' },
+            { name: 'رضا العملاء', value: '90%', category: 'Customer' }
+        ]
+    };
+}
+
+function openPlanBuilder(docId) {
+    const doc = documents.find(d => d.id === docId);
+    const extractedElements = extractIntelligentElements(doc);
     
     const modal = new bootstrap.Modal(document.getElementById('planBuilderModal'));
     
@@ -572,6 +641,7 @@ function deleteDocument(id) {
     Swal.fire({icon: 'question', title: 'تأكيد الحذف', text: 'هل تريد حذف هذه الخطة؟', showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء'}).then(r => {
         if (r.isConfirmed) {
             documents = documents.filter(d => d.id !== id);
+            saveDocuments();
             renderDocuments();
             Swal.fire('تم الحذف', '', 'success');
         }
@@ -643,6 +713,7 @@ function finalUpload() {
     };
     
     documents.push(newDoc);
+    saveDocuments();
     
     Swal.fire({icon: 'success', title: 'نجاح!', text: 'تمت إضافة الخطة بنجاح', didClose: () => {
         document.getElementById('uploadModal').querySelector('.btn-close').click();
