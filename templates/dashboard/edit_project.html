@@ -314,9 +314,8 @@
                                         id="content" 
                                         name="content" 
                                         class="form-control"
-                                        rows="15"
                                         placeholder="{{ 'محتوى المشروع...' if lang == 'ar' else 'Project content...' }}"
-                                    >{{ project.content or '' }}</textarea>
+                                    >{% set project_data = project.content|from_json %}{% if project_data.get('output') %}{{ project_data.get('output') }}{% else %}{{ project.content or '' }}{% endif %}</textarea>
                                 </div>
                                 
                                 <!-- Preview Tab -->
@@ -400,9 +399,12 @@
 
 <script>
 $(document).ready(function() {
+    // Extract raw content from textarea before Summernote initialization
+    let initialContent = $('#content').val();
+    
     // Initialize Summernote editor
     $('#content').summernote({
-        height: 300,
+        height: 400,
         lang: '{{ "ar-AR" if lang == "ar" else "en-US" }}',
         toolbar: [
             ['style', ['bold', 'italic', 'underline', 'clear']],
@@ -418,6 +420,11 @@ $(document).ready(function() {
         callbacks: {
             onChange: function(contents, $editable) {
                 updatePreview();
+            },
+            onInit: function() {
+                // Store the initial content in a data attribute for reference
+                $('#content').data('initialContent', initialContent);
+                updatePreview();
             }
         }
     });
@@ -427,8 +434,12 @@ $(document).ready(function() {
         setTimeout(updatePreview, 100);
     });
     
-    // Initial preview update
-    setTimeout(updatePreview, 500);
+    // Update preview when switching back to edit tab to show live changes
+    $('#edit-tab').on('click', function() {
+        setTimeout(() => {
+            $('#content').summernote('focus');
+        }, 100);
+    });
 });
 
 function updatePreview() {
