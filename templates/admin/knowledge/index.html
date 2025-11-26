@@ -216,8 +216,94 @@
                 </div>
             </div>
 
+            <!-- Business Fundamentals Panel (Hidden by default) -->
+            <div class="card shadow-sm mb-4" id="businessFundamentalsPanel" style="display:none;">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">📚 أساسيات الأعمال - Business Fundamentals</h5>
+                        <button class="btn btn-sm btn-light" onclick="closePanels()"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <strong>💡 الوصف:</strong> قسم مرجعي شامل يحتوي على المفاهيم والأدوات الأساسية التي يعتمد عليها كل مشروع استشاري. يستخدمه جميع الوكلاء كأساس للتفسير والتحليل.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <h6 class="border-bottom pb-2">📖 تعريفات الأعمال</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>نموذج الأعمال:</strong> الطريقة التي تحقق الشركة بها الإيرادات</li>
+                                <li><strong>Value Proposition:</strong> القيمة المقدمة للعملاء</li>
+                                <li><strong>Business Model Canvas:</strong> 9 عناصر أساسية للنموذج</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <h6 class="border-bottom pb-2">📊 المؤشرات المالية الأساسية</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>ROI:</strong> العائد على الاستثمار</li>
+                                <li><strong>Market Size:</strong> حجم السوق الإجمالي (TAM, SAM, SOM)</li>
+                                <li><strong>CAC:</strong> تكلفة الحصول على عميل</li>
+                                <li><strong>CLV:</strong> قيمة حياة العميل</li>
+                                <li><strong>Break-even:</strong> نقطة التعادل</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <h6 class="border-bottom pb-2">🎯 الإطارات الاستراتيجية</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6>McKinsey 7S</h6>
+                                            <small>تحليل 7 عوامل داخلية: الاستراتيجية، الهيكل، الأنظمة، المهارات، الأسلوب، الموظفون، القيم المشتركة</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6>BCG Matrix</h6>
+                                            <small>تحليل محفظة الأعمال بناءً على النمو والحصة السوقية: نجوم، أبقار نقدية، علامات استفهام، كلاب</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light mt-3">
+                                        <div class="card-body">
+                                            <h6>Porter's Five Forces</h6>
+                                            <small>تحليل القوى التنافسية: المنافسون الجدد، البائعون، المشترون، البدائل، الشدة التنافسية</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light mt-3">
+                                        <div class="card-body">
+                                            <h6>SWOT Analysis</h6>
+                                            <small>نقاط القوة والضعف والفرص والتهديدات</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success">
+                        <strong>✅ الاستخدام بواسطة الوكلاء:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>🤖 <strong>وكيل التخطيط الاستراتيجي:</strong> استخدام إطار 7S و Porter</li>
+                            <li>🤖 <strong>وكيل دراسات الجدوى:</strong> حسابات ROI والـ Market Size</li>
+                            <li>🤖 <strong>وكيل الموارد البشرية:</strong> الهيكل التنظيمي والثقافة</li>
+                            <li>🤖 <strong>وكيل التمويل:</strong> المؤشرات المالية والتدفق النقدي</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
             <!-- Documents Table -->
-            <div class="card shadow-sm">
+            <div class="card shadow-sm" id="documentsPanel">
                 <div class="card-header bg-light">
                     <h5 class="mb-0">📄 الملفات المرفوعة</h5>
                 </div>
@@ -484,12 +570,32 @@ function pinDocument(docId) {
     Swal.fire('قريباً', 'سيتم إضافة ميزة التثبيت قريباً', 'info');
 }
 
+// Close All Panels
+function closePanels() {
+    document.getElementById('businessFundamentalsPanel').style.display = 'none';
+    document.getElementById('documentsPanel').style.display = 'block';
+    document.querySelectorAll('.kb-sidebar .nav-link').forEach(l => l.classList.remove('active'));
+    document.querySelector('[data-category="all"]').classList.add('active');
+}
+
 // Sidebar Navigation
 document.querySelectorAll('.kb-sidebar .nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
         document.querySelectorAll('.kb-sidebar .nav-link').forEach(l => l.classList.remove('active'));
         link.classList.add('active');
+
+        const category = link.getAttribute('data-category');
+        const documentsPanel = document.getElementById('documentsPanel');
+        const businessPanel = document.getElementById('businessFundamentalsPanel');
+
+        if (category === 'business') {
+            documentsPanel.style.display = 'none';
+            businessPanel.style.display = 'block';
+        } else {
+            businessPanel.style.display = 'none';
+            documentsPanel.style.display = 'block';
+        }
     });
 });
 </script>
