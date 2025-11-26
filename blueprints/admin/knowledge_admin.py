@@ -287,3 +287,92 @@ def settings():
     """Knowledge base settings"""
     lang = get_lang()
     return render_template('admin/knowledge/settings.html', lang=lang)
+
+@knowledge_admin_bp.route('/graph')
+@login_required
+@role_required('system_admin')
+def knowledge_graph():
+    """Knowledge graph visualization"""
+    lang = get_lang()
+    return render_template('admin/knowledge/graph.html', lang=lang)
+
+@knowledge_admin_bp.route('/api/graph')
+@login_required
+@role_required('system_admin')
+def api_graph():
+    """API: Get knowledge graph data"""
+    db = get_db()
+    documents = db.session.query(Document).all()
+    
+    # Build nodes (documents + categories)
+    nodes = []
+    edges = []
+    categories = {}
+    doc_categories = {}
+    
+    for doc in documents:
+        meta = json.loads(doc.metadata or '{}')
+        category = meta.get('category', 'General')
+        
+        # Add document node
+        nodes.append({
+            'id': f'doc_{doc.id}',
+            'label': doc.filename[:30],
+            'title': doc.filename,
+            'color': '#4CAF50',
+            'shape': 'box'
+        })
+        
+        # Track category
+        if category not in categories:
+            categories[category] = 0
+        categories[category] += 1
+        doc_categories[doc.id] = category
+        
+        # Connect to category
+        edges.append({
+            'from': f'doc_{doc.id}',
+            'to': f'cat_{category}',
+            'arrows': 'to'
+        })
+    
+    # Add category nodes
+    for category, count in categories.items():
+        nodes.append({
+            'id': f'cat_{category}',
+            'label': f'{category}\n({count})',
+            'title': category,
+            'color': '#2196F3',
+            'shape': 'ellipse'
+        })
+    
+    stats = {
+        'total_docs': len(documents),
+        'total_categories': len(categories),
+        'avg_connections': len(edges) / max(len(nodes), 1)
+    }
+    
+    return jsonify({
+        'nodes': nodes,
+        'edges': edges,
+        'stats': stats
+    })
+
+@knowledge_admin_bp.route('/api/ask', methods=['POST'])
+def ask_knowledge_base():
+    """Public endpoint: Ask knowledge base a question"""
+    from utils.knowledge.rag_engine import generate_answer
+    
+    data = request.json
+    query = data.get('query', '')
+    category = data.get('category')
+    lang = request.args.get('lang', 'ar')
+    
+    if not query:
+        return jsonify({'error': 'Query required'}), 400
+    
+    try:
+        result = generate_answer(query, category=category, lang=lang)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

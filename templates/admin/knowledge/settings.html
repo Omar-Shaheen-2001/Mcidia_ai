@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}إعدادات قاعدة المعرفة{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="mb-0">
+                <i class="fas fa-cog me-2"></i>
+                {% if lang == 'ar' %}إعدادات قاعدة المعرفة{% else %}Knowledge Base Settings{% endif %}
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Settings Sidebar -->
+        <div class="col-md-3">
+            <div class="list-group">
+                <a href="#chunking" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                    <i class="fas fa-cube me-2"></i>
+                    {% if lang == 'ar' %}إعدادات Chunking{% else %}Chunking Settings{% endif %}
+                </a>
+                <a href="#embeddings" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="fas fa-brain me-2"></i>
+                    {% if lang == 'ar' %}نماذج Embedding{% else %}Embedding Models{% endif %}
+                </a>
+                <a href="#llm" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="fas fa-robot me-2"></i>
+                    {% if lang == 'ar' %}إعدادات LLM{% else %}LLM Settings{% endif %}
+                </a>
+                <a href="#categories" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="fas fa-folder me-2"></i>
+                    {% if lang == 'ar' %}الفئات{% else %}Categories{% endif %}
+                </a>
+            </div>
+        </div>
+
+        <!-- Settings Content -->
+        <div class="col-md-9">
+            <div class="list-group-item">
+                <!-- Chunking Settings -->
+                <div id="chunking" class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cube me-2"></i>
+                            {% if lang == 'ar' %}إعدادات Chunking{% else %}Chunking Settings{% endif %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="chunkingForm">
+                            <div class="mb-3">
+                                <label class="form-label">{% if lang == 'ar' %}حجم الـ Chunk{% else %}Chunk Size{% endif %}</label>
+                                <input type="number" class="form-control" id="chunkSize" value="500" min="100" max="2000">
+                                <small class="text-muted">{% if lang == 'ar' %}عدد الكلمات في كل chunk{% else %}Number of words per chunk{% endif %}</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% if lang == 'ar' %}التداخل{% else %}Overlap{% endif %}</label>
+                                <input type="number" class="form-control" id="chunkOverlap" value="50" min="0" max="500">
+                                <small class="text-muted">{% if lang == 'ar' %}عدد الكلمات المتداخلة بين chunks{% else %}Number of overlapping words between chunks{% endif %}</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                {% if lang == 'ar' %}حفظ{% else %}Save{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Embedding Models -->
+                <div id="embeddings" class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-brain me-2"></i>
+                            {% if lang == 'ar' %}نماذج Embedding{% else %}Embedding Models{% endif %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="embeddingsForm">
+                            <div class="mb-3">
+                                <label class="form-label">{% if lang == 'ar' %}النموذج المستخدم{% else %}Active Model{% endif %}</label>
+                                <select class="form-select" id="embeddingModel">
+                                    <option value="openai">OpenAI (text-embedding-3-small)</option>
+                                    <option value="sentence_transformer">Sentence Transformers (all-MiniLM-L6-v2)</option>
+                                </select>
+                                <small class="text-muted">{% if lang == 'ar' %}اختر النموذج المستخدم لإنشاء embeddings{% else %}Choose the model for creating embeddings{% endif %}</small>
+                            </div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                {% if lang == 'ar' %}
+                                    <strong>OpenAI:</strong> نتائج أفضل لكن يتطلب API key<br>
+                                    <strong>Sentence Transformers:</strong> محلي وسريع لكن أقل دقة
+                                {% else %}
+                                    <strong>OpenAI:</strong> Better results but requires API key<br>
+                                    <strong>Sentence Transformers:</strong> Local and fast but less accurate
+                                {% endif %}
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                {% if lang == 'ar' %}حفظ{% else %}Save{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- LLM Settings -->
+                <div id="llm" class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-robot me-2"></i>
+                            {% if lang == 'ar' %}إعدادات LLM{% else %}LLM Settings{% endif %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="llmForm">
+                            <div class="mb-3">
+                                <label class="form-label">{% if lang == 'ar' %}نموذج OpenAI{% else %}OpenAI Model{% endif %}</label>
+                                <select class="form-select" id="llmModel">
+                                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo (سريع وأرخص)</option>
+                                    <option value="gpt-4">GPT-4 (أكثر دقة)</option>
+                                    <option value="gpt-4-turbo">GPT-4 Turbo (الأفضل)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% if lang == 'ar' %}درجة الحرارة{% else %}Temperature{% endif %}</label>
+                                <input type="range" class="form-range" id="temperature" min="0" max="1" step="0.1" value="0.7">
+                                <small class="text-muted">{% if lang == 'ar' %}الإبداعية (0 = حتمية، 1 = إبداعية جداً){% else %}Creativity (0 = deterministic, 1 = very creative){% endif %}</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% if lang == 'ar' %}الحد الأقصى للـ Tokens{% else %}Max Tokens{% endif %}</label>
+                                <input type="number" class="form-control" id="maxTokens" value="500" min="100" max="4000">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                {% if lang == 'ar' %}حفظ{% else %}Save{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Categories -->
+                <div id="categories" class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-folder me-2"></i>
+                            {% if lang == 'ar' %}إدارة الفئات{% else %}Manage Categories{% endif %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="categoriesList" class="mb-3">
+                            <div class="badge bg-primary me-2 mb-2">
+                                <i class="fas fa-check me-1"></i> Strategy
+                            </div>
+                            <div class="badge bg-success me-2 mb-2">
+                                <i class="fas fa-check me-1"></i> HR
+                            </div>
+                            <div class="badge bg-info me-2 mb-2">
+                                <i class="fas fa-check me-1"></i> Finance
+                            </div>
+                            <div class="badge bg-warning me-2 mb-2">
+                                <i class="fas fa-check me-1"></i> Feasibility
+                            </div>
+                            <div class="badge bg-secondary me-2 mb-2">
+                                <i class="fas fa-check me-1"></i> General
+                            </div>
+                        </div>
+                        <form id="addCategoryForm" class="d-flex gap-2">
+                            <input type="text" class="form-control" id="newCategory" 
+                                   placeholder="{% if lang == 'ar' %}فئة جديدة{% else %}New category{% endif %}">
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                {% if lang == 'ar' %}إضافة{% else %}Add{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Save settings (basic implementation)
+document.getElementById('chunkingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const settings = {
+        chunk_size: document.getElementById('chunkSize').value,
+        chunk_overlap: document.getElementById('chunkOverlap').value
+    };
+    localStorage.setItem('chunking_settings', JSON.stringify(settings));
+    alert('{% if lang == "ar" %}تم الحفظ بنجاح{% else %}Saved successfully{% endif %}');
+});
+
+document.getElementById('embeddingsForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const settings = {
+        embedding_model: document.getElementById('embeddingModel').value
+    };
+    localStorage.setItem('embedding_settings', JSON.stringify(settings));
+    alert('{% if lang == "ar" %}تم الحفظ بنجاح{% else %}Saved successfully{% endif %}');
+});
+
+document.getElementById('llmForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const settings = {
+        llm_model: document.getElementById('llmModel').value,
+        temperature: document.getElementById('temperature').value,
+        max_tokens: document.getElementById('maxTokens').value
+    };
+    localStorage.setItem('llm_settings', JSON.stringify(settings));
+    alert('{% if lang == "ar" %}تم الحفظ بنجاح{% else %}Saved successfully{% endif %}');
+});
+</script>
+{% endblock %}

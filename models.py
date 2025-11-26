@@ -141,10 +141,12 @@ class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     filename = db.Column(db.String(255), nullable=False)
-    file_type = db.Column(db.String(50))  # pdf, docx, txt
+    file_type = db.Column(db.String(50))  # pdf, docx, txt, md
     file_path = db.Column(db.String(500))
     content_text = db.Column(db.Text)  # Extracted text content
     embeddings = db.Column(db.Text)  # JSON string of embeddings
+    metadata = db.Column(db.Text, default='{}')  # JSON: category, tags, quality_score, etc.
+    category = db.Column(db.String(100), default='General')  # Strategy, HR, Finance, Feasibility, General
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
@@ -152,6 +154,8 @@ class Document(db.Model):
             'id': self.id,
             'filename': self.filename,
             'file_type': self.file_type,
+            'category': self.category,
+            'metadata': self.metadata,
             'uploaded_at': self.uploaded_at.isoformat() if self.uploaded_at else None
         }
 
