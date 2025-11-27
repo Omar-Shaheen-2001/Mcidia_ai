@@ -27,7 +27,7 @@ def admin_required(f):
             return redirect(url_for('auth.login'))
         
         user = db.session.query(User).get(user_id)
-        if not user or user.role != 'system_admin':
+        if not user or not user.has_role('system_admin'):
             return redirect(url_for('dashboard.index'))
         
         g.user = user
