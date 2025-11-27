@@ -1,0 +1,293 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'تعديل قالب البريد' if lang == 'ar' else 'Edit Email Template' }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .code-editor {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        min-height: 400px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        background: #1e1e1e;
+        color: #d4d4d4;
+    }
+    .preview-container {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: white;
+        min-height: 400px;
+    }
+    .variable-tag {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 2px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        margin: 2px;
+        cursor: pointer;
+    }
+    .variable-tag:hover {
+        opacity: 0.8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.email_admin.index') }}">{{ 'البريد' if lang == 'ar' else 'Email' }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.email_admin.templates') }}">{{ 'القوالب' if lang == 'ar' else 'Templates' }}</a></li>
+                    <li class="breadcrumb-item active">{{ template.template_key }}</li>
+                </ol>
+            </nav>
+            <h2 class="mb-1">
+                <i class="fas fa-edit {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                {{ 'تعديل قالب:' if lang == 'ar' else 'Edit Template:' }} {{ template.name_ar if lang == 'ar' else template.name_en }}
+            </h2>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary" onclick="previewTemplate()">
+                <i class="fas fa-eye {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                {{ 'معاينة' if lang == 'ar' else 'Preview' }}
+            </button>
+            <button class="btn btn-primary" onclick="saveTemplate()">
+                <i class="fas fa-save {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                {{ 'حفظ التغييرات' if lang == 'ar' else 'Save Changes' }}
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Editor Column -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-heading {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                        {{ 'عنوان الرسالة' if lang == 'ar' else 'Email Subject' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'العنوان (عربي)' if lang == 'ar' else 'Subject (Arabic)' }}</label>
+                        <input type="text" id="subjectAr" class="form-control" value="{{ template.subject_ar }}" dir="rtl">
+                    </div>
+                    <div>
+                        <label class="form-label">{{ 'العنوان (إنجليزي)' if lang == 'ar' else 'Subject (English)' }}</label>
+                        <input type="text" id="subjectEn" class="form-control" value="{{ template.subject_en }}" dir="ltr">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-code {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                        {{ 'محتوى HTML' if lang == 'ar' else 'HTML Content' }}
+                    </h5>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary active" id="htmlTab" onclick="switchTab('html')">HTML</button>
+                        <button class="btn btn-outline-primary" id="textTab" onclick="switchTab('text')">{{ 'نص عادي' if lang == 'ar' else 'Plain Text' }}</button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="htmlEditor">
+                        <textarea id="htmlContent" class="code-editor w-100">{{ template.html_content }}</textarea>
+                    </div>
+                    <div id="textEditor" style="display: none;">
+                        <textarea id="textContent" class="code-editor w-100" style="background: #f8f9fa; color: #333;">{{ template.text_content or '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-5">
+            <!-- Variables -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tags {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                        {{ 'المتغيرات المتاحة' if lang == 'ar' else 'Available Variables' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">{{ 'اضغط على المتغير لنسخه' if lang == 'ar' else 'Click variable to copy' }}</p>
+                    <div id="variablesList">
+                        {% if template.variables %}
+                            {% for var in template.variables.split(',') %}
+                            <span class="variable-tag" onclick="copyVariable('{{ var.strip() }}')">{{ '{' + var.strip() + '}' }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="variable-tag" onclick="copyVariable('user_name')">{user_name}</span>
+                            <span class="variable-tag" onclick="copyVariable('reset_link')">{reset_link}</span>
+                            <span class="variable-tag" onclick="copyVariable('email')">{email}</span>
+                            <span class="variable-tag" onclick="copyVariable('company_name')">{company_name}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Preview -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-eye {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                        {{ 'معاينة مباشرة' if lang == 'ar' else 'Live Preview' }}
+                    </h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshPreview()">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="preview-container">
+                        <iframe id="previewFrame" style="width: 100%; height: 400px; border: none; border-radius: 0 0 8px 8px;"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Template Status -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cog {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                        {{ 'إعدادات القالب' if lang == 'ar' else 'Template Settings' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="isActive" {{ 'checked' if template.is_active }}>
+                        <label class="form-check-label" for="isActive">
+                            {{ 'القالب نشط' if lang == 'ar' else 'Template Active' }}
+                        </label>
+                    </div>
+                    <div class="text-muted small">
+                        <div class="mb-1">
+                            <strong>{{ 'معرّف القالب:' if lang == 'ar' else 'Template Key:' }}</strong>
+                            <code>{{ template.template_key }}</code>
+                        </div>
+                        <div class="mb-1">
+                            <strong>{{ 'تاريخ الإنشاء:' if lang == 'ar' else 'Created:' }}</strong>
+                            {{ template.created_at.strftime('%Y-%m-%d') if template.created_at else '-' }}
+                        </div>
+                        <div>
+                            <strong>{{ 'آخر تحديث:' if lang == 'ar' else 'Last Updated:' }}</strong>
+                            {{ template.updated_at.strftime('%Y-%m-%d %H:%M') if template.updated_at else '-' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Save Success Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="saveToast" class="toast" role="alert">
+        <div class="toast-header bg-success text-white">
+            <i class="fas fa-check-circle {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+            <strong class="{{ 'ms-auto' if lang == 'en' else 'me-auto' }}">{{ 'تم الحفظ' if lang == 'ar' else 'Saved' }}</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body">
+            {{ 'تم حفظ التغييرات بنجاح' if lang == 'ar' else 'Changes saved successfully' }}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentTab = 'html';
+
+function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('htmlEditor').style.display = tab === 'html' ? 'block' : 'none';
+    document.getElementById('textEditor').style.display = tab === 'text' ? 'block' : 'none';
+    document.getElementById('htmlTab').classList.toggle('active', tab === 'html');
+    document.getElementById('textTab').classList.toggle('active', tab === 'text');
+}
+
+function copyVariable(varName) {
+    const text = '{' + varName + '}';
+    navigator.clipboard.writeText(text);
+    
+    const activeEditor = currentTab === 'html' ? document.getElementById('htmlContent') : document.getElementById('textContent');
+    const start = activeEditor.selectionStart;
+    const end = activeEditor.selectionEnd;
+    const value = activeEditor.value;
+    activeEditor.value = value.substring(0, start) + text + value.substring(end);
+    activeEditor.focus();
+    activeEditor.setSelectionRange(start + text.length, start + text.length);
+}
+
+function refreshPreview() {
+    const html = document.getElementById('htmlContent').value;
+    const sampleData = {
+        'user_name': '{{ "أحمد محمد" if lang == "ar" else "Ahmed Mohamed" }}',
+        'reset_link': 'https://mcidia.com/auth/reset-password/sample-token',
+        'email': 'user@example.com',
+        'company_name': '{{ "شركة النجاح" if lang == "ar" else "Success Company" }}'
+    };
+    
+    let processedHtml = html;
+    for (const [key, value] of Object.entries(sampleData)) {
+        processedHtml = processedHtml.replace(new RegExp('\\{' + key + '\\}', 'g'), value);
+    }
+    
+    const iframe = document.getElementById('previewFrame');
+    iframe.srcdoc = processedHtml;
+}
+
+async function saveTemplate() {
+    const data = {
+        subject_ar: document.getElementById('subjectAr').value,
+        subject_en: document.getElementById('subjectEn').value,
+        html_content: document.getElementById('htmlContent').value,
+        text_content: document.getElementById('textContent').value,
+        is_active: document.getElementById('isActive').checked
+    };
+    
+    try {
+        const response = await fetch('{{ url_for("admin.email_admin.update_template", template_id=template.id) }}', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            new bootstrap.Toast(document.getElementById('saveToast')).show();
+        } else {
+            alert('{{ "خطأ في الحفظ" if lang == "ar" else "Error saving" }}');
+        }
+    } catch (error) {
+        alert('{{ "خطأ في الاتصال" if lang == "ar" else "Connection error" }}');
+    }
+}
+
+function previewTemplate() {
+    refreshPreview();
+    const iframe = document.getElementById('previewFrame');
+    const win = window.open('', '_blank');
+    win.document.write(iframe.srcdoc);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    refreshPreview();
+    
+    document.getElementById('htmlContent').addEventListener('input', function() {
+        clearTimeout(this.previewTimeout);
+        this.previewTimeout = setTimeout(refreshPreview, 500);
+    });
+});
+</script>
+{% endblock %}

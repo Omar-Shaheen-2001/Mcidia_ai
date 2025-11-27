@@ -1,0 +1,151 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'قوالب البريد' if lang == 'ar' else 'Email Templates' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-file-code {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                {{ 'قوالب البريد الإلكتروني' if lang == 'ar' else 'Email Templates' }}
+            </h2>
+            <p class="text-muted mb-0">{{ 'تخصيص وتعديل قوالب الرسائل' if lang == 'ar' else 'Customize and edit email templates' }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.email_admin.index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-cog {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                {{ 'الإعدادات' if lang == 'ar' else 'Settings' }}
+            </a>
+            <a href="{{ url_for('admin.email_admin.logs') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-list {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                {{ 'السجلات' if lang == 'ar' else 'Logs' }}
+            </a>
+        </div>
+    </div>
+
+    <!-- Templates Grid -->
+    <div class="row">
+        {% if templates %}
+            {% for template in templates %}
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; display: flex; align-items: center; justify-content: center;" class="{{ 'ms-3' if lang == 'ar' else 'me-3' }}">
+                                <i class="fas fa-envelope-open-text text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">{{ template.name_ar if lang == 'ar' else template.name_en }}</h6>
+                                <small class="text-muted"><code>{{ template.template_key }}</code></small>
+                            </div>
+                        </div>
+                        <span class="badge bg-{{ 'success' if template.is_active else 'secondary' }}">
+                            {{ 'نشط' if template.is_active else 'معطّل' if lang == 'ar' else 'Active' if template.is_active else 'Inactive' }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">{{ 'العنوان (عربي)' if lang == 'ar' else 'Subject (Arabic)' }}</small>
+                            <span>{{ template.subject_ar }}</span>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">{{ 'العنوان (إنجليزي)' if lang == 'ar' else 'Subject (English)' }}</small>
+                            <span>{{ template.subject_en }}</span>
+                        </div>
+                        {% if template.variables %}
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">{{ 'المتغيرات المتاحة' if lang == 'ar' else 'Available Variables' }}</small>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for var in template.variables.split(',') %}
+                                <code class="bg-light px-2 py-1 rounded">{{ '{' + var.strip() + '}' }}</code>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        <small class="text-muted">
+                            <i class="fas fa-clock {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {{ 'آخر تحديث:' if lang == 'ar' else 'Last updated:' }} 
+                            {{ template.updated_at.strftime('%Y-%m-%d %H:%M') if template.updated_at else '-' }}
+                        </small>
+                    </div>
+                    <div class="card-footer bg-white border-top-0">
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('admin.email_admin.edit_template', template_id=template.id) }}" class="btn btn-primary flex-grow-1">
+                                <i class="fas fa-edit {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                                {{ 'تعديل القالب' if lang == 'ar' else 'Edit Template' }}
+                            </a>
+                            <button class="btn btn-outline-secondary" onclick="previewTemplate({{ template.id }})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- Empty State + Default Templates Setup -->
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                <i class="fas fa-file-code text-white fa-3x"></i>
+                            </div>
+                        </div>
+                        <h4>{{ 'لا توجد قوالب بعد' if lang == 'ar' else 'No Templates Yet' }}</h4>
+                        <p class="text-muted mb-4">{{ 'اضغط على الزر أدناه لإنشاء القوالب الافتراضية' if lang == 'ar' else 'Click the button below to create default templates' }}</p>
+                        <button class="btn btn-primary btn-lg" onclick="createDefaultTemplates()">
+                            <i class="fas fa-magic {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                            {{ 'إنشاء القوالب الافتراضية' if lang == 'ar' else 'Create Default Templates' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                    {{ 'معاينة القالب' if lang == 'ar' else 'Template Preview' }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="previewFrame" style="width: 100%; height: 500px; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewTemplate(templateId) {
+    const iframe = document.getElementById('previewFrame');
+    iframe.src = '{{ url_for("admin.email_admin.preview_template", template_id=0) }}'.replace('0', templateId);
+    new bootstrap.Modal(document.getElementById('previewModal')).show();
+}
+
+async function createDefaultTemplates() {
+    try {
+        const response = await fetch('{{ url_for("admin.email_admin.index") }}/api/create-defaults', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (response.ok) {
+            location.reload();
+        }
+    } catch (error) {
+        alert('{{ "خطأ في إنشاء القوالب" if lang == "ar" else "Error creating templates" }}');
+    }
+}
+</script>
+{% endblock %}

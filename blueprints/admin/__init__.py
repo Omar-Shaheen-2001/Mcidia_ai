@@ -23,6 +23,7 @@ from .logs import logs_bp
 from .support import support_bp
 from .projects import projects_bp
 from .consultations_admin import consultations_bp
+from .email_admin import email_admin_bp
 
 # Register sub-blueprints
 admin_bp.register_blueprint(dashboard_bp)
@@ -39,5 +40,6 @@ admin_bp.register_blueprint(logs_bp)
 admin_bp.register_blueprint(support_bp)
 admin_bp.register_blueprint(projects_bp)
 admin_bp.register_blueprint(consultations_bp)
+admin_bp.register_blueprint(email_admin_bp)
 
 # Note: settings_bp is registered separately in app.py with url_prefix='/admin/settings'

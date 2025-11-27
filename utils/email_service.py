@@ -7,9 +7,36 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional
+from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def log_email(user_id: int = None, to_email: str = '', subject: str = '', 
+              email_type: str = 'notification', provider: str = None, 
+              status: str = 'pending', error_message: str = None):
+    """Log email sending attempt to database"""
+    try:
+        from app import db
+        from models import EmailLog
+        
+        log = EmailLog(
+            user_id=user_id,
+            to_email=to_email,
+            subject=subject,
+            email_type=email_type,
+            provider=provider or get_email_provider() or 'dev',
+            status=status,
+            error_message=error_message,
+            sent_at=datetime.utcnow() if status == 'sent' else None
+        )
+        db.session.add(log)
+        db.session.commit()
+        return log.id
+    except Exception as e:
+        logger.error(f"Failed to log email: {e}")
+        return None
 
 
 def get_email_provider():
@@ -97,49 +124,68 @@ def send_email_smtp(to_email: str, subject: str, html_content: str, text_content
         return False
 
 
-def send_email(to_email: str, subject: str, html_content: str, text_content: str = None) -> bool:
+def send_email(to_email: str, subject: str, html_content: str, text_content: str = None, 
+               email_type: str = 'notification', user_id: int = None) -> bool:
     """
     Send email using available provider
     Returns True if email sent successfully, False otherwise
     """
     provider = get_email_provider()
+    success = False
+    error_msg = None
     
-    if provider == 'sendgrid':
-        return send_email_sendgrid(to_email, subject, html_content, text_content)
-    elif provider == 'resend':
-        return send_email_resend(to_email, subject, html_content, text_content)
-    elif provider == 'smtp':
-        return send_email_smtp(to_email, subject, html_content, text_content)
-    else:
-        # Development fallback: save email to file for viewing
-        try:
-            import json
-            from datetime import datetime
+    try:
+        if provider == 'sendgrid':
+            success = send_email_sendgrid(to_email, subject, html_content, text_content)
+        elif provider == 'resend':
+            success = send_email_resend(to_email, subject, html_content, text_content)
+        elif provider == 'smtp':
+            success = send_email_smtp(to_email, subject, html_content, text_content)
+        else:
+            # Development fallback: save email to file for viewing
+            try:
+                import json
+                
+                email_file = os.path.join(os.path.dirname(__file__), '../data/dev_emails.json')
+                os.makedirs(os.path.dirname(email_file), exist_ok=True)
+                
+                emails = []
+                if os.path.exists(email_file):
+                    with open(email_file, 'r', encoding='utf-8') as f:
+                        emails = json.load(f)
+                
+                emails.append({
+                    'to': to_email,
+                    'subject': subject,
+                    'timestamp': datetime.utcnow().isoformat(),
+                    'html': html_content[:200],
+                    'status': 'pending'
+                })
+                
+                with open(email_file, 'w', encoding='utf-8') as f:
+                    json.dump(emails, f, ensure_ascii=False, indent=2)
+                
+                logger.info(f"[DEV MODE] Email saved to file for: {to_email}")
+            except Exception as e:
+                logger.error(f"Failed to save email to file: {e}")
             
-            email_file = os.path.join(os.path.dirname(__file__), '../data/dev_emails.json')
-            os.makedirs(os.path.dirname(email_file), exist_ok=True)
-            
-            emails = []
-            if os.path.exists(email_file):
-                with open(email_file, 'r', encoding='utf-8') as f:
-                    emails = json.load(f)
-            
-            emails.append({
-                'to': to_email,
-                'subject': subject,
-                'timestamp': datetime.utcnow().isoformat(),
-                'html': html_content[:200],  # First 200 chars
-                'status': 'pending'
-            })
-            
-            with open(email_file, 'w', encoding='utf-8') as f:
-                json.dump(emails, f, ensure_ascii=False, indent=2)
-            
-            logger.info(f"[DEV MODE] Email saved to file for: {to_email}")
-        except Exception as e:
-            logger.error(f"Failed to save email to file: {e}")
-        
-        return True
+            success = True
+            provider = 'dev'
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Email send error: {e}")
+    
+    log_email(
+        user_id=user_id,
+        to_email=to_email,
+        subject=subject,
+        email_type=email_type,
+        provider=provider or 'dev',
+        status='sent' if success else 'failed',
+        error_message=error_msg
+    )
+    
+    return success
 
 
 def send_password_reset_email(to_email: str, reset_link: str, user_name: str = None) -> bool:
@@ -468,4 +514,4 @@ def send_password_reset_email(to_email: str, reset_link: str, user_name: str = N
 هذه رسالة أمنية تلقائية، يرجى عدم الرد عليها.
     """
     
-    return send_email(to_email, subject, html_content, text_content)
+    return send_email(to_email, subject, html_content, text_content, email_type='password_reset')

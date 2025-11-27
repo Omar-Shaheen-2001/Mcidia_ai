@@ -1,0 +1,268 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'إعدادات البريد' if lang == 'ar' else 'Email Settings' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-envelope-open-text {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                {{ 'إعدادات البريد الإلكتروني' if lang == 'ar' else 'Email Settings' }}
+            </h2>
+            <p class="text-muted mb-0">{{ 'إدارة إعدادات البريد وإرسال رسائل تجريبية' if lang == 'ar' else 'Manage email settings and send test emails' }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.email_admin.logs') }}" class="btn btn-outline-primary">
+                <i class="fas fa-list {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                {{ 'سجل الرسائل' if lang == 'ar' else 'Email Logs' }}
+            </a>
+            <a href="{{ url_for('admin.email_admin.templates') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-file-code {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                {{ 'القوالب' if lang == 'ar' else 'Templates' }}
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Configuration Status -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cog {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                        {{ 'حالة التكوين' if lang == 'ar' else 'Configuration Status' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- SendGrid Status -->
+                    <div class="config-item p-3 rounded mb-3" style="background: linear-gradient(135deg, #667eea15, #764ba215); border: 1px solid #667eea30;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="provider-icon {{ 'ms-3' if lang == 'ar' else 'me-3' }}" style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-paper-plane text-white fa-lg"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">SendGrid</h6>
+                                    <small class="text-muted">{{ 'مزود البريد الرئيسي' if lang == 'ar' else 'Primary Email Provider' }}</small>
+                                </div>
+                            </div>
+                            <div class="text-{{ 'end' if lang == 'en' else 'start' }}">
+                                {% if sendgrid_configured %}
+                                <span class="badge bg-success fs-6">
+                                    <i class="fas fa-check-circle {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                                    {{ 'مُفعّل' if lang == 'ar' else 'Configured' }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-warning fs-6">
+                                    <i class="fas fa-exclamation-circle {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                                    {{ 'غير مُفعّل' if lang == 'ar' else 'Not Configured' }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if sendgrid_configured %}
+                        <div class="mt-3 pt-3 border-top">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">{{ 'البريد المرسل' if lang == 'ar' else 'From Email' }}</small>
+                                    <code class="text-primary">{{ sendgrid_from }}</code>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">{{ 'مفتاح API' if lang == 'ar' else 'API Key' }}</small>
+                                    <code class="text-success">********** ({{ 'مُعد' if lang == 'ar' else 'Set' }})</code>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Configuration Info -->
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                        <strong>{{ 'ملاحظة:' if lang == 'ar' else 'Note:' }}</strong>
+                        {{ 'لتغيير إعدادات SendGrid، قم بتحديث القيم في Secrets من لوحة Replit' if lang == 'ar' else 'To change SendGrid settings, update values in Secrets from Replit panel' }}
+                        <ul class="mb-0 mt-2">
+                            <li><code>SENDGRID_API_KEY</code> - {{ 'مفتاح API من SendGrid' if lang == 'ar' else 'API Key from SendGrid' }}</li>
+                            <li><code>SENDGRID_FROM_EMAIL</code> - {{ 'البريد المرسل منه' if lang == 'ar' else 'Sender email address' }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Email Provider Info -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-server {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                        {{ 'معلومات المزود' if lang == 'ar' else 'Provider Information' }}
+                    </h5>
+                </div>
+                <div class="card-body" id="providerInfo">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted mt-2">{{ 'جاري التحميل...' if lang == 'ar' else 'Loading...' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Email & Quick Actions -->
+        <div class="col-lg-4">
+            <!-- Test Email Card -->
+            <div class="card shadow-sm mb-4" style="border-top: 4px solid #667eea;">
+                <div class="card-body text-center py-4">
+                    <div class="mb-3">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                            <i class="fas fa-paper-plane text-white fa-2x"></i>
+                        </div>
+                    </div>
+                    <h5>{{ 'إرسال بريد تجريبي' if lang == 'ar' else 'Send Test Email' }}</h5>
+                    <p class="text-muted mb-3">{{ 'سيتم إرسال رسالة تجريبية إلى بريدك' if lang == 'ar' else 'A test email will be sent to your address' }}</p>
+                    <button class="btn btn-primary btn-lg px-4" id="sendTestBtn" onclick="sendTestEmail()">
+                        <i class="fas fa-paper-plane {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                        {{ 'إرسال الآن' if lang == 'ar' else 'Send Now' }}
+                    </button>
+                    <div id="testResult" class="mt-3" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-pie {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                        {{ 'إحصائيات سريعة' if lang == 'ar' else 'Quick Stats' }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="quickStats">
+                        <div class="text-center py-3">
+                            <div class="spinner-border spinner-border-sm text-primary"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-link {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                        {{ 'روابط سريعة' if lang == 'ar' else 'Quick Links' }}
+                    </h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('admin.email_admin.logs') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="fas fa-history {{ 'ms-3' if lang == 'ar' else 'me-3' }} text-primary"></i>
+                        {{ 'عرض سجل الرسائل' if lang == 'ar' else 'View Email Logs' }}
+                    </a>
+                    <a href="{{ url_for('admin.email_admin.templates') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="fas fa-edit {{ 'ms-3' if lang == 'ar' else 'me-3' }} text-success"></i>
+                        {{ 'تعديل القوالب' if lang == 'ar' else 'Edit Templates' }}
+                    </a>
+                    <a href="https://app.sendgrid.com" target="_blank" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="fas fa-external-link-alt {{ 'ms-3' if lang == 'ar' else 'me-3' }} text-info"></i>
+                        {{ 'لوحة SendGrid' if lang == 'ar' else 'SendGrid Dashboard' }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadProviderInfo() {
+    try {
+        const response = await fetch('{{ url_for("admin.email_admin.check_config") }}');
+        const data = await response.json();
+        
+        let html = `
+            <div class="table-responsive">
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        <td><strong>{{ 'المزود النشط' if lang == 'ar' else 'Active Provider' }}</strong></td>
+                        <td><span class="badge bg-${data.provider !== 'none' ? 'success' : 'secondary'}">${data.provider.toUpperCase()}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>SendGrid API</strong></td>
+                        <td>${data.sendgrid.configured ? '<i class="fas fa-check text-success"></i> {{ "مُفعّل" if lang == "ar" else "Active" }}' : '<i class="fas fa-times text-danger"></i> {{ "غير مُفعّل" if lang == "ar" else "Inactive" }}'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>{{ 'البريد المرسل' if lang == 'ar' else 'From Email' }}</strong></td>
+                        <td><code>${data.sendgrid.from_email}</code></td>
+                    </tr>
+                </table>
+            </div>
+        `;
+        
+        document.getElementById('providerInfo').innerHTML = html;
+    } catch (error) {
+        document.getElementById('providerInfo').innerHTML = '<div class="alert alert-danger">{{ "خطأ في تحميل البيانات" if lang == "ar" else "Error loading data" }}</div>';
+    }
+}
+
+async function loadQuickStats() {
+    try {
+        const response = await fetch('{{ url_for("admin.email_admin.get_stats") }}');
+        const data = await response.json();
+        
+        const total = data.by_type.reduce((sum, t) => sum + t.count, 0);
+        const sent = data.by_type.filter(t => t.type).length;
+        
+        document.getElementById('quickStats').innerHTML = `
+            <div class="d-flex justify-content-between mb-2">
+                <span>{{ 'إجمالي الرسائل' if lang == 'ar' else 'Total Emails' }}</span>
+                <strong>${total}</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span>{{ 'أنواع الرسائل' if lang == 'ar' else 'Email Types' }}</span>
+                <strong>${data.by_type.length}</strong>
+            </div>
+        `;
+    } catch (error) {
+        document.getElementById('quickStats').innerHTML = '<small class="text-muted">{{ "لا توجد بيانات" if lang == "ar" else "No data available" }}</small>';
+    }
+}
+
+async function sendTestEmail() {
+    const btn = document.getElementById('sendTestBtn');
+    const resultDiv = document.getElementById('testResult');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm {{ "ms-2" if lang == "ar" else "me-2" }}"></span> {{ "جاري الإرسال..." if lang == "ar" else "Sending..." }}';
+    
+    try {
+        const response = await fetch('{{ url_for("admin.email_admin.test_email") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        
+        resultDiv.style.display = 'block';
+        if (data.success) {
+            resultDiv.innerHTML = `<div class="alert alert-success mb-0"><i class="fas fa-check-circle {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>${'{{ lang }}' === 'ar' ? data.message : data.message_en}</div>`;
+        } else {
+            resultDiv.innerHTML = `<div class="alert alert-danger mb-0"><i class="fas fa-times-circle {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>${'{{ lang }}' === 'ar' ? data.message : data.message_en}</div>`;
+        }
+    } catch (error) {
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<div class="alert alert-danger mb-0">{{ "خطأ في الاتصال" if lang == "ar" else "Connection error" }}</div>';
+    }
+    
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane {{ "ms-2" if lang == "ar" else "me-2" }}"></i> {{ "إرسال الآن" if lang == "ar" else "Send Now" }}';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadProviderInfo();
+    loadQuickStats();
+});
+</script>
+{% endblock %}

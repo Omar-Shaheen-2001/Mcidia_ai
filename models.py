@@ -211,6 +211,94 @@ class SecurityLog(db.Model):
         }
 
 
+class EmailLog(db.Model):
+    """Email sending log for tracking all sent emails"""
+    __tablename__ = 'email_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    to_email = db.Column(db.String(255), nullable=False)
+    subject = db.Column(db.String(500), nullable=False)
+    email_type = db.Column(db.String(50), nullable=False)  # password_reset, welcome, notification, test
+    provider = db.Column(db.String(50))  # sendgrid, resend, smtp, dev
+    status = db.Column(db.String(50), default='pending')  # pending, sent, failed
+    error_message = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    sent_at = db.Column(db.DateTime)
+    
+    user = db.relationship('User', backref=db.backref('email_logs', lazy=True))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'to_email': self.to_email,
+            'subject': self.subject,
+            'email_type': self.email_type,
+            'provider': self.provider,
+            'status': self.status,
+            'error_message': self.error_message,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'sent_at': self.sent_at.isoformat() if self.sent_at else None
+        }
+
+
+class EmailTemplate(db.Model):
+    """Customizable email templates"""
+    __tablename__ = 'email_templates'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    template_key = db.Column(db.String(100), unique=True, nullable=False)  # password_reset, welcome, etc.
+    name_ar = db.Column(db.String(200), nullable=False)
+    name_en = db.Column(db.String(200), nullable=False)
+    subject_ar = db.Column(db.String(500), nullable=False)
+    subject_en = db.Column(db.String(500), nullable=False)
+    html_content = db.Column(db.Text, nullable=False)
+    text_content = db.Column(db.Text)
+    variables = db.Column(db.Text)  # JSON list of available variables
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'template_key': self.template_key,
+            'name_ar': self.name_ar,
+            'name_en': self.name_en,
+            'subject_ar': self.subject_ar,
+            'subject_en': self.subject_en,
+            'html_content': self.html_content,
+            'text_content': self.text_content,
+            'variables': self.variables,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+
+class EmailSettings(db.Model):
+    """Email configuration settings"""
+    __tablename__ = 'email_settings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    setting_key = db.Column(db.String(100), unique=True, nullable=False)
+    setting_value = db.Column(db.Text)
+    setting_type = db.Column(db.String(50), default='string')  # string, boolean, number
+    description = db.Column(db.Text)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'setting_key': self.setting_key,
+            'setting_value': self.setting_value,
+            'setting_type': self.setting_type,
+            'description': self.description,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+
 class Transaction(db.Model):
     __tablename__ = 'transactions'
     

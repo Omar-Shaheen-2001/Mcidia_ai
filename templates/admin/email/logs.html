@@ -1,0 +1,241 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'سجل البريد' if lang == 'ar' else 'Email Logs' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-history {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                {{ 'سجل الرسائل المرسلة' if lang == 'ar' else 'Email Sending Logs' }}
+            </h2>
+            <p class="text-muted mb-0">{{ 'تتبع جميع الرسائل المرسلة من النظام' if lang == 'ar' else 'Track all emails sent from the system' }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.email_admin.index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-cog {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                {{ 'الإعدادات' if lang == 'ar' else 'Settings' }}
+            </a>
+            <a href="{{ url_for('admin.email_admin.templates') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-file-code {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                {{ 'القوالب' if lang == 'ar' else 'Templates' }}
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0" style="border-{{ 'right' if lang == 'en' else 'left' }}: 4px solid #667eea !important;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 {{ 'ms-3' if lang == 'ar' else 'me-3' }}">
+                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-envelope text-white fa-lg"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="mb-0">{{ stats.total }}</h4>
+                            <small class="text-muted">{{ 'إجمالي الرسائل' if lang == 'ar' else 'Total Emails' }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0" style="border-{{ 'right' if lang == 'en' else 'left' }}: 4px solid #28a745 !important;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 {{ 'ms-3' if lang == 'ar' else 'me-3' }}">
+                            <div style="width: 50px; height: 50px; background: #28a745; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-check text-white fa-lg"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="mb-0">{{ stats.sent }}</h4>
+                            <small class="text-muted">{{ 'تم الإرسال' if lang == 'ar' else 'Sent' }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0" style="border-{{ 'right' if lang == 'en' else 'left' }}: 4px solid #dc3545 !important;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 {{ 'ms-3' if lang == 'ar' else 'me-3' }}">
+                            <div style="width: 50px; height: 50px; background: #dc3545; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-times text-white fa-lg"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="mb-0">{{ stats.failed }}</h4>
+                            <small class="text-muted">{{ 'فشل' if lang == 'ar' else 'Failed' }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0" style="border-{{ 'right' if lang == 'en' else 'left' }}: 4px solid #ffc107 !important;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 {{ 'ms-3' if lang == 'ar' else 'me-3' }}">
+                            <div style="width: 50px; height: 50px; background: #ffc107; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-clock text-white fa-lg"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="mb-0">{{ stats.pending }}</h4>
+                            <small class="text-muted">{{ 'قيد الانتظار' if lang == 'ar' else 'Pending' }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">{{ 'نوع الرسالة' if lang == 'ar' else 'Email Type' }}</label>
+                    <select name="type" class="form-select">
+                        <option value="">{{ 'الكل' if lang == 'ar' else 'All' }}</option>
+                        <option value="password_reset" {{ 'selected' if filters.type == 'password_reset' }}>{{ 'إعادة تعيين كلمة المرور' if lang == 'ar' else 'Password Reset' }}</option>
+                        <option value="welcome" {{ 'selected' if filters.type == 'welcome' }}>{{ 'ترحيب' if lang == 'ar' else 'Welcome' }}</option>
+                        <option value="notification" {{ 'selected' if filters.type == 'notification' }}>{{ 'إشعار' if lang == 'ar' else 'Notification' }}</option>
+                        <option value="test" {{ 'selected' if filters.type == 'test' }}>{{ 'تجريبي' if lang == 'ar' else 'Test' }}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">{{ 'الحالة' if lang == 'ar' else 'Status' }}</label>
+                    <select name="status" class="form-select">
+                        <option value="">{{ 'الكل' if lang == 'ar' else 'All' }}</option>
+                        <option value="sent" {{ 'selected' if filters.status == 'sent' }}>{{ 'تم الإرسال' if lang == 'ar' else 'Sent' }}</option>
+                        <option value="failed" {{ 'selected' if filters.status == 'failed' }}>{{ 'فشل' if lang == 'ar' else 'Failed' }}</option>
+                        <option value="pending" {{ 'selected' if filters.status == 'pending' }}>{{ 'قيد الانتظار' if lang == 'ar' else 'Pending' }}</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">{{ 'بحث' if lang == 'ar' else 'Search' }}</label>
+                    <input type="text" name="search" class="form-control" placeholder="{{ 'البريد أو العنوان...' if lang == 'ar' else 'Email or subject...' }}" value="{{ filters.search }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                        {{ 'بحث' if lang == 'ar' else 'Search' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Logs Table -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background: linear-gradient(135deg, #667eea15, #764ba215);">
+                        <tr>
+                            <th class="px-4 py-3">{{ 'المستخدم' if lang == 'ar' else 'User' }}</th>
+                            <th class="px-4 py-3">{{ 'البريد المرسل إليه' if lang == 'ar' else 'To Email' }}</th>
+                            <th class="px-4 py-3">{{ 'نوع الرسالة' if lang == 'ar' else 'Type' }}</th>
+                            <th class="px-4 py-3">{{ 'المزود' if lang == 'ar' else 'Provider' }}</th>
+                            <th class="px-4 py-3">{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                            <th class="px-4 py-3">{{ 'الوقت' if lang == 'ar' else 'Time' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if logs.items %}
+                            {% for log in logs.items %}
+                            <tr>
+                                <td class="px-4 py-3">
+                                    {% if log.user %}
+                                        <span class="fw-medium">{{ log.user.username }}</span>
+                                    {% else %}
+                                        <span class="text-muted">{{ 'نظام' if lang == 'ar' else 'System' }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3">
+                                    <code>{{ log.to_email }}</code>
+                                </td>
+                                <td class="px-4 py-3">
+                                    {% set type_badges = {
+                                        'password_reset': ('primary', 'إعادة تعيين', 'Password Reset'),
+                                        'welcome': ('success', 'ترحيب', 'Welcome'),
+                                        'notification': ('info', 'إشعار', 'Notification'),
+                                        'test': ('secondary', 'تجريبي', 'Test')
+                                    } %}
+                                    {% set badge = type_badges.get(log.email_type, ('secondary', log.email_type, log.email_type)) %}
+                                    <span class="badge bg-{{ badge[0] }}">{{ badge[1] if lang == 'ar' else badge[2] }}</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="text-uppercase fw-medium" style="font-size: 0.75rem;">{{ log.provider or 'dev' }}</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    {% if log.status == 'sent' %}
+                                        <span class="badge bg-success"><i class="fas fa-check {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>{{ 'تم الإرسال' if lang == 'ar' else 'Sent' }}</span>
+                                    {% elif log.status == 'failed' %}
+                                        <span class="badge bg-danger"><i class="fas fa-times {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>{{ 'فشل' if lang == 'ar' else 'Failed' }}</span>
+                                    {% else %}
+                                        <span class="badge bg-warning"><i class="fas fa-clock {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>{{ 'قيد الانتظار' if lang == 'ar' else 'Pending' }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3">
+                                    <small class="text-muted">{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted mb-0">{{ 'لا توجد سجلات' if lang == 'ar' else 'No logs found' }}</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        {% if logs.pages > 1 %}
+        <div class="card-footer bg-white">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    {% if logs.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ logs.prev_num }}&type={{ filters.type }}&status={{ filters.status }}&search={{ filters.search }}">
+                            <i class="fas fa-chevron-{{ 'right' if lang == 'ar' else 'left' }}"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in logs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            <li class="page-item {{ 'active' if page_num == logs.page }}">
+                                <a class="page-link" href="?page={{ page_num }}&type={{ filters.type }}&status={{ filters.status }}&search={{ filters.search }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if logs.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ logs.next_num }}&type={{ filters.type }}&status={{ filters.status }}&search={{ filters.search }}">
+                            <i class="fas fa-chevron-{{ 'left' if lang == 'ar' else 'right' }}"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
