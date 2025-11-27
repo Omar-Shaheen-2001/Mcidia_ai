@@ -16,13 +16,17 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         from models import User
-        from flask import session, redirect, url_for
+        from flask import session, redirect, url_for, current_app
         
         user_id = session.get('user_id')
         if not user_id:
             return redirect(url_for('auth.login'))
         
-        user = User.query.get(user_id)
+        db = current_app.extensions.get('sqlalchemy')
+        if not db:
+            return redirect(url_for('auth.login'))
+        
+        user = db.session.query(User).get(user_id)
         if not user or user.role != 'system_admin':
             return redirect(url_for('dashboard.index'))
         
