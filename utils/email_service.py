@@ -111,13 +111,71 @@ def send_email(to_email: str, subject: str, html_content: str, text_content: str
     elif provider == 'smtp':
         return send_email_smtp(to_email, subject, html_content, text_content)
     else:
-        logger.warning("No email provider configured. Email not sent.")
-        logger.info(f"Would send to: {to_email}, Subject: {subject}")
+        # Development fallback: save email to file for viewing
+        try:
+            import json
+            from datetime import datetime
+            
+            email_file = os.path.join(os.path.dirname(__file__), '../data/dev_emails.json')
+            os.makedirs(os.path.dirname(email_file), exist_ok=True)
+            
+            emails = []
+            if os.path.exists(email_file):
+                with open(email_file, 'r', encoding='utf-8') as f:
+                    emails = json.load(f)
+            
+            emails.append({
+                'to': to_email,
+                'subject': subject,
+                'timestamp': datetime.utcnow().isoformat(),
+                'html': html_content[:200],  # First 200 chars
+                'status': 'pending'
+            })
+            
+            with open(email_file, 'w', encoding='utf-8') as f:
+                json.dump(emails, f, ensure_ascii=False, indent=2)
+            
+            logger.info(f"[DEV MODE] Email saved to file for: {to_email}")
+        except Exception as e:
+            logger.error(f"Failed to save email to file: {e}")
+        
         return True
 
 
 def send_password_reset_email(to_email: str, reset_link: str, user_name: str = None) -> bool:
     """Send password reset email with Arabic/English content"""
+    
+    # In development, also save the reset link for easy access
+    if not get_email_provider():
+        try:
+            import json
+            from datetime import datetime
+            
+            link_file = os.path.join(os.path.dirname(__file__), '../data/dev_reset_links.json')
+            os.makedirs(os.path.dirname(link_file), exist_ok=True)
+            
+            links = []
+            if os.path.exists(link_file):
+                with open(link_file, 'r', encoding='utf-8') as f:
+                    links = json.load(f)
+            
+            links.append({
+                'email': to_email,
+                'reset_link': reset_link,
+                'username': user_name,
+                'timestamp': datetime.utcnow().isoformat(),
+                'status': 'pending'
+            })
+            
+            # Keep only last 20 reset links
+            links = links[-20:]
+            
+            with open(link_file, 'w', encoding='utf-8') as f:
+                json.dump(links, f, ensure_ascii=False, indent=2)
+            
+            logger.info(f"[DEV MODE] Reset link saved for: {to_email}")
+        except Exception as e:
+            logger.error(f"Failed to save reset link: {e}")
     
     subject = "إعادة تعيين كلمة المرور – MCIDIA"
     

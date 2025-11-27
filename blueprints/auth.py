@@ -220,6 +220,39 @@ def forgot_password():
     return render_template('auth/forgot-password.html', lang=lang)
 
 
+@auth_bp.route('/dev/reset-links', methods=['GET'])
+def dev_reset_links():
+    """Development endpoint to view pending password reset links"""
+    import os
+    import json
+    from flask import jsonify
+    
+    # Only available in development
+    if not current_app.debug:
+        return jsonify({'error': 'Not available in production'}), 403
+    
+    try:
+        link_file = os.path.join(os.path.dirname(current_app.root_path), 'data/dev_reset_links.json')
+        if os.path.exists(link_file):
+            with open(link_file, 'r', encoding='utf-8') as f:
+                links = json.load(f)
+            
+            return jsonify({
+                'message': 'Development mode: password reset links',
+                'note': 'Click on reset_link to reset password',
+                'links': links,
+                'total': len(links)
+            })
+        else:
+            return jsonify({
+                'message': 'No password reset requests yet',
+                'links': [],
+                'total': 0
+            })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     """Handle password reset with token"""
