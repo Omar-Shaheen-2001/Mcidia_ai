@@ -41,8 +41,10 @@ def admin_required(f):
 def index():
     """Email settings page"""
     from models import EmailSettings
+    from flask import current_app
     
-    settings = {s.setting_key: s.setting_value for s in EmailSettings.query.all()}
+    db = current_app.extensions.get('sqlalchemy')
+    settings = {s.setting_key: s.setting_value for s in db.session.query(EmailSettings).all()}
     
     sendgrid_configured = bool(os.getenv('SENDGRID_API_KEY'))
     sendgrid_from = os.getenv('SENDGRID_FROM_EMAIL', '')
@@ -59,6 +61,9 @@ def index():
 def logs():
     """Email logs page"""
     from models import EmailLog, User
+    from flask import current_app
+    
+    db = current_app.extensions.get('sqlalchemy')
     
     page = request.args.get('page', 1, type=int)
     per_page = 20
@@ -67,7 +72,7 @@ def logs():
     status = request.args.get('status', '')
     search = request.args.get('search', '')
     
-    query = EmailLog.query
+    query = db.session.query(EmailLog)
     
     if email_type:
         query = query.filter(EmailLog.email_type == email_type)
@@ -84,10 +89,10 @@ def logs():
     )
     
     stats = {
-        'total': EmailLog.query.count(),
-        'sent': EmailLog.query.filter_by(status='sent').count(),
-        'failed': EmailLog.query.filter_by(status='failed').count(),
-        'pending': EmailLog.query.filter_by(status='pending').count()
+        'total': db.session.query(EmailLog).count(),
+        'sent': db.session.query(EmailLog).filter_by(status='sent').count(),
+        'failed': db.session.query(EmailLog).filter_by(status='failed').count(),
+        'pending': db.session.query(EmailLog).filter_by(status='pending').count()
     }
     
     return render_template('admin/email/logs.html',
@@ -102,8 +107,10 @@ def logs():
 def templates():
     """Email templates page"""
     from models import EmailTemplate
+    from flask import current_app
     
-    templates = EmailTemplate.query.order_by(EmailTemplate.template_key).all()
+    db = current_app.extensions.get('sqlalchemy')
+    templates = db.session.query(EmailTemplate).order_by(EmailTemplate.template_key).all()
     
     return render_template('admin/email/templates.html',
                          lang=g.lang,
@@ -115,8 +122,13 @@ def templates():
 def edit_template(template_id):
     """Edit email template page"""
     from models import EmailTemplate
+    from flask import current_app
     
-    template = EmailTemplate.query.get_or_404(template_id)
+    db = current_app.extensions.get('sqlalchemy')
+    template = db.session.query(EmailTemplate).get(template_id)
+    if not template:
+        from werkzeug.exceptions import NotFound
+        raise NotFound()
     
     return render_template('admin/email/edit_template.html',
                          lang=g.lang,
@@ -221,9 +233,15 @@ def check_config():
 def update_template(template_id):
     """Update email template"""
     from models import EmailTemplate
-    from app import db
+    from flask import current_app
     
-    template = EmailTemplate.query.get_or_404(template_id)
+    db = current_app.extensions.get('sqlalchemy')
+    
+    template = db.session.query(EmailTemplate).get(template_id)
+    if not template:
+        from werkzeug.exceptions import NotFound
+        raise NotFound()
+    
     data = request.json
     
     if 'subject_ar' in data:
@@ -252,8 +270,13 @@ def update_template(template_id):
 def preview_template(template_id):
     """Preview email template with sample data"""
     from models import EmailTemplate
+    from flask import current_app
     
-    template = EmailTemplate.query.get_or_404(template_id)
+    db = current_app.extensions.get('sqlalchemy')
+    template = db.session.query(EmailTemplate).get(template_id)
+    if not template:
+        from werkzeug.exceptions import NotFound
+        raise NotFound()
     
     sample_data = {
         'user_name': 'أحمد محمد',
@@ -274,8 +297,13 @@ def preview_template(template_id):
 def get_log_details(log_id):
     """Get email log details"""
     from models import EmailLog
+    from flask import current_app
     
-    log = EmailLog.query.get_or_404(log_id)
+    db = current_app.extensions.get('sqlalchemy')
+    log = db.session.query(EmailLog).get(log_id)
+    if not log:
+        from werkzeug.exceptions import NotFound
+        raise NotFound()
     
     return jsonify(log.to_dict())
 
@@ -285,9 +313,11 @@ def get_log_details(log_id):
 def get_stats():
     """Get email statistics"""
     from models import EmailLog
-    from app import db
+    from flask import current_app
     from sqlalchemy import func
     from datetime import timedelta
+    
+    db = current_app.extensions.get('sqlalchemy')
     
     today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     week_ago = today - timedelta(days=7)
@@ -325,7 +355,9 @@ def get_stats():
 def create_default_templates():
     """Create default email templates"""
     from models import EmailTemplate
-    from app import db
+    from flask import current_app
+    
+    db = current_app.extensions.get('sqlalchemy')
     
     default_templates = [
         {
