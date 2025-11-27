@@ -155,6 +155,62 @@ class Document(db.Model):
             'uploaded_at': self.uploaded_at.isoformat() if self.uploaded_at else None
         }
 
+class PasswordResetToken(db.Model):
+    """Password reset tokens for secure password recovery"""
+    __tablename__ = 'password_reset_tokens'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    token = db.Column(db.String(255), unique=True, nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    is_used = db.Column(db.Boolean, default=False)
+    used_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    ip_address = db.Column(db.String(50))
+    
+    user = db.relationship('User', backref=db.backref('reset_tokens', lazy=True))
+    
+    def is_valid(self):
+        """Check if token is still valid (not expired and not used)"""
+        if self.is_used:
+            return False
+        if datetime.utcnow() > self.expires_at:
+            return False
+        return True
+    
+    def mark_as_used(self):
+        """Mark token as used"""
+        self.is_used = True
+        self.used_at = datetime.utcnow()
+
+
+class SecurityLog(db.Model):
+    """Security audit log for admin review"""
+    __tablename__ = 'security_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    action = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    ip_address = db.Column(db.String(50))
+    user_agent = db.Column(db.String(500))
+    status = db.Column(db.String(50), default='success')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref=db.backref('security_logs', lazy=True))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'action': self.action,
+            'description': self.description,
+            'ip_address': self.ip_address,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+
 class Transaction(db.Model):
     __tablename__ = 'transactions'
     
