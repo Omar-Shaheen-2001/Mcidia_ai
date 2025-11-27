@@ -287,17 +287,21 @@ async function updateSendGridSettings() {
         });
         
         const data = await response.json();
+        const lang = '{{ lang }}';
         
         if (data.success) {
-            alert('{{ lang == "ar" and data.message or data.message_en }}');
+            const message = lang === 'ar' ? data.message : data.message_en;
+            alert(message);
             const modal = bootstrap.Modal.getInstance(document.getElementById('sendgridModal'));
             modal.hide();
             location.reload();
         } else {
-            alert('{{ lang == "ar" and data.message or data.message_en }}');
+            const message = lang === 'ar' ? data.message : data.message_en;
+            alert(message);
         }
     } catch (error) {
-        alert('{{ "حدث خطأ" if lang == "ar" else "An error occurred" }}: ' + error.message);
+        const errorMsg = '{{ "حدث خطأ" if lang == "ar" else "An error occurred" }}: ';
+        alert(errorMsg + error.message);
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-save {{ "ms-2" if lang == "ar" else "me-2" }}"></i> {{ "حفظ التغييرات" if lang == "ar" else "Save Changes" }}';
