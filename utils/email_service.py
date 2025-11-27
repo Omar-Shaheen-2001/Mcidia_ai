@@ -18,8 +18,13 @@ def log_email(user_id: int = None, to_email: str = '', subject: str = '',
               status: str = 'pending', error_message: str = None):
     """Log email sending attempt to database"""
     try:
-        from app import db
+        from flask import current_app
         from models import EmailLog
+        
+        db = current_app.extensions.get('sqlalchemy')
+        if not db:
+            logger.warning(f"❌ Database not available for logging email to {to_email}")
+            return None
         
         log = EmailLog(
             user_id=user_id,
@@ -33,9 +38,13 @@ def log_email(user_id: int = None, to_email: str = '', subject: str = '',
         )
         db.session.add(log)
         db.session.commit()
+        logger.info(f"✅ Email logged: {to_email} ({email_type}) - {status}")
         return log.id
+    except RuntimeError as e:
+        logger.warning(f"⚠️ No Flask context for logging email to {to_email}")
+        return None
     except Exception as e:
-        logger.error(f"Failed to log email: {e}")
+        logger.error(f"❌ Failed to log email to {to_email}: {e}", exc_info=True)
         return None
 
 
@@ -130,6 +139,7 @@ def send_email(to_email: str, subject: str, html_content: str, text_content: str
     Send email using available provider
     Returns True if email sent successfully, False otherwise
     """
+    logger.info(f"📧 Sending email to {to_email} (type: {email_type}, user: {user_id})")
     provider = get_email_provider()
     success = False
     error_msg = None
