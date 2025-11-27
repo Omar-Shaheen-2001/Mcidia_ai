@@ -253,6 +253,26 @@ def dev_reset_links():
         return jsonify({'error': str(e)}), 500
 
 
+@auth_bp.route('/dev/check-email-config', methods=['GET'])
+def dev_check_email_config():
+    """Development endpoint to check email configuration"""
+    import os
+    from flask import jsonify
+    
+    if not current_app.debug:
+        return jsonify({'error': 'Not available in production'}), 403
+    
+    sendgrid_key = os.getenv('SENDGRID_API_KEY')
+    sendgrid_from = os.getenv('SENDGRID_FROM_EMAIL')
+    
+    return jsonify({
+        'sendgrid_configured': bool(sendgrid_key),
+        'sendgrid_key_length': len(sendgrid_key) if sendgrid_key else 0,
+        'sendgrid_from_email': sendgrid_from or 'NOT SET',
+        'email_provider': 'SendGrid' if sendgrid_key else 'Development mode'
+    })
+
+
 @auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     """Handle password reset with token"""
