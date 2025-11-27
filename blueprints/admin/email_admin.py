@@ -16,14 +16,13 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         from models import User
-        from app import db
         from flask import session, redirect, url_for
         
         user_id = session.get('user_id')
         if not user_id:
             return redirect(url_for('auth.login'))
         
-        user = db.session.get(User, user_id)
+        user = User.query.get(user_id)
         if not user or user.role != 'system_admin':
             return redirect(url_for('dashboard.index'))
         
@@ -56,7 +55,6 @@ def index():
 def logs():
     """Email logs page"""
     from models import EmailLog, User
-    from app import db
     
     page = request.args.get('page', 1, type=int)
     per_page = 20
