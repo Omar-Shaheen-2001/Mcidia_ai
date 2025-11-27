@@ -264,7 +264,7 @@ def reset_password(token):
                 PasswordResetToken.id != reset_token.id
             ).update({'is_used': True})
             
-            # Log security event
+            # Log security event for password reset
             security_log = SecurityLog(
                 user_id=user.id,
                 action='password_reset_completed',
@@ -278,10 +278,30 @@ def reset_password(token):
             # End all active sessions (logout user everywhere)
             user.is_online = False
             
+            # Log session termination event
+            session_log = SecurityLog(
+                user_id=user.id,
+                action='all_sessions_terminated',
+                description=f'All sessions terminated after password reset for user: {user.username}',
+                ip_address=request.remote_addr,
+                user_agent=request.headers.get('User-Agent', '')[:500],
+                status='success'
+            )
+            db.session.add(session_log)
+            
             db.session.commit()
             
+            # Clear current Flask session completely
+            session.clear()
+            
+            # Create response that clears JWT cookies
             flash('تمت إعادة تعيين كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول / Password reset successfully. You can now login', 'success')
-            return redirect(url_for('auth.login'))
+            response = make_response(redirect(url_for('auth.login')))
+            
+            # Unset JWT cookies to invalidate any existing tokens
+            unset_jwt_cookies(response)
+            
+            return response
         else:
             flash('حدث خطأ. يرجى المحاولة مرة أخرى / An error occurred. Please try again', 'danger')
             return redirect(url_for('auth.forgot_password'))
