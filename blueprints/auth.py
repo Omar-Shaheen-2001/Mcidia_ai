@@ -199,7 +199,8 @@ def forgot_password():
                 email_sent = send_password_reset_email(
                     to_email=user.email,
                     reset_link=reset_url,
-                    user_name=user.username
+                    user_name=user.username,
+                    user_id=user.id
                 )
                 
                 if email_sent:

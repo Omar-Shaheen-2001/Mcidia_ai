@@ -188,7 +188,7 @@ def send_email(to_email: str, subject: str, html_content: str, text_content: str
     return success
 
 
-def send_password_reset_email(to_email: str, reset_link: str, user_name: str = None) -> bool:
+def send_password_reset_email(to_email: str, reset_link: str, user_name: str = None, user_id: int = None) -> bool:
     """Send password reset email with professional Arabic/English design"""
     
     # In development, also save the reset link for easy access
@@ -514,4 +514,4 @@ def send_password_reset_email(to_email: str, reset_link: str, user_name: str = N
 هذه رسالة أمنية تلقائية، يرجى عدم الرد عليها.
     """
     
-    return send_email(to_email, subject, html_content, text_content, email_type='password_reset')
+    return send_email(to_email, subject, html_content, text_content, email_type='password_reset', user_id=user_id)

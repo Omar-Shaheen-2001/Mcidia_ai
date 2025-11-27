@@ -63,31 +63,29 @@
                             </div>
                         </div>
                         
-                        {% if sendgrid_configured %}
                         <div class="mt-3 pt-3 border-top">
-                            <div class="row">
+                            <div class="row mb-3">
                                 <div class="col-md-6">
                                     <small class="text-muted d-block">{{ 'البريد المرسل' if lang == 'ar' else 'From Email' }}</small>
-                                    <code class="text-primary">{{ sendgrid_from }}</code>
+                                    <code class="text-primary">{{ sendgrid_from if sendgrid_from else 'Not set' }}</code>
                                 </div>
                                 <div class="col-md-6">
                                     <small class="text-muted d-block">{{ 'مفتاح API' if lang == 'ar' else 'API Key' }}</small>
-                                    <code class="text-success">********** ({{ 'مُعد' if lang == 'ar' else 'Set' }})</code>
+                                    <code class="text-success">{{ '✓ مُعد' if sendgrid_configured else '✗ غير مُعد' if lang == 'ar' else '✓ Set' if sendgrid_configured else '✗ Not set' }}</code>
                                 </div>
                             </div>
+                            <button class="btn btn-sm btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#sendgridModal">
+                                <i class="fas fa-edit {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                                {{ 'تعديل الإعدادات' if lang == 'ar' else 'Edit Settings' }}
+                            </button>
                         </div>
-                        {% endif %}
                     </div>
 
                     <!-- Configuration Info -->
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
-                        <strong>{{ 'ملاحظة:' if lang == 'ar' else 'Note:' }}</strong>
-                        {{ 'لتغيير إعدادات SendGrid، قم بتحديث القيم في Secrets من لوحة Replit' if lang == 'ar' else 'To change SendGrid settings, update values in Secrets from Replit panel' }}
-                        <ul class="mb-0 mt-2">
-                            <li><code>SENDGRID_API_KEY</code> - {{ 'مفتاح API من SendGrid' if lang == 'ar' else 'API Key from SendGrid' }}</li>
-                            <li><code>SENDGRID_FROM_EMAIL</code> - {{ 'البريد المرسل منه' if lang == 'ar' else 'Sender email address' }}</li>
-                        </ul>
+                        <strong>{{ 'نصيحة:' if lang == 'ar' else 'Tip:' }}</strong>
+                        {{ 'يمكنك تعديل إعدادات SendGrid مباشرة من هنا أو من Secrets في لوحة Replit' if lang == 'ar' else 'You can update SendGrid settings here or from Secrets panel in Replit' }}
                     </div>
                 </div>
             </div>
@@ -264,5 +262,98 @@ document.addEventListener('DOMContentLoaded', function() {
     loadProviderInfo();
     loadQuickStats();
 });
+
+async function updateSendGridSettings() {
+    const apiKey = document.getElementById('sendgridApiKey').value.trim();
+    const fromEmail = document.getElementById('sendgridFromEmail').value.trim();
+    
+    if (!apiKey || !fromEmail) {
+        alert('{{ "الرجاء ملء جميع الحقول" if lang == "ar" else "Please fill all fields" }}');
+        return;
+    }
+    
+    const btn = document.querySelector('#updateSendgridBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm {{ "ms-2" if lang == "ar" else "me-2" }}"></span> {{ "جاري التحديث..." if lang == "ar" else "Updating..." }}';
+    
+    try {
+        const response = await fetch('{{ url_for("admin.email_admin.update_sendgrid") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                api_key: apiKey,
+                from_email: fromEmail
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('{{ lang == "ar" and data.message or data.message_en }}');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('sendgridModal'));
+            modal.hide();
+            location.reload();
+        } else {
+            alert('{{ lang == "ar" and data.message or data.message_en }}');
+        }
+    } catch (error) {
+        alert('{{ "حدث خطأ" if lang == "ar" else "An error occurred" }}: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save {{ "ms-2" if lang == "ar" else "me-2" }}"></i> {{ "حفظ التغييرات" if lang == "ar" else "Save Changes" }}';
+    }
+}
 </script>
+
+<!-- SendGrid Settings Modal -->
+<div class="modal fade" id="sendgridModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-cog {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                    {{ 'تحديث إعدادات SendGrid' if lang == 'ar' else 'Update SendGrid Settings' }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="sendgridForm">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            {{ 'مفتاح API من SendGrid' if lang == 'ar' else 'SendGrid API Key' }}
+                        </label>
+                        <input type="password" class="form-control" id="sendgridApiKey" placeholder="SG.XXXXXXX" required>
+                        <small class="text-muted d-block mt-1">
+                            {{ 'احصل على المفتاح من' if lang == 'ar' else 'Get your key from' }}
+                            <a href="https://app.sendgrid.com/settings/api_keys" target="_blank">SendGrid Dashboard</a>
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            {{ 'البريد المرسل منه' if lang == 'ar' else 'From Email Address' }}
+                        </label>
+                        <input type="email" class="form-control" id="sendgridFromEmail" placeholder="noreply@example.com" required>
+                        <small class="text-muted d-block mt-1">
+                            {{ 'يجب أن يكون بريداً موثوقاً في حسابك على SendGrid' if lang == 'ar' else 'Must be a verified sender in your SendGrid account' }}
+                        </small>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-lock {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                        {{ 'هذه البيانات محفوظة بأمان وسيتم تشفيرها' if lang == 'ar' else 'This data is stored securely and will be encrypted' }}
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    {{ 'إغلاق' if lang == 'ar' else 'Close' }}
+                </button>
+                <button type="button" class="btn btn-primary" id="updateSendgridBtn" onclick="updateSendGridSettings()">
+                    <i class="fas fa-save {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+                    {{ 'حفظ التغييرات' if lang == 'ar' else 'Save Changes' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

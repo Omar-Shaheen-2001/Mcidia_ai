@@ -228,6 +228,65 @@ def check_config():
     return jsonify(config)
 
 
+@email_admin_bp.route('/api/update-sendgrid', methods=['POST'])
+@admin_required
+def update_sendgrid():
+    """Update SendGrid API key and from email"""
+    from flask import current_app
+    
+    data = request.json
+    api_key = data.get('api_key', '').strip()
+    from_email = data.get('from_email', '').strip()
+    
+    if not api_key or not from_email:
+        return jsonify({
+            'success': False,
+            'message': 'مفتاح API والبريد المرسل منه مطلوبان',
+            'message_en': 'API Key and From Email are required'
+        }), 400
+    
+    from models import EmailSettings
+    db = current_app.extensions.get('sqlalchemy')
+    
+    # Update settings in database
+    api_setting = db.session.query(EmailSettings).filter_by(setting_key='SENDGRID_API_KEY').first()
+    if api_setting:
+        api_setting.setting_value = api_key
+    else:
+        api_setting = EmailSettings(setting_key='SENDGRID_API_KEY', setting_value=api_key)
+        db.session.add(api_setting)
+    
+    email_setting = db.session.query(EmailSettings).filter_by(setting_key='SENDGRID_FROM_EMAIL').first()
+    if email_setting:
+        email_setting.setting_value = from_email
+    else:
+        email_setting = EmailSettings(setting_key='SENDGRID_FROM_EMAIL', setting_value=from_email)
+        db.session.add(email_setting)
+    
+    db.session.commit()
+    
+    # Update environment variables
+    os.environ['SENDGRID_API_KEY'] = api_key
+    os.environ['SENDGRID_FROM_EMAIL'] = from_email
+    
+    # Log the action
+    from models import SecurityLog
+    security_log = SecurityLog(
+        user_id=g.user.id,
+        action='sendgrid_config_updated',
+        description=f'SendGrid API key and from email updated',
+        status='success'
+    )
+    db.session.add(security_log)
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': 'تم تحديث إعدادات SendGrid بنجاح',
+        'message_en': 'SendGrid settings updated successfully'
+    })
+
+
 @email_admin_bp.route('/api/templates/<int:template_id>', methods=['PUT'])
 @admin_required
 def update_template(template_id):
