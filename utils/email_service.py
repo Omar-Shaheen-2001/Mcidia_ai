@@ -143,7 +143,7 @@ def send_email(to_email: str, subject: str, html_content: str, text_content: str
 
 
 def send_password_reset_email(to_email: str, reset_link: str, user_name: str = None) -> bool:
-    """Send password reset email with Arabic/English content"""
+    """Send password reset email with professional Arabic/English design"""
     
     # In development, also save the reset link for easy access
     if not get_email_provider():
@@ -177,98 +177,247 @@ def send_password_reset_email(to_email: str, reset_link: str, user_name: str = N
         except Exception as e:
             logger.error(f"Failed to save reset link: {e}")
     
-    subject = "إعادة تعيين كلمة المرور – MCIDIA"
+    subject = "🔐 إعادة تعيين كلمة المرور – MCIDIA | Reset Your Password"
     
     html_content = f"""
     <!DOCTYPE html>
     <html dir="rtl" lang="ar">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>إعادة تعيين كلمة المرور</title>
         <style>
+            * {{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }}
             body {{
-                font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-                line-height: 1.8;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+                line-height: 1.6;
                 color: #333;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 20px;
+            }}
+            .wrapper {{
                 max-width: 600px;
                 margin: 0 auto;
-                padding: 20px;
-                background-color: #f5f5f5;
             }}
             .container {{
                 background: white;
-                border-radius: 12px;
-                padding: 40px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                border-radius: 16px;
+                box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+                overflow: hidden;
             }}
             .header {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 50px 30px;
                 text-align: center;
-                margin-bottom: 30px;
+            }}
+            .header-content {{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
             }}
             .logo {{
-                font-size: 28px;
-                font-weight: bold;
-                color: #6f42c1;
+                font-size: 32px;
+                font-weight: 700;
+                color: white;
+                letter-spacing: -1px;
             }}
-            .btn {{
-                display: inline-block;
-                background: linear-gradient(135deg, #6f42c1, #8b5cf6);
-                color: white !important;
-                padding: 15px 40px;
-                text-decoration: none;
-                border-radius: 8px;
-                font-weight: bold;
-                margin: 20px 0;
+            .logo-icon {{
+                font-size: 40px;
             }}
-            .warning {{
-                background: #fff3cd;
-                border-right: 4px solid #ffc107;
+            .header-subtitle {{
+                color: rgba(255,255,255,0.9);
+                font-size: 14px;
+                margin-top: 8px;
+                font-weight: 300;
+            }}
+            .content {{
+                padding: 45px 35px;
+            }}
+            .greeting {{
+                font-size: 18px;
+                color: #333;
+                margin-bottom: 20px;
+                font-weight: 500;
+            }}
+            .message {{
+                color: #555;
+                font-size: 15px;
+                line-height: 1.8;
+                margin-bottom: 30px;
+            }}
+            .security-note {{
+                background: linear-gradient(135deg, #667eea15, #764ba215);
+                border-left: 4px solid #667eea;
                 padding: 15px;
                 border-radius: 8px;
-                margin-top: 20px;
+                margin: 25px 0;
+                font-size: 14px;
+                color: #555;
+            }}
+            .cta-section {{
+                text-align: center;
+                margin: 35px 0;
+            }}
+            .cta-button {{
+                display: inline-block;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 16px 50px;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: 600;
+                font-size: 16px;
+                transition: transform 0.2s, box-shadow 0.2s;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            }}
+            .cta-button:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            }}
+            .link-fallback {{
+                color: #667eea;
+                word-break: break-all;
+                font-size: 13px;
+                margin-top: 15px;
+                font-family: 'Courier New', monospace;
+            }}
+            .warning-box {{
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                border-radius: 8px;
+                padding: 15px;
+                margin: 25px 0;
+                color: #856404;
+                font-size: 14px;
+            }}
+            .warning-icon {{
+                font-size: 18px;
+                margin-bottom: 8px;
+            }}
+            .divider {{
+                height: 1px;
+                background: #eee;
+                margin: 30px 0;
             }}
             .footer {{
-                text-align: center;
-                margin-top: 30px;
-                padding-top: 20px;
+                padding: 30px 35px;
+                background: #f8f9fa;
                 border-top: 1px solid #eee;
+                font-size: 13px;
                 color: #888;
+                text-align: center;
+            }}
+            .footer-links {{
+                margin-bottom: 15px;
+            }}
+            .footer-links a {{
+                color: #667eea;
+                text-decoration: none;
+                margin: 0 8px;
+            }}
+            .footer-copyright {{
+                color: #aaa;
+                font-size: 12px;
+                margin-top: 15px;
+            }}
+            .safety-tip {{
+                background: #e8f5e9;
+                border-left: 4px solid #4caf50;
+                padding: 15px;
+                border-radius: 8px;
+                margin: 20px 0;
                 font-size: 14px;
+                color: #2e7d32;
+            }}
+            .lang-toggle {{
+                text-align: center;
+                margin-bottom: 20px;
+                font-size: 12px;
+                color: #aaa;
             }}
         </style>
     </head>
     <body>
-        <div class="container">
-            <div class="header">
-                <div class="logo">🧠 MCIDIA</div>
-                <p style="color: #666;">منصة الاستشارات الذكية</p>
-            </div>
-            
-            <p>مرحباً{' ' + user_name if user_name else ''}،</p>
-            
-            <p>لقد طلبت إعادة تعيين كلمة المرور لحسابك في منصة <strong>MCIDIA</strong>.</p>
-            
-            <p>اضغط على الزر أدناه لإعادة تعيين كلمة المرور:</p>
-            
-            <div style="text-align: center;">
-                <a href="{reset_link}" class="btn">إعادة تعيين كلمة المرور</a>
-            </div>
-            
-            <p style="color: #666; font-size: 14px;">
-                أو انسخ الرابط التالي وألصقه في متصفحك:<br>
-                <a href="{reset_link}" style="color: #6f42c1;">{reset_link}</a>
-            </p>
-            
-            <div class="warning">
-                <strong>⚠️ تنبيه:</strong> هذا الرابط صالح لمدة <strong>ساعة واحدة</strong> فقط.
-            </div>
-            
-            <p style="margin-top: 20px;">
-                إذا لم تكن أنت من طلب إعادة التعيين، يمكنك تجاهل هذه الرسالة بأمان.
-            </p>
-            
-            <div class="footer">
-                <p>مع التحية،<br><strong>فريق MCIDIA</strong></p>
-                <p style="font-size: 12px;">© 2024 MCIDIA. جميع الحقوق محفوظة.</p>
+        <div class="wrapper">
+            <div class="container">
+                <!-- Header -->
+                <div class="header">
+                    <div>
+                        <div class="header-content">
+                            <span class="logo-icon">🔐</span>
+                            <div style="text-align: right;">
+                                <div class="logo">MCIDIA</div>
+                                <div class="header-subtitle">منصة الاستشارات الذكية</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="content">
+                    <div class="greeting">
+                        مرحباً {user_name if user_name else 'صديقنا'}،
+                    </div>
+                    
+                    <div class="message">
+                        <p>تلقينا طلب بإعادة تعيين كلمة المرور لحسابك في <strong>منصة MCIDIA</strong>.</p>
+                        <p style="margin-top: 12px;">لحماية أمان حسابك، نطلب منك الضغط على الزر أدناه لتعيين كلمة مرور جديدة قوية:</p>
+                    </div>
+
+                    <!-- CTA Button -->
+                    <div class="cta-section">
+                        <a href="{reset_link}" class="cta-button">
+                            🔄 إعادة تعيين كلمة المرور
+                        </a>
+                        <div class="link-fallback">
+                            أو انسخ الرابط: <br>{reset_link}
+                        </div>
+                    </div>
+
+                    <!-- Security Note -->
+                    <div class="security-note">
+                        <strong>⏱️ الرابط ينتهي صلاحيته في:</strong> 1 ساعة من الآن
+                    </div>
+
+                    <!-- Warning -->
+                    <div class="warning-box">
+                        <div class="warning-icon">⚠️</div>
+                        <strong>تنبيه أمني:</strong> إذا لم تطلب هذا التغيير، يرجى تجاهل هذه الرسالة أو تواصل معنا فوراً.
+                    </div>
+
+                    <!-- Safety Tip -->
+                    <div class="safety-tip">
+                        <strong>💡 نصيحة أمانية:</strong> استخدم كلمة مرور قوية تتضمن أحرف كبيرة وصغيرة وأرقام ورموز خاصة.
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="message" style="font-size: 14px; color: #666;">
+                        إذا كانت لديك أي مشاكل، يمكنك التواصل مع فريق الدعم الخاص بنا:<br>
+                        <strong style="color: #667eea;">support@mcidia.com</strong>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="footer">
+                    <div class="footer-links">
+                        <a href="https://mcidia.com">الموقع الرسمي</a> | 
+                        <a href="https://mcidia.com/help">المساعدة</a> | 
+                        <a href="https://mcidia.com/privacy">سياسة الخصوصية</a>
+                    </div>
+                    <div style="margin-top: 15px; border-top: 1px solid #e0e0e0; padding-top: 15px;">
+                        <p><strong>MCIDIA</strong> - منصة استشارات ذكية</p>
+                        <p class="footer-copyright">
+                            © 2024 MCIDIA. جميع الحقوق محفوظة.<br>
+                            هذه رسالة أمنية تلقائية، يرجى عدم الرد عليها.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </body>
@@ -276,17 +425,47 @@ def send_password_reset_email(to_email: str, reset_link: str, user_name: str = N
     """
     
     text_content = f"""
-مرحباً{' ' + user_name if user_name else ''}،
+╔════════════════════════════════════════════════════════════╗
+║                      MCIDIA                                ║
+║              منصة الاستشارات الذكية                      ║
+║            🔐 إعادة تعيين كلمة المرور                   ║
+╚════════════════════════════════════════════════════════════╝
 
-لقد طلبت إعادة تعيين كلمة المرور لحسابك في منصة MCIDIA.
+مرحباً {user_name if user_name else 'صديقنا'}،
 
-اضغط على الرابط التالي لإعادة تعيين كلمة المرور (صالح لمدة ساعة واحدة):
+تلقينا طلب بإعادة تعيين كلمة المرور لحسابك في منصة MCIDIA.
+
+⏱️  انقر على الرابط أدناه لإعادة تعيين كلمة المرور:
 {reset_link}
 
-إذا لم تكن أنت من طلب إعادة التعيين، يمكنك تجاهل هذه الرسالة.
+⏰ مدة صلاحية الرابط: ساعة واحدة فقط
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️  تنبيه أمني:
+   - إذا لم تطلب هذا التغيير، تجاهل هذه الرسالة فوراً
+   - لا تشارك هذا الرابط مع أي شخص
+   - تأكد من أن الرابط يبدأ بـ: https://mcidia.com
+
+💡 نصائح أمانية:
+   ✓ استخدم كلمة مرور قوية وفريدة
+   ✓ تجنب استخدام معلومات شخصية
+   ✓ قم بتفعيل التحقق الثنائي لمزيد من الأمان
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+إذا كانت لديك أي مشاكل:
+📧 البريد الإلكتروني: support@mcidia.com
+🌐 الموقع: https://mcidia.com
+📞 المساعدة: https://mcidia.com/help
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 مع التحية،
 فريق MCIDIA
+© 2024 MCIDIA. جميع الحقوق محفوظة.
+
+هذه رسالة أمنية تلقائية، يرجى عدم الرد عليها.
     """
     
     return send_email(to_email, subject, html_content, text_content)
