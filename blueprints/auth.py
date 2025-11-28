@@ -69,9 +69,10 @@ def login():
                 flash('تم تعطيل حسابك من قبل المسؤول. يرجى التواصل مع الدعم الفني / Your account has been deactivated by administrator. Please contact support', 'danger')
                 return redirect(url_for('auth.login'))
             
-            # Update last login time and online status
+            # Update last login time, IP address, and online status
             from datetime import datetime
             user.last_login = datetime.utcnow()
+            user.last_login_ip = request.remote_addr
             user.is_online = True
             db.session.commit()
             
