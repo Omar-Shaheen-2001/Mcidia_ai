@@ -52,7 +52,7 @@ def role_required(*roles):
                 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
                 from flask import current_app
                 
-                verify_jwt_in_request(optional=False)
+                verify_jwt_in_request(optional=False, locations=['cookies', 'headers'])
                 user_id = int(get_jwt_identity())
                 db = current_app.extensions['sqlalchemy']
                 user = db.session.query(User).get(user_id)
@@ -100,7 +100,7 @@ def organization_role_required(*allowed_roles, org_id_param='id'):
                 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
                 from flask import current_app
                 
-                verify_jwt_in_request(optional=False)
+                verify_jwt_in_request(optional=False, locations=['cookies', 'headers'])
                 user_id = int(get_jwt_identity())
                 
                 db = current_app.extensions['sqlalchemy']
