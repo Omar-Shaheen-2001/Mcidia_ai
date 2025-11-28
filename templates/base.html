@@ -76,6 +76,16 @@
                 </ul>
                 
                 <ul class="navbar-nav align-items-lg-center">
+                    <!-- Notifications Icon -->
+                    {% if current_user %}
+                    <li class="nav-item {{ 'ms-lg-2' if lang == 'en' else 'me-lg-2' }}">
+                        <a class="navbar__link nav-link" href="#" title="{{ 'الإشعارات' if lang == 'ar' else 'Notifications' }}" style="position: relative; font-size: 1.25rem;">
+                            <i class="fas fa-bell"></i>
+                            <span style="position: absolute; top: -5px; right: -5px; background: #dc3545; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">0</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
                     <!-- Language Switcher -->
                     <li class="nav-item dropdown">
                         <a class="navbar__link nav-link dropdown-toggle" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
