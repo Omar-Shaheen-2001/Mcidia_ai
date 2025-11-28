@@ -78,11 +78,19 @@
                 <ul class="navbar-nav align-items-lg-center">
                     <!-- Notifications Icon -->
                     {% if current_user %}
-                    <li class="nav-item {{ 'ms-lg-2' if lang == 'en' else 'me-lg-2' }}">
-                        <a class="navbar__link nav-link" href="#" title="{{ 'الإشعارات' if lang == 'ar' else 'Notifications' }}" style="position: relative; font-size: 1.25rem;">
+                    <li class="nav-item {{ 'ms-lg-2' if lang == 'en' else 'me-lg-2' }} dropdown">
+                        <a class="navbar__link nav-link" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ 'الإشعارات' if lang == 'ar' else 'Notifications' }}" style="position: relative; font-size: 1.25rem;">
                             <i class="fas fa-bell"></i>
-                            <span style="position: absolute; top: -5px; right: -5px; background: #dc3545; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">0</span>
+                            <span class="notification-badge" id="notificationBadge" style="position: absolute; top: -5px; right: -5px; background: #dc3545; color: white; border-radius: 50%; width: 20px; height: 20px; display: none; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">0</span>
                         </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown" style="min-width: 300px; max-height: 400px; overflow-y: auto;">
+                            <li id="notificationsContent">
+                                <div class="dropdown-item" style="text-align: center; padding: 20px 15px; color: #999;">
+                                    <i class="fas fa-bell-slash" style="font-size: 24px; margin-bottom: 10px; display: block; opacity: 0.5;"></i>
+                                    {{ 'لا يوجد إشعارات' if lang == 'ar' else 'No notifications' }}
+                                </div>
+                            </li>
+                        </ul>
                     </li>
                     {% endif %}
                     
@@ -299,6 +307,20 @@
                 }, 5000);
             });
         });
+        
+        // Notifications badge visibility
+        function updateNotificationBadge(count) {
+            const badge = document.getElementById('notificationBadge');
+            if (count > 0) {
+                badge.style.display = 'flex';
+                badge.textContent = count;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        
+        // Initialize notification badge (set to 0 initially)
+        updateNotificationBadge(0);
     </script>
     
     {% block extra_js %}{% endblock %}
