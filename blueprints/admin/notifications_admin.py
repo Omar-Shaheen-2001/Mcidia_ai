@@ -46,7 +46,7 @@ def api_notifications():
     try:
         # Check if user is admin
         current_user = db.session.query(User).get(session.get('user_id'))
-        if not current_user or not current_user.role or current_user.role.name != 'system_admin':
+        if not current_user or current_user.role != 'system_admin':
             return jsonify({
                 'success': False,
                 'error': 'Unauthorized'
@@ -91,7 +91,7 @@ def mark_notification_read(notification_id):
     try:
         # Check if user is admin
         current_user = db.session.query(User).get(session.get('user_id'))
-        if not current_user or not current_user.role or current_user.role.name != 'system_admin':
+        if not current_user or current_user.role != 'system_admin':
             return jsonify({
                 'success': False,
                 'error': 'Unauthorized'
@@ -125,7 +125,7 @@ def mark_all_read():
     try:
         # Check if user is admin
         current_user = db.session.query(User).get(session.get('user_id'))
-        if not current_user or not current_user.role or current_user.role.name != 'system_admin':
+        if not current_user or current_user.role != 'system_admin':
             return jsonify({
                 'success': False,
                 'error': 'Unauthorized'

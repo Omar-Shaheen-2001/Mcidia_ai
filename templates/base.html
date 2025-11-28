@@ -167,7 +167,7 @@
                 
                 <ul class="navbar-nav align-items-lg-center">
                     <!-- Notifications Icon - Admin Only -->
-                    {% if current_user and current_user.role and current_user.role.name == 'system_admin' %}
+                    {% if current_user and current_user.role == 'system_admin' %}
                     <li class="nav-item {{ 'ms-lg-2' if lang == 'en' else 'me-lg-2' }} dropdown">
                         <a class="navbar__link nav-link" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ 'الإشعارات' if lang == 'ar' else 'Notifications' }}" style="position: relative; font-size: 1.25rem;">
                             <i class="fas fa-bell"></i>
