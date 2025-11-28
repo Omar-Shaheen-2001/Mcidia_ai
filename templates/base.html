@@ -74,6 +74,36 @@
             color: #999;
         }
         
+        .notification-item-actions {
+            position: absolute;
+            {{ 'left' if lang == 'ar' else 'right' }}: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 8px;
+        }
+        
+        .notification-mark-read-btn {
+            background: none;
+            border: none;
+            color: #0d6efd;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        
+        .notification-mark-read-btn:hover {
+            opacity: 1;
+        }
+        
+        .mark-all-read-btn {
+            width: 100% !important;
+            border-radius: 0 0 8px 8px !important;
+            text-align: center;
+        }
+        
         @media (max-width: 576px) {
             .notifications-dropdown {
                 min-width: 280px !important;
@@ -150,7 +180,11 @@
                                     <p style="margin: 0; font-size: 0.95rem;">{{ 'لا يوجد إشعارات' if lang == 'ar' else 'No notifications' }}</p>
                                 </div>
                             </div>
-                            <div style="border-top: 1px solid #f0f0f0; padding: 10px;">
+                            <div id="notificationsFooter" style="border-top: 1px solid #f0f0f0; padding: 10px; display: flex; flex-direction: column; gap: 5px;">
+                                <button class="dropdown-item mark-all-read-btn" id="markAllReadBtn" style="font-size: 0.9rem; color: #0d6efd; display: none;">
+                                    <i class="fas fa-check-double {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                                    {{ 'تمييز الكل كمقروء' if lang == 'ar' else 'Mark all as read' }}
+                                </button>
                                 <a href="{{ url_for('admin.notifications_admin.index') }}" class="dropdown-item" style="text-align: center; font-size: 0.9rem; color: #0d6efd;">
                                     <i class="fas fa-arrow-left {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
                                     {{ 'عرض الكل' if lang == 'ar' else 'View All' }}
@@ -385,6 +419,40 @@
             }
         }
         
+        // Mark notification as read
+        function markNotificationRead(notificationId) {
+            fetch('/admin/notifications/mark-read/' + notificationId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadAdminNotifications();
+                }
+            })
+            .catch(error => console.log('Error marking notification as read'));
+        }
+        
+        // Mark all notifications as read
+        function markAllNotificationsRead() {
+            fetch('/admin/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadAdminNotifications();
+                }
+            })
+            .catch(error => console.log('Error marking all notifications as read'));
+        }
+        
         // Load admin notifications
         function loadAdminNotifications() {
             // Check if user is admin (check if notifications icon exists)
@@ -396,6 +464,7 @@
                 .then(data => {
                     if (data.success && data.count > 0) {
                         updateNotificationBadge(data.count);
+                        document.getElementById('markAllReadBtn').style.display = 'block';
                         
                         const notificationsContent = document.getElementById('notificationsContent');
                         let html = '';
@@ -428,23 +497,43 @@
                             const messagePreview = notification.message.substring(0, 85) + (notification.message.length > 85 ? '...' : '');
                             
                             html += `
-                                <a href="{{ url_for('admin.notifications_admin.index') }}" class="notification-item">
-                                    <div class="notification-item-title">${notification.title}</div>
-                                    <div class="notification-item-message">${messagePreview}</div>
-                                    <div class="notification-item-time">${dateStr}</div>
-                                </a>
+                                <div class="notification-item" style="position: relative; padding-{{ 'left' if lang == 'ar' else 'right' }}: 45px !important;">
+                                    <a href="{{ url_for('admin.notifications_admin.index') }}" style="text-decoration: none; color: inherit; display: block;">
+                                        <div class="notification-item-title">${notification.title}</div>
+                                        <div class="notification-item-message">${messagePreview}</div>
+                                        <div class="notification-item-time">${dateStr}</div>
+                                    </a>
+                                    <div class="notification-item-actions">
+                                        <button class="notification-mark-read-btn" onclick="event.preventDefault(); event.stopPropagation(); markNotificationRead(${notification.id});" title="{{ 'تمييز كمقروء' if lang == 'ar' else 'Mark as read' }}">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             `;
                         });
                         
                         notificationsContent.innerHTML = html;
                     } else {
                         updateNotificationBadge(0);
+                        document.getElementById('markAllReadBtn').style.display = 'none';
                     }
                 })
                 .catch(error => {
                     console.log('Could not load notifications');
                 });
         }
+        
+        // Add click handler for mark all read button
+        document.addEventListener('DOMContentLoaded', function() {
+            const markAllReadBtn = document.getElementById('markAllReadBtn');
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    markAllNotificationsRead();
+                });
+            }
+        });
         
         // Initialize notification badge and load notifications on page load
         document.addEventListener('DOMContentLoaded', function() {

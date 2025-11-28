@@ -39,13 +39,14 @@ def index():
 @notifications_admin_bp.route('/api', methods=['GET'])
 @login_required
 def api_notifications():
-    """API endpoint for fetching notifications as JSON"""
+    """API endpoint for fetching unread notifications as JSON"""
     db = get_db()
     
     try:
-        # Get only broadcast notifications (user_id is NULL)
+        # Get only broadcast unread notifications (user_id is NULL and is_read is False)
         notifications = db.session.query(Notification).filter(
-            Notification.user_id.is_(None)
+            Notification.user_id.is_(None),
+            Notification.is_read == False
         ).order_by(Notification.created_at.desc()).limit(50).all()
         
         return jsonify({
@@ -64,6 +65,53 @@ def api_notifications():
                 }
                 for n in notifications
             ]
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@notifications_admin_bp.route('/mark-read/<int:notification_id>', methods=['POST'])
+@login_required
+def mark_notification_read(notification_id):
+    """Mark a notification as read"""
+    db = get_db()
+    
+    try:
+        notification = db.session.query(Notification).get(notification_id)
+        if notification:
+            notification.is_read = True
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'message': 'Notification marked as read'
+            }), 200
+        return jsonify({
+            'success': False,
+            'error': 'Notification not found'
+        }), 404
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@notifications_admin_bp.route('/mark-all-read', methods=['POST'])
+@login_required
+def mark_all_read():
+    """Mark all broadcast notifications as read"""
+    db = get_db()
+    
+    try:
+        db.session.query(Notification).filter(
+            Notification.user_id.is_(None),
+            Notification.is_read == False
+        ).update({'is_read': True})
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': 'All notifications marked as read'
         }), 200
     except Exception as e:
         return jsonify({
