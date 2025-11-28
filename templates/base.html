@@ -325,7 +325,7 @@
             const notificationIcon = document.getElementById('notificationsDropdown');
             if (!notificationIcon) return;
             
-            fetch('/notifications/api')
+            fetch('/admin/notifications/api')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.count > 0) {
