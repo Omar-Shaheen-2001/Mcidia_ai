@@ -43,17 +43,22 @@ def api_notifications():
     db = get_db()
     
     try:
-        notifications = db.session.query(Notification).order_by(Notification.created_at.desc()).limit(50).all()
+        # Get only broadcast notifications (user_id is NULL)
+        notifications = db.session.query(Notification).filter(
+            Notification.user_id.is_(None)
+        ).order_by(Notification.created_at.desc()).limit(50).all()
         
         return jsonify({
             'success': True,
+            'count': len(notifications),
             'data': [
                 {
                     'id': n.id,
                     'title': n.title,
                     'message': n.message,
-                    'type': n.type,
-                    'read': n.read,
+                    'notification_type': n.notification_type,
+                    'status': n.status,
+                    'is_read': n.is_read,
                     'created_at': n.created_at.isoformat() if n.created_at else None,
                     'user_id': n.user_id
                 }

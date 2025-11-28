@@ -308,7 +308,7 @@
             });
         });
         
-        // Notifications badge visibility
+        // Notifications badge visibility and dropdown loading
         function updateNotificationBadge(count) {
             const badge = document.getElementById('notificationBadge');
             if (count > 0) {
@@ -319,8 +319,58 @@
             }
         }
         
-        // Initialize notification badge (set to 0 initially)
-        updateNotificationBadge(0);
+        // Load admin notifications
+        function loadAdminNotifications() {
+            // Check if user is admin (check if notifications icon exists)
+            const notificationIcon = document.getElementById('notificationsDropdown');
+            if (!notificationIcon) return;
+            
+            fetch('/notifications/api')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.count > 0) {
+                        updateNotificationBadge(data.count);
+                        
+                        const notificationsContent = document.getElementById('notificationsContent');
+                        let html = '';
+                        
+                        data.data.forEach(notification => {
+                            const createdDate = new Date(notification.created_at);
+                            const dateStr = createdDate.toLocaleDateString('{{ "ar-SA" if lang == "ar" else "en-US" }}', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            
+                            html += `
+                                <a href="#" class="dropdown-item" style="border-bottom: 1px solid #f0f0f0; padding: 12px 15px; cursor: pointer;">
+                                    <div style="font-weight: 600; margin-bottom: 4px; color: #333;">${notification.title}</div>
+                                    <div style="font-size: 0.9rem; color: #666; margin-bottom: 6px;">${notification.message.substring(0, 80)}${notification.message.length > 80 ? '...' : ''}</div>
+                                    <div style="font-size: 0.8rem; color: #999;">${dateStr}</div>
+                                </a>
+                            `;
+                        });
+                        
+                        notificationsContent.innerHTML = html;
+                    } else {
+                        updateNotificationBadge(0);
+                    }
+                })
+                .catch(error => {
+                    console.log('Could not load notifications');
+                });
+        }
+        
+        // Initialize notification badge and load notifications on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNotificationBadge(0);
+            loadAdminNotifications();
+            
+            // Reload notifications every 30 seconds
+            setInterval(loadAdminNotifications, 30000);
+        });
     </script>
     
     {% block extra_js %}{% endblock %}
