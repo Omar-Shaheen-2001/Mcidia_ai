@@ -91,14 +91,15 @@
             background: white;
             display: flex;
             flex-direction: column;
+            height: 600px;
         }
         
         .table-container-scroll {
             overflow-x: auto;
             overflow-y: auto;
-            max-height: 70vh;
             flex: 1;
             -webkit-overflow-scrolling: touch;
+            min-height: 0;
         }
         
         .table-container-scroll::-webkit-scrollbar {
@@ -128,8 +129,8 @@
         }
         
         .table-optimized th {
-            padding: 0.75rem 0.5rem;
-            font-size: 0.9rem;
+            padding: 0.6rem 0.4rem;
+            font-size: 0.85rem;
             font-weight: 600;
             white-space: nowrap;
             background-color: #f8f9fa;
@@ -140,7 +141,7 @@
         }
         
         .table-optimized td {
-            padding: 0.65rem 0.5rem;
+            padding: 0.5rem 0.4rem;
             vertical-align: middle;
             border-bottom: 1px solid #dee2e6;
         }
@@ -150,8 +151,8 @@
         }
         
         .table-optimized .badge {
-            font-size: 0.8rem;
-            padding: 0.35rem 0.55rem;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.4rem;
             white-space: nowrap;
         }
         
@@ -161,7 +162,7 @@
             padding: 0.5rem;
             background: #f8f9fa;
             color: #666;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             border-top: 1px solid #dee2e6;
         }
         
@@ -169,61 +170,82 @@
             display: block;
         }
         
-        /* Desktop - Large screens */
-        @media (min-width: 1200px) {
-            .table-optimized {
-                font-size: 0.95rem;
+        /* شاشات صغيرة جداً */
+        @media (max-width: 480px) {
+            .table-wrapper {
+                height: 500px;
             }
-            .table-optimized th {
-                padding: 0.75rem 0.5rem;
-                font-size: 0.9rem;
-            }
+            .table-optimized th,
             .table-optimized td {
-                padding: 0.65rem 0.5rem;
+                padding: 0.35rem 0.25rem;
+                font-size: 0.7rem;
+            }
+            .table-optimized .badge {
+                font-size: 0.6rem;
+                padding: 0.2rem 0.3rem;
             }
         }
         
-        /* Tablet - Medium screens */
-        @media (max-width: 1199px) and (min-width: 768px) {
-            .table-optimized {
-                font-size: 0.88rem;
+        /* الهواتف والأجهزة الصغيرة */
+        @media (max-width: 768px) {
+            .table-wrapper {
+                height: 550px;
             }
             .table-optimized th {
-                padding: 0.6rem 0.4rem;
-                font-size: 0.85rem;
-            }
-            .table-optimized td {
-                padding: 0.5rem 0.4rem;
-            }
-            .table-container-scroll {
-                max-height: 65vh;
-            }
-            .scroll-indicator.show {
-                display: block;
-            }
-        }
-        
-        /* Mobile - Small screens */
-        @media (max-width: 767px) {
-            .table-optimized {
-                font-size: 0.8rem;
-            }
-            .table-optimized th {
-                padding: 0.5rem 0.3rem;
-                font-size: 0.75rem;
+                padding: 0.45rem 0.3rem;
+                font-size: 0.78rem;
             }
             .table-optimized td {
                 padding: 0.4rem 0.3rem;
+                font-size: 0.78rem;
             }
             .table-optimized .badge {
-                font-size: 0.65rem;
-                padding: 0.25rem 0.4rem;
-            }
-            .table-container-scroll {
-                max-height: 60vh;
+                font-size: 0.7rem;
+                padding: 0.25rem 0.35rem;
             }
             .scroll-indicator.show {
                 display: block;
+            }
+        }
+        
+        /* أجهزة لوحية */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .table-wrapper {
+                height: 620px;
+            }
+            .table-optimized th {
+                padding: 0.55rem 0.35rem;
+                font-size: 0.82rem;
+            }
+            .table-optimized td {
+                padding: 0.45rem 0.35rem;
+                font-size: 0.82rem;
+            }
+            .table-optimized .badge {
+                font-size: 0.72rem;
+                padding: 0.28rem 0.38rem;
+            }
+            .scroll-indicator.show {
+                display: block;
+            }
+        }
+        
+        /* الشاشات الكبيرة */
+        @media (min-width: 1025px) {
+            .table-wrapper {
+                height: 700px;
+            }
+            .table-optimized th {
+                padding: 0.65rem 0.45rem;
+                font-size: 0.88rem;
+            }
+            .table-optimized td {
+                padding: 0.55rem 0.45rem;
+                font-size: 0.88rem;
+            }
+            .table-optimized .badge {
+                font-size: 0.78rem;
+                padding: 0.32rem 0.42rem;
             }
         }
     </style>
@@ -233,15 +255,15 @@
             <table class="table-optimized">
                 <thead>
                     <tr>
-                        <th style="min-width: 130px;">{{ 'المستخدم' if lang == 'ar' else 'User' }}</th>
-                        <th style="min-width: 160px;">{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</th>
-                        <th style="min-width: 85px;">{{ 'الدور' if lang == 'ar' else 'Role' }}</th>
-                        <th style="min-width: 85px;">{{ 'الخطة' if lang == 'ar' else 'Plan' }}</th>
-                        <th style="min-width: 80px;">{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
-                        <th style="min-width: 210px;">{{ 'الاتصال' if lang == 'ar' else 'Connection' }}</th>
-                        <th style="min-width: 130px;">{{ 'نوع الجهاز' if lang == 'ar' else 'Device' }}</th>
-                        <th style="min-width: 110px;">{{ 'تاريخ التسجيل' if lang == 'ar' else 'Join Date' }}</th>
-                        <th style="min-width: 70px;">{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</th>
+                        <th style="min-width: 120px;">{{ 'المستخدم' if lang == 'ar' else 'User' }}</th>
+                        <th style="min-width: 140px;">{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</th>
+                        <th style="min-width: 75px;">{{ 'الدور' if lang == 'ar' else 'Role' }}</th>
+                        <th style="min-width: 75px;">{{ 'الخطة' if lang == 'ar' else 'Plan' }}</th>
+                        <th style="min-width: 70px;">{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                        <th style="min-width: 180px;">{{ 'الاتصال' if lang == 'ar' else 'Connection' }}</th>
+                        <th style="min-width: 110px;">{{ 'نوع الجهاز' if lang == 'ar' else 'Device' }}</th>
+                        <th style="min-width: 95px;">{{ 'تاريخ التسجيل' if lang == 'ar' else 'Join Date' }}</th>
+                        <th style="min-width: 60px;">{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</th>
                     </tr>
                 </thead>
             <tbody>
