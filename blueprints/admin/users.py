@@ -160,50 +160,132 @@ def export_pdf():
         <head>
             <meta charset="UTF-8">
             <style>
+                * {{
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }}
                 body {{
-                    font-family: 'DejaVu Sans', Arial, sans-serif;
-                    margin: 20px;
+                    font-family: 'DejaVu Sans', Tahoma, Arial, sans-serif;
+                    margin: 15px;
+                    padding: 15px;
                     direction: {'rtl' if lang == 'ar' else 'ltr'};
+                    background-color: #fff;
+                    font-size: 11px;
+                    line-height: 1.6;
+                }}
+                .header {{
+                    text-align: center;
+                    margin-bottom: 20px;
+                    border-bottom: 3px solid #366092;
+                    padding-bottom: 15px;
                 }}
                 h1 {{
-                    text-align: center;
                     color: #366092;
-                    margin-bottom: 30px;
+                    font-size: 22px;
+                    margin-bottom: 5px;
+                    font-weight: bold;
+                }}
+                .report-date {{
+                    color: #666;
+                    font-size: 10px;
+                    margin-top: 5px;
                 }}
                 table {{
                     width: 100%;
                     border-collapse: collapse;
-                    margin-bottom: 20px;
+                    margin: 15px 0;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }}
+                thead tr {{
+                    background: linear-gradient(135deg, #366092 0%, #1e3a5c 100%);
                 }}
                 th {{
-                    background-color: #366092;
-                    color: white;
-                    padding: 12px;
+                    color: #fff;
+                    padding: 12px 8px;
                     text-align: center;
                     font-weight: bold;
-                    border: 1px solid #333;
+                    border: 1px solid #2c5aa0;
+                    font-size: 11px;
                 }}
                 td {{
-                    padding: 10px;
-                    border: 1px solid #ddd;
+                    padding: 10px 8px;
+                    border: 1px solid #e0e0e0;
                     text-align: center;
+                    vertical-align: middle;
                 }}
-                tr:nth-child(even) {{
-                    background-color: #f9f9f9;
+                tbody tr {{
+                    transition: background-color 0.2s;
                 }}
-                tr:hover {{
-                    background-color: #f0f0f0;
+                tbody tr:nth-child(odd) {{
+                    background-color: #f8f9fa;
+                }}
+                tbody tr:nth-child(even) {{
+                    background-color: #ffffff;
+                }}
+                tbody tr:hover {{
+                    background-color: #e3f2fd;
+                }}
+                .status-active {{
+                    color: #2e7d32;
+                    font-weight: bold;
+                }}
+                .status-inactive {{
+                    color: #c62828;
+                    font-weight: bold;
                 }}
                 .footer {{
                     text-align: center;
+                    color: #999;
+                    font-size: 9px;
+                    margin-top: 20px;
+                    padding-top: 10px;
+                    border-top: 1px solid #ddd;
+                }}
+                .stats {{
+                    display: flex;
+                    justify-content: space-around;
+                    margin-bottom: 15px;
+                    background-color: #f5f5f5;
+                    padding: 10px;
+                    border-radius: 4px;
+                }}
+                .stat-item {{
+                    text-align: center;
+                }}
+                .stat-label {{
                     color: #666;
-                    font-size: 12px;
-                    margin-top: 30px;
+                    font-size: 10px;
+                    display: block;
+                }}
+                .stat-value {{
+                    color: #366092;
+                    font-weight: bold;
+                    font-size: 14px;
                 }}
             </style>
         </head>
         <body>
-            <h1>{title}</h1>
+            <div class="header">
+                <h1>{title}</h1>
+                <div class="report-date">{timestamp}</div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">{'إجمالي المستخدمين' if lang == 'ar' else 'Total Users'}</span>
+                    <span class="stat-value">{len(users)}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">{'المستخدمون النشطون' if lang == 'ar' else 'Active Users'}</span>
+                    <span class="stat-value">{sum(1 for u in users if u.is_active)}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">{'المستخدمون غير النشطين' if lang == 'ar' else 'Inactive Users'}</span>
+                    <span class="stat-value">{sum(1 for u in users if not u.is_active)}</span>
+                </div>
+            </div>
+            
             <table>
                 <thead>
                     <tr>
@@ -215,7 +297,7 @@ def export_pdf():
                 </tbody>
             </table>
             <div class="footer">
-                <p>تم التوليد: {timestamp} | Generated: {timestamp}</p>
+                <p>{'تم التوليد بواسطة نظام Mcidia' if lang == 'ar' else 'Generated by Mcidia System'} | {timestamp}</p>
             </div>
         </body>
         </html>
