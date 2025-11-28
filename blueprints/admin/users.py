@@ -126,8 +126,8 @@ def export_pdf():
         
         # Table headers
         headers = {
-            'ar': ['معرّف', 'اسم المستخدم', 'البريد الإلكتروني', 'الدور', 'الحالة'],
-            'en': ['ID', 'Username', 'Email', 'Role', 'Status']
+            'ar': ['معرّف', 'اسم المستخدم', 'البريد الإلكتروني', 'الدور', 'الخطة', 'الحالة', 'تاريخ التسجيل'],
+            'en': ['ID', 'Username', 'Email', 'Role', 'Plan', 'Status', 'Join Date']
         }
         
         status_text = {
@@ -135,7 +135,7 @@ def export_pdf():
             'en': {'active': 'Active', 'inactive': 'Inactive'}
         }
         
-        # Build table rows - limit to 5 columns for better visibility
+        # Build table rows
         rows_html = ''
         for user in users[:100]:
             status = status_text[lang]['active'] if user.is_active else status_text[lang]['inactive']
@@ -143,10 +143,12 @@ def export_pdf():
             rows_html += f"""
             <tr>
                 <td>{user.id}</td>
-                <td>{user.username[:18]}</td>
-                <td>{user.email[:20]}</td>
+                <td>{user.username[:15]}</td>
+                <td>{user.email[:18]}</td>
                 <td>{user.role or '-'}</td>
+                <td>{user.subscription_plan or '-'}</td>
                 <td><span class="{status_class}">{status}</span></td>
+                <td>{user.created_at.strftime('%Y-%m-%d') if user.created_at else '-'}</td>
             </tr>
             """
         
@@ -224,17 +226,20 @@ def export_pdf():
                 th {{
                     background-color: #366092;
                     color: #fff;
-                    padding: 6px 4px;
+                    padding: 5px 3px;
                     text-align: center;
                     font-weight: bold;
                     border: 1px solid #2c5aa0;
                     vertical-align: middle;
+                    font-size: 8pt;
                 }}
                 td {{
-                    padding: 5px 4px;
+                    padding: 4px 3px;
                     border: 1px solid #ddd;
                     text-align: center;
                     vertical-align: middle;
+                    font-size: 8pt;
+                    word-wrap: break-word;
                 }}
                 tbody tr:nth-child(odd) {{
                     background-color: #f9f9f9;
