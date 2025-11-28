@@ -39,10 +39,19 @@ def index():
 @notifications_admin_bp.route('/api', methods=['GET'])
 @login_required
 def api_notifications():
-    """API endpoint for fetching unread notifications as JSON"""
+    """API endpoint for fetching unread notifications as JSON - Admin Only"""
+    from models import User
     db = get_db()
     
     try:
+        # Check if user is admin
+        current_user = db.session.query(User).get(session.get('user_id'))
+        if not current_user or not current_user.role or current_user.role.name != 'system_admin':
+            return jsonify({
+                'success': False,
+                'error': 'Unauthorized'
+            }), 403
+        
         # Get only broadcast unread notifications (user_id is NULL and is_read is False)
         notifications = db.session.query(Notification).filter(
             Notification.user_id.is_(None),
@@ -75,10 +84,19 @@ def api_notifications():
 @notifications_admin_bp.route('/mark-read/<int:notification_id>', methods=['POST'])
 @login_required
 def mark_notification_read(notification_id):
-    """Mark a notification as read"""
+    """Mark a notification as read - Admin Only"""
+    from models import User
     db = get_db()
     
     try:
+        # Check if user is admin
+        current_user = db.session.query(User).get(session.get('user_id'))
+        if not current_user or not current_user.role or current_user.role.name != 'system_admin':
+            return jsonify({
+                'success': False,
+                'error': 'Unauthorized'
+            }), 403
+        
         notification = db.session.query(Notification).get(notification_id)
         if notification:
             notification.is_read = True
@@ -100,10 +118,19 @@ def mark_notification_read(notification_id):
 @notifications_admin_bp.route('/mark-all-read', methods=['POST'])
 @login_required
 def mark_all_read():
-    """Mark all broadcast notifications as read"""
+    """Mark all broadcast notifications as read - Admin Only"""
+    from models import User
     db = get_db()
     
     try:
+        # Check if user is admin
+        current_user = db.session.query(User).get(session.get('user_id'))
+        if not current_user or not current_user.role or current_user.role.name != 'system_admin':
+            return jsonify({
+                'success': False,
+                'error': 'Unauthorized'
+            }), 403
+        
         db.session.query(Notification).filter(
             Notification.user_id.is_(None),
             Notification.is_read == False
