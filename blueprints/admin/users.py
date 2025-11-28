@@ -1,10 +1,18 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session, jsonify
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session, jsonify, send_file
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required, role_required
 from models import User, Role, SubscriptionPlan, Project, Transaction, AILog, Organization, OrganizationMembership
 from flask import current_app
 from werkzeug.security import generate_password_hash
 from datetime import datetime
+from io import BytesIO
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
 
 users_bp = Blueprint('users', __name__, url_prefix='/users')
 
@@ -13,6 +21,199 @@ def get_db():
 
 def get_lang():
     return session.get('language', 'ar')
+
+@users_bp.route('/export/excel', methods=['GET'])
+@login_required
+@role_required('system_admin')
+def export_excel():
+    """Export users data to Excel"""
+    db = get_db()
+    lang = get_lang()
+    
+    # Get users with filters applied
+    query = db.session.query(User)
+    users = query.order_by(User.created_at.desc()).all()
+    
+    # Create Excel workbook
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'المستخدمون' if lang == 'ar' else 'Users'
+    
+    # Define styles
+    header_fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
+    header_font = Font(bold=True, color='FFFFFF', size=11)
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    
+    # Headers
+    headers = ['ID', 'اسم المستخدم' if lang == 'ar' else 'Username', 
+               'البريد الإلكتروني' if lang == 'ar' else 'Email',
+               'رقم الهاتف' if lang == 'ar' else 'Phone',
+               'الشركة' if lang == 'ar' else 'Company',
+               'الدور' if lang == 'ar' else 'Role',
+               'الخطة' if lang == 'ar' else 'Plan',
+               'الحالة' if lang == 'ar' else 'Status',
+               'آخر دخول' if lang == 'ar' else 'Last Login',
+               'عنوان IP' if lang == 'ar' else 'Last IP',
+               'تاريخ التسجيل' if lang == 'ar' else 'Join Date']
+    
+    ws.append(headers)
+    
+    # Style headers
+    for cell in ws[1]:
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = center_alignment
+        cell.border = border
+    
+    # Add data rows
+    for user in users:
+        row = [
+            user.id,
+            user.username,
+            user.email,
+            user.phone or '-',
+            user.company_name or '-',
+            user.role or '-',
+            user.subscription_plan or '-',
+            'نشط' if lang == 'ar' and user.is_active else 'Active' if user.is_active else 'غير نشط' if lang == 'ar' else 'Inactive',
+            user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else '-',
+            user.last_login_ip or '-',
+            user.created_at.strftime('%Y-%m-%d') if user.created_at else '-'
+        ]
+        ws.append(row)
+        
+        # Style data cells
+        for cell in ws[ws.max_row]:
+            cell.border = border
+            cell.alignment = Alignment(horizontal='center' if cell.column <= 1 else 'left', vertical='center', wrap_text=True)
+    
+    # Adjust column widths
+    column_widths = [8, 15, 20, 12, 15, 12, 12, 10, 16, 14, 12]
+    for i, width in enumerate(column_widths, 1):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = width
+    
+    # Save to BytesIO
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=f'users_{datetime.utcnow().strftime("%Y%m%d_%H%M%S")}.xlsx'
+    )
+
+
+@users_bp.route('/export/pdf', methods=['GET'])
+@login_required
+@role_required('system_admin')
+def export_pdf():
+    """Export users data to PDF"""
+    db = get_db()
+    lang = get_lang()
+    
+    # Get users
+    query = db.session.query(User)
+    users = query.order_by(User.created_at.desc()).all()
+    
+    # Create PDF
+    output = BytesIO()
+    doc = SimpleDocTemplate(output, pagesize=A4, rightMargin=0.5*inch, leftMargin=0.5*inch,
+                           topMargin=0.5*inch, bottomMargin=0.5*inch)
+    
+    elements = []
+    
+    # Title
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=16,
+        textColor=colors.HexColor('#366092'),
+        spaceAfter=20,
+        alignment='center'
+    )
+    title = 'تقرير المستخدمين' if lang == 'ar' else 'Users Report'
+    elements.append(Paragraph(title, title_style))
+    elements.append(Spacer(1, 0.2*inch))
+    
+    # Prepare table data
+    table_headers = ['ID', 'اسم المستخدم' if lang == 'ar' else 'Username', 
+                     'البريد' if lang == 'ar' else 'Email',
+                     'رقم الهاتف' if lang == 'ar' else 'Phone',
+                     'الشركة' if lang == 'ar' else 'Company',
+                     'الدور' if lang == 'ar' else 'Role',
+                     'الخطة' if lang == 'ar' else 'Plan',
+                     'الحالة' if lang == 'ar' else 'Status',
+                     'آخر دخول' if lang == 'ar' else 'Last Login']
+    
+    table_data = [table_headers]
+    
+    for user in users[:100]:  # Limit to 100 users per page
+        row = [
+            str(user.id),
+            user.username[:15],
+            user.email[:20],
+            user.phone or '-',
+            (user.company_name or '-')[:12],
+            user.role or '-',
+            user.subscription_plan or '-',
+            'نشط' if lang == 'ar' and user.is_active else 'Active' if user.is_active else 'غير نشط' if lang == 'ar' else 'Inactive',
+            user.last_login.strftime('%Y-%m-%d') if user.last_login else '-'
+        ]
+        table_data.append(row)
+    
+    # Create table
+    table = Table(table_data, colWidths=[0.6*inch, 1.2*inch, 1.2*inch, 0.8*inch, 
+                                         1*inch, 0.8*inch, 0.8*inch, 0.8*inch, 1*inch])
+    
+    # Style table
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#366092')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f0f0')])
+    ]))
+    
+    elements.append(table)
+    
+    # Add footer with timestamp
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=8,
+        textColor=colors.grey,
+        spaceAfter=10,
+        alignment='center'
+    )
+    elements.append(Spacer(1, 0.3*inch))
+    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    elements.append(Paragraph(f'Report generated: {timestamp}', footer_style))
+    
+    # Build PDF
+    doc.build(elements)
+    output.seek(0)
+    
+    return send_file(
+        output,
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=f'users_{datetime.utcnow().strftime("%Y%m%d_%H%M%S")}.pdf'
+    )
+
 
 @users_bp.route('/')
 @login_required

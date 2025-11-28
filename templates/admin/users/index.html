@@ -9,10 +9,20 @@
         <p class="text-muted">{{ 'عرض وإدارة جميع مستخدمي المنصة' if lang == 'ar' else 'View and manage all platform users' }}</p>
     </div>
     <div class="col-md-4 text-{{ 'start' if lang == 'en' else 'end' }}">
-        <a href="{{ url_for('admin.users.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
-            {{ 'إضافة مستخدم' if lang == 'ar' else 'Add User' }}
-        </a>
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('admin.users.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                {{ 'إضافة مستخدم' if lang == 'ar' else 'Add User' }}
+            </a>
+            <a href="{{ url_for('admin.users.export_excel') }}" class="btn btn-success" title="{{ 'تنزيل Excel' if lang == 'ar' else 'Download Excel' }}">
+                <i class="fas fa-file-excel {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                {{ 'Excel' if lang == 'ar' else 'Excel' }}
+            </a>
+            <a href="{{ url_for('admin.users.export_pdf') }}" class="btn btn-danger" title="{{ 'تنزيل PDF' if lang == 'ar' else 'Download PDF' }}">
+                <i class="fas fa-file-pdf {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                {{ 'PDF' if lang == 'ar' else 'PDF' }}
+            </a>
+        </div>
     </div>
 </div>
 
