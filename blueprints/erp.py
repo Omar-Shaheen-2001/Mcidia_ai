@@ -50,6 +50,15 @@ def index():
         # Get modules from user's plan
         activated_module_ids = [m.id for m in user_subscription.plan.modules]
     
+    # Also check for directly activated modules by admin
+    user_direct_modules = db.session.query(UserERPModule)\
+        .filter_by(user_id=user_id, is_active=True)\
+        .all()
+    direct_module_ids = [um.module_id for um in user_direct_modules]
+    
+    # Combine both sources of activation
+    all_activated_ids = set(activated_module_ids + direct_module_ids)
+    
     # Prepare modules with activation status
     modules_data = []
     for module in all_modules:
@@ -60,7 +69,7 @@ def index():
             'description': module.description_ar if lang == 'ar' else module.description_en,
             'icon': module.icon,
             'color': module.color,
-            'is_activated': module.id in activated_module_ids
+            'is_activated': module.id in all_activated_ids
         })
     
     # Prepare plans data
@@ -187,6 +196,13 @@ def module_detail(slug):
         module_ids = [m.id for m in user_subscription.plan.modules]
         has_access = module.id in module_ids
     
+    # Also check for directly activated modules by admin
+    if not has_access:
+        direct_module = db.session.query(UserERPModule)\
+            .filter_by(user_id=user_id, module_id=module.id, is_active=True)\
+            .first()
+        has_access = direct_module is not None
+    
     if not has_access:
         message = 'الرجاء الاشتراك في خطة مناسبة لتفعيل هذه الوحدة' if lang == 'ar' else 'Please subscribe to a plan to access this module'
         flash(message, 'warning')
@@ -223,7 +239,22 @@ def get_user_subscription():
         .filter_by(user_id=user_id, status='active')\
         .first()
     
-    if not subscription:
+    # Get modules from subscription plan and direct activations
+    module_ids = []
+    
+    if subscription:
+        module_ids = [m.id for m in subscription.plan.modules]
+    
+    # Also include directly activated modules by admin
+    direct_modules = db.session.query(UserERPModule)\
+        .filter_by(user_id=user_id, is_active=True)\
+        .all()
+    direct_module_ids = [um.module_id for um in direct_modules]
+    
+    # Combine both sources
+    all_module_ids = list(set(module_ids + direct_module_ids))
+    
+    if not subscription and not direct_modules:
         return jsonify({
             'success': True,
             'has_subscription': False,
@@ -231,15 +262,13 @@ def get_user_subscription():
             'modules': []
         })
     
-    module_ids = [m.id for m in subscription.plan.modules]
-    
     return jsonify({
         'success': True,
-        'has_subscription': True,
+        'has_subscription': subscription is not None,
         'plan': {
             'id': subscription.plan.id,
             'name': subscription.plan.name,
             'expires_at': subscription.expires_at.isoformat() if subscription.expires_at else None
-        },
-        'modules': module_ids
+        } if subscription else None,
+        'modules': all_module_ids
     })
