@@ -1,0 +1,243 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'إدارة وحدات ERP' if lang == 'ar' else 'ERP Modules Management' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-cubes {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                {{ 'إدارة وحدات ERP' if lang == 'ar' else 'ERP Modules Management' }}
+            </h2>
+            <p class="text-muted mb-0">{{ 'تفعيل وحدات النظام المتكامل للمستخدمين' if lang == 'ar' else 'Activate ERP modules for users' }}</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left: User Selection -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-check {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                        {{ 'اختر المستخدم' if lang == 'ar' else 'Select User' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'المستخدم' if lang == 'ar' else 'User' }}</label>
+                        <select id="userSelect" class="form-select" onchange="loadUserModules()">
+                            <option value="">{{ 'اختر مستخدم...' if lang == 'ar' else 'Select a user...' }}</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div id="userInfo" style="display: none;" class="p-3 bg-light rounded mb-3">
+                        <div class="mb-2">
+                            <small class="text-muted d-block">{{ 'اسم المستخدم' if lang == 'ar' else 'Username' }}</small>
+                            <strong id="infoUsername"></strong>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted d-block">{{ 'البريد الإلكتروني' if lang == 'ar' else 'Email' }}</small>
+                            <strong id="infoEmail" style="word-break: break-all;"></strong>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block">{{ 'الوحدات المفعلة' if lang == 'ar' else 'Active Modules' }}</small>
+                            <span id="infoActiveCount" class="badge bg-primary"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Modules Selection -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-check {{ 'ms-2' if lang == 'ar' else 'me-2' }}" style="color: #667eea;"></i>
+                        {{ 'وحدات النظام المتاحة' if lang == 'ar' else 'Available Modules' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if modules %}
+                        <div class="row">
+                            {% for module in modules %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100" style="border-left: 4px solid {{ module.color or '#667eea' }};">
+                                    <div class="card-body d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center mb-2">
+                                                {% if module.icon %}
+                                                <i class="{{ module.icon }}" style="font-size: 1.5rem; color: {{ module.color or '#667eea' }}; margin-{{ 'right' if lang == 'ar' else 'left' }}: 10px;"></i>
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="mb-0">{{ module.name_ar if lang == 'ar' else module.name_en }}</h6>
+                                                    <small class="text-muted"><code>{{ module.slug }}</code></small>
+                                                </div>
+                                            </div>
+                                            {% if module.description_ar or module.description_en %}
+                                            <p class="text-muted small mb-2">
+                                                {{ module.description_ar if lang == 'ar' else module.description_en }}
+                                            </p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="form-check form-switch" style="margin-{{ 'left' if lang == 'ar' else 'right' }}: 15px;">
+                                            <input class="form-check-input module-toggle" type="checkbox" 
+                                                   data-module-id="{{ module.id }}" 
+                                                   data-module-name="{{ module.name_ar if lang == 'ar' else module.name_en }}"
+                                                   onchange="toggleModule(this)">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox text-muted" style="font-size: 3rem; opacity: 0.5;"></i>
+                            <p class="text-muted mt-3">{{ 'لا توجد وحدات متاحة' if lang == 'ar' else 'No modules available' }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="successToast" class="toast" role="alert">
+        <div class="toast-header bg-success text-white">
+            <i class="fas fa-check-circle {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+            <strong class="{{ 'ms-auto' if lang == 'en' else 'me-auto' }}">{{ 'نجح' if lang == 'ar' else 'Success' }}</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage"></div>
+    </div>
+</div>
+
+<!-- Error Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11; margin-bottom: 80px;">
+    <div id="errorToast" class="toast" role="alert">
+        <div class="toast-header bg-danger text-white">
+            <i class="fas fa-exclamation-circle {{ 'ms-2' if lang == 'ar' else 'me-2' }}"></i>
+            <strong class="{{ 'ms-auto' if lang == 'en' else 'me-auto' }}">{{ 'خطأ' if lang == 'ar' else 'Error' }}</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="errorMessage"></div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const lang = '{{ lang }}';
+let currentUserId = null;
+let currentUserModules = [];
+
+async function loadUserModules() {
+    const userSelect = document.getElementById('userSelect');
+    const userId = userSelect.value;
+    
+    if (!userId) {
+        document.getElementById('userInfo').style.display = 'none';
+        document.querySelectorAll('.module-toggle').forEach(cb => cb.checked = false);
+        document.querySelectorAll('.module-toggle').forEach(cb => cb.disabled = true);
+        return;
+    }
+    
+    currentUserId = userId;
+    
+    try {
+        const response = await fetch(`/admin/erp/user/${userId}`);
+        const data = await response.json();
+        
+        // Update user info
+        document.getElementById('infoUsername').textContent = data.username;
+        document.getElementById('infoEmail').textContent = data.email;
+        document.getElementById('infoActiveCount').textContent = data.active_modules.length;
+        document.getElementById('userInfo').style.display = 'block';
+        
+        // Update module checkboxes
+        currentUserModules = data.active_modules;
+        document.querySelectorAll('.module-toggle').forEach(checkbox => {
+            checkbox.disabled = false;
+            checkbox.checked = data.active_modules.includes(parseInt(checkbox.dataset.moduleId));
+        });
+    } catch (error) {
+        showError('{{ "خطأ في تحميل بيانات المستخدم" if lang == "ar" else "Error loading user data" }}');
+    }
+}
+
+async function toggleModule(checkbox) {
+    if (!currentUserId) {
+        showError('{{ "يرجى اختيار مستخدم أولاً" if lang == "ar" else "Please select a user first" }}');
+        checkbox.checked = !checkbox.checked;
+        return;
+    }
+    
+    const moduleId = parseInt(checkbox.dataset.moduleId);
+    const moduleName = checkbox.dataset.moduleName;
+    const isActivating = checkbox.checked;
+    
+    try {
+        const endpoint = isActivating ? '/admin/erp/api/activate-module' : '/admin/erp/api/deactivate-module';
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: currentUserId,
+                module_id: moduleId
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess(data.message);
+            
+            // Update active modules list
+            if (isActivating) {
+                if (!currentUserModules.includes(moduleId)) {
+                    currentUserModules.push(moduleId);
+                }
+            } else {
+                currentUserModules = currentUserModules.filter(id => id !== moduleId);
+            }
+            
+            // Update count
+            document.getElementById('infoActiveCount').textContent = currentUserModules.length;
+        } else {
+            showError(data.message);
+            checkbox.checked = !checkbox.checked;
+        }
+    } catch (error) {
+        showError('{{ "خطأ في العملية" if lang == "ar" else "Operation failed" }}');
+        checkbox.checked = !checkbox.checked;
+    }
+}
+
+function showSuccess(message) {
+    document.getElementById('toastMessage').textContent = message;
+    const toast = new bootstrap.Toast(document.getElementById('successToast'));
+    toast.show();
+}
+
+function showError(message) {
+    document.getElementById('errorMessage').textContent = message;
+    const toast = new bootstrap.Toast(document.getElementById('errorToast'));
+    toast.show();
+}
+
+// Disable all checkboxes initially
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.module-toggle').forEach(cb => cb.disabled = true);
+});
+</script>
+{% endblock %}

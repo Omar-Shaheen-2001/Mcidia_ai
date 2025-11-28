@@ -86,6 +86,12 @@
                     <span>{{ 'التقارير' if lang == 'ar' else 'Reports' }}</span>
                 </a>
                 
+                <div class="menu-section">{{ 'نظام ERP' if lang == 'ar' else 'ERP System' }}</div>
+                <a href="{{ url_for('admin.erp_admin.index') }}" class="menu-item {% if 'erp_admin' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-cubes"></i>
+                    <span>{{ 'إدارة وحدات ERP' if lang == 'ar' else 'ERP Modules' }}</span>
+                </a>
+                
                 <div class="menu-section">{{ 'الذكاء الاصطناعي' if lang == 'ar' else 'AI' }}</div>
                 <a href="{{ url_for('admin.ai_management.index') }}" class="menu-item {% if 'ai_management' in request.endpoint %}active{% endif %}">
                     <i class="fas fa-robot"></i>
