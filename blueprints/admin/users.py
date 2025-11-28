@@ -126,8 +126,8 @@ def export_pdf():
         
         # Table headers
         headers = {
-            'ar': ['معرّف', 'اسم المستخدم', 'البريد الإلكتروني', 'الهاتف', 'الشركة', 'الدور', 'الخطة', 'الحالة', 'آخر دخول'],
-            'en': ['ID', 'Username', 'Email', 'Phone', 'Company', 'Role', 'Plan', 'Status', 'Last Login']
+            'ar': ['معرّف', 'اسم المستخدم', 'البريد الإلكتروني', 'الدور', 'الحالة'],
+            'en': ['ID', 'Username', 'Email', 'Role', 'Status']
         }
         
         status_text = {
@@ -135,22 +135,18 @@ def export_pdf():
             'en': {'active': 'Active', 'inactive': 'Inactive'}
         }
         
-        # Build table rows
+        # Build table rows - limit to 5 columns for better visibility
         rows_html = ''
         for user in users[:100]:
             status = status_text[lang]['active'] if user.is_active else status_text[lang]['inactive']
             status_class = 'status-active' if user.is_active else 'status-inactive'
             rows_html += f"""
             <tr>
-                <td style="font-size: 10px; width: 5%;">{user.id}</td>
-                <td style="font-size: 10px; width: 12%;">{user.username[:20]}</td>
-                <td style="font-size: 10px; width: 18%; word-break: break-all;">{user.email[:25]}</td>
-                <td style="font-size: 10px; width: 10%;">{(user.phone or '-')[:15]}</td>
-                <td style="font-size: 10px; width: 12%;">{(user.company_name or '-')[:20]}</td>
-                <td style="font-size: 10px; width: 10%;">{user.role or '-'}</td>
-                <td style="font-size: 10px; width: 10%;">{user.subscription_plan or '-'}</td>
-                <td style="font-size: 10px; width: 8%; font-weight: bold;"><span class="{status_class}">{status}</span></td>
-                <td style="font-size: 10px; width: 15%;">{user.last_login.strftime('%Y-%m-%d') if user.last_login else '-'}</td>
+                <td>{user.id}</td>
+                <td>{user.username[:18]}</td>
+                <td>{user.email[:20]}</td>
+                <td>{user.role or '-'}</td>
+                <td><span class="{status_class}">{status}</span></td>
             </tr>
             """
         
@@ -161,124 +157,106 @@ def export_pdf():
         <head>
             <meta charset="UTF-8">
             <style>
+                @page {{
+                    size: A4;
+                    margin: 0.5cm;
+                }}
                 * {{
                     margin: 0;
                     padding: 0;
                     box-sizing: border-box;
                 }}
-                html {{
-                    page-break-after: always;
-                }}
                 body {{
-                    font-family: 'DejaVu Sans', Tahoma, Arial, sans-serif;
-                    margin: 10px 15px;
-                    padding: 10px;
+                    font-family: 'DejaVu Sans', sans-serif;
+                    margin: 0;
+                    padding: 8px;
                     direction: {'rtl' if lang == 'ar' else 'ltr'};
                     background-color: #fff;
-                    font-size: 10pt;
-                    line-height: 1.4;
+                    font-size: 9pt;
+                    line-height: 1.3;
                 }}
                 .header {{
                     text-align: center;
-                    margin-bottom: 15px;
+                    margin-bottom: 12px;
                     border-bottom: 2px solid #366092;
-                    padding-bottom: 10px;
+                    padding-bottom: 8px;
                 }}
                 h1 {{
                     color: #366092;
-                    font-size: 16pt;
-                    margin-bottom: 3px;
+                    font-size: 14pt;
+                    margin: 0;
                     font-weight: bold;
                 }}
                 .report-date {{
                     color: #666;
-                    font-size: 9pt;
-                    margin-top: 3px;
+                    font-size: 8pt;
+                    margin-top: 2px;
+                }}
+                .stats {{
+                    display: flex;
+                    justify-content: space-around;
+                    margin-bottom: 10px;
+                    background-color: #f5f5f5;
+                    padding: 6px;
+                    border: 1px solid #ddd;
+                }}
+                .stat-item {{
+                    text-align: center;
+                    flex: 1;
+                }}
+                .stat-label {{
+                    color: #666;
+                    font-size: 7pt;
+                    display: block;
+                    margin-bottom: 2px;
+                }}
+                .stat-value {{
+                    color: #366092;
+                    font-weight: bold;
+                    font-size: 11pt;
                 }}
                 table {{
                     width: 100%;
                     border-collapse: collapse;
-                    margin: 10px 0;
-                    page-break-inside: avoid;
-                }}
-                thead {{
-                    display: table-header-group;
-                    background: #366092;
-                }}
-                thead tr {{
-                    background: #366092;
+                    margin: 8px 0;
+                    font-size: 8pt;
                 }}
                 th {{
+                    background-color: #366092;
                     color: #fff;
-                    padding: 8px 4px;
+                    padding: 6px 4px;
                     text-align: center;
                     font-weight: bold;
                     border: 1px solid #2c5aa0;
-                    font-size: 9pt;
                     vertical-align: middle;
-                    word-wrap: break-word;
                 }}
                 td {{
-                    padding: 7px 4px;
-                    border: 1px solid #ccc;
+                    padding: 5px 4px;
+                    border: 1px solid #ddd;
                     text-align: center;
                     vertical-align: middle;
-                    font-size: 9pt;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }}
-                tbody tr {{
-                    page-break-inside: avoid;
                 }}
                 tbody tr:nth-child(odd) {{
-                    background-color: #f8f9fa;
+                    background-color: #f9f9f9;
                 }}
                 tbody tr:nth-child(even) {{
-                    background-color: #ffffff;
+                    background-color: #fff;
                 }}
                 .status-active {{
                     color: #1b5e20;
                     font-weight: bold;
                 }}
                 .status-inactive {{
-                    color: #b71c1c;
+                    color: #c62828;
                     font-weight: bold;
                 }}
                 .footer {{
                     text-align: center;
                     color: #999;
-                    font-size: 8pt;
-                    margin-top: 15px;
-                    padding-top: 8px;
+                    font-size: 7pt;
+                    margin-top: 10px;
+                    padding-top: 6px;
                     border-top: 1px solid #ddd;
-                }}
-                .stats {{
-                    margin-bottom: 12px;
-                    background-color: #f5f5f5;
-                    padding: 8px;
-                    border: 1px solid #ddd;
-                }}
-                .stats-row {{
-                    display: flex;
-                    justify-content: space-around;
-                    flex-wrap: wrap;
-                }}
-                .stat-item {{
-                    text-align: center;
-                    padding: 5px;
-                    flex: 1;
-                    min-width: 100px;
-                }}
-                .stat-label {{
-                    color: #666;
-                    font-size: 8pt;
-                    display: block;
-                    margin-bottom: 3px;
-                }}
-                .stat-value {{
-                    color: #366092;
-                    font-weight: bold;
-                    font-size: 12pt;
                 }}
             </style>
         </head>
