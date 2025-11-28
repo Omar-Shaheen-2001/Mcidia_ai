@@ -8,11 +8,7 @@ from datetime import datetime
 from io import BytesIO
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-from reportlab.lib.pagesizes import letter, A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib import colors
+from weasyprint import HTML, CSS
 
 users_bp = Blueprint('users', __name__, url_prefix='/users')
 
@@ -115,7 +111,7 @@ def export_excel():
 @login_required
 @role_required('system_admin')
 def export_pdf():
-    """Export users data to PDF"""
+    """Export users data to PDF with Arabic support"""
     try:
         db = get_db()
         lang = get_lang()
@@ -124,64 +120,120 @@ def export_pdf():
         query = db.session.query(User)
         users = query.order_by(User.created_at.desc()).all()
         
-        # Create PDF
-        output = BytesIO()
-        doc = SimpleDocTemplate(output, pagesize=A4, rightMargin=0.5*inch, leftMargin=0.5*inch,
-                               topMargin=0.5*inch, bottomMargin=0.5*inch)
+        # Create HTML table for PDF
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        title = 'تقرير المستخدمين' if lang == 'ar' else 'Users Report'
         
-        elements = []
+        # Table headers
+        headers = {
+            'ar': ['معرّف', 'اسم المستخدم', 'البريد الإلكتروني', 'الهاتف', 'الشركة', 'الدور', 'الخطة', 'الحالة', 'آخر دخول'],
+            'en': ['ID', 'Username', 'Email', 'Phone', 'Company', 'Role', 'Plan', 'Status', 'Last Login']
+        }
         
-        # Prepare table data
-        table_headers = ['ID', 'Username', 'Email', 'Phone', 'Company', 'Role', 'Plan', 'Status', 'Last Login']
+        status_text = {
+            'ar': {'active': 'نشط', 'inactive': 'غير نشط'},
+            'en': {'active': 'Active', 'inactive': 'Inactive'}
+        }
         
-        table_data = [table_headers]
+        # Build table rows
+        rows_html = ''
+        for user in users[:100]:
+            status = status_text[lang]['active'] if user.is_active else status_text[lang]['inactive']
+            rows_html += f"""
+            <tr>
+                <td>{user.id}</td>
+                <td>{user.username}</td>
+                <td>{user.email}</td>
+                <td>{user.phone or '-'}</td>
+                <td>{user.company_name or '-'}</td>
+                <td>{user.role or '-'}</td>
+                <td>{user.subscription_plan or '-'}</td>
+                <td>{status}</td>
+                <td>{user.last_login.strftime('%Y-%m-%d') if user.last_login else '-'}</td>
+            </tr>
+            """
         
-        for user in users[:100]:  # Limit to 100 users per page
-            row = [
-                str(user.id),
-                user.username[:15],
-                user.email[:20],
-                user.phone or '-',
-                (user.company_name or '-')[:12],
-                user.role or '-',
-                user.subscription_plan or '-',
-                'Active' if user.is_active else 'Inactive',
-                user.last_login.strftime('%Y-%m-%d') if user.last_login else '-'
-            ]
-            table_data.append(row)
+        # Build HTML
+        html_content = f"""
+        <!DOCTYPE html>
+        <html dir="{'rtl' if lang == 'ar' else 'ltr'}">
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body {{
+                    font-family: 'DejaVu Sans', Arial, sans-serif;
+                    margin: 20px;
+                    direction: {'rtl' if lang == 'ar' else 'ltr'};
+                }}
+                h1 {{
+                    text-align: center;
+                    color: #366092;
+                    margin-bottom: 30px;
+                }}
+                table {{
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                }}
+                th {{
+                    background-color: #366092;
+                    color: white;
+                    padding: 12px;
+                    text-align: center;
+                    font-weight: bold;
+                    border: 1px solid #333;
+                }}
+                td {{
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                }}
+                tr:nth-child(even) {{
+                    background-color: #f9f9f9;
+                }}
+                tr:hover {{
+                    background-color: #f0f0f0;
+                }}
+                .footer {{
+                    text-align: center;
+                    color: #666;
+                    font-size: 12px;
+                    margin-top: 30px;
+                }}
+            </style>
+        </head>
+        <body>
+            <h1>{title}</h1>
+            <table>
+                <thead>
+                    <tr>
+                        {''.join([f'<th>{h}</th>' for h in headers[lang]])}
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows_html}
+                </tbody>
+            </table>
+            <div class="footer">
+                <p>تم التوليد: {timestamp} | Generated: {timestamp}</p>
+            </div>
+        </body>
+        </html>
+        """
         
-        # Create table
-        table = Table(table_data, colWidths=[0.6*inch, 1.2*inch, 1.2*inch, 0.8*inch, 
-                                             1*inch, 0.8*inch, 0.8*inch, 0.8*inch, 1*inch])
-        
-        # Style table
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#366092')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('FONTSIZE', (0, 1), (-1, -1), 8),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f0f0')])
-        ]))
-        
-        elements.append(table)
-        
-        # Build PDF
-        doc.build(elements)
-        output.seek(0)
+        # Convert HTML to PDF using weasyprint
+        pdf_bytes = HTML(string=html_content).write_pdf()
         
         return send_file(
-            output,
+            BytesIO(pdf_bytes),
             mimetype='application/pdf',
             as_attachment=True,
             download_name=f'users_{datetime.utcnow().strftime("%Y%m%d_%H%M%S")}.pdf'
         )
     except Exception as e:
         print(f"PDF Export Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         flash(f'خطأ في تصدير PDF / Error exporting PDF: {str(e)}', 'danger')
         return redirect(url_for('admin.users.index'))
 
