@@ -69,11 +69,32 @@ def login():
                 flash('تم تعطيل حسابك من قبل المسؤول. يرجى التواصل مع الدعم الفني / Your account has been deactivated by administrator. Please contact support', 'danger')
                 return redirect(url_for('auth.login'))
             
-            # Update last login time, IP address, and online status
+            # Update last login time, IP address, device, and online status
             from datetime import datetime
+            from user_agents import parse
+            
             user.last_login = datetime.utcnow()
             user.last_login_ip = request.remote_addr
             user.is_online = True
+            
+            # Detect device type from User-Agent
+            user_agent = request.headers.get('User-Agent', '')
+            ua = parse(user_agent)
+            device_type = ua.device.family or 'Unknown'
+            if not device_type or device_type == 'Other':
+                if 'Mobile' in user_agent or 'Android' in user_agent:
+                    device_type = 'Mobile'
+                elif 'iPad' in user_agent or 'Tablet' in user_agent:
+                    device_type = 'Tablet'
+                elif 'Windows' in user_agent:
+                    device_type = 'Windows PC'
+                elif 'Macintosh' in user_agent:
+                    device_type = 'MacOS'
+                elif 'Linux' in user_agent:
+                    device_type = 'Linux'
+                else:
+                    device_type = 'Desktop'
+            user.last_login_device = device_type
             db.session.commit()
             
             # Store user ID in Flask session as backup

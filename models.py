@@ -57,6 +57,7 @@ class User(db.Model):
     is_online = db.Column(db.Boolean, default=False)
     last_login = db.Column(db.DateTime)
     last_login_ip = db.Column(db.String(50))
+    last_login_device = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Stripe integration

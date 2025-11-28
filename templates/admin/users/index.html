@@ -93,6 +93,7 @@
                     <th>{{ 'الخطة' if lang == 'ar' else 'Plan' }}</th>
                     <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
                     <th>{{ 'الاتصال' if lang == 'ar' else 'Connection' }}</th>
+                    <th>{{ 'نوع الجهاز' if lang == 'ar' else 'Device' }}</th>
                     <th>{{ 'تاريخ التسجيل' if lang == 'ar' else 'Join Date' }}</th>
                     <th>{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</th>
                 </tr>
@@ -143,6 +144,28 @@
                             <i class="fas fa-globe-americas fa-xs {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
                             {{ 'عنوان IP:' if lang == 'ar' else 'IP:' }} <code>{{ user.last_login_ip }}</code>
                         </small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.last_login_device %}
+                        <span class="badge bg-warning">
+                            {% if 'Windows' in user.last_login_device %}
+                            <i class="fab fa-windows fa-xs {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {% elif 'Mac' in user.last_login_device %}
+                            <i class="fab fa-apple fa-xs {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {% elif 'Mobile' in user.last_login_device %}
+                            <i class="fas fa-mobile-alt fa-xs {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {% elif 'Tablet' in user.last_login_device %}
+                            <i class="fas fa-tablet-alt fa-xs {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {% elif 'Linux' in user.last_login_device %}
+                            <i class="fab fa-linux fa-xs {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {% else %}
+                            <i class="fas fa-desktop fa-xs {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {% endif %}
+                            {{ user.last_login_device }}
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ 'غير معروف' if lang == 'ar' else 'Unknown' }}</span>
                         {% endif %}
                     </td>
                     <td><small class="text-muted">{{ user.created_at.strftime('%Y-%m-%d') }}</small></td>
