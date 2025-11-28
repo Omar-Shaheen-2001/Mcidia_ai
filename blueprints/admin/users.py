@@ -116,103 +116,74 @@ def export_excel():
 @role_required('system_admin')
 def export_pdf():
     """Export users data to PDF"""
-    db = get_db()
-    lang = get_lang()
-    
-    # Get users
-    query = db.session.query(User)
-    users = query.order_by(User.created_at.desc()).all()
-    
-    # Create PDF
-    output = BytesIO()
-    doc = SimpleDocTemplate(output, pagesize=A4, rightMargin=0.5*inch, leftMargin=0.5*inch,
-                           topMargin=0.5*inch, bottomMargin=0.5*inch)
-    
-    elements = []
-    
-    # Title
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        'CustomTitle',
-        parent=styles['Heading1'],
-        fontSize=16,
-        textColor=colors.HexColor('#366092'),
-        spaceAfter=20,
-        alignment='center'
-    )
-    title = 'تقرير المستخدمين' if lang == 'ar' else 'Users Report'
-    elements.append(Paragraph(title, title_style))
-    elements.append(Spacer(1, 0.2*inch))
-    
-    # Prepare table data
-    table_headers = ['ID', 'اسم المستخدم' if lang == 'ar' else 'Username', 
-                     'البريد' if lang == 'ar' else 'Email',
-                     'رقم الهاتف' if lang == 'ar' else 'Phone',
-                     'الشركة' if lang == 'ar' else 'Company',
-                     'الدور' if lang == 'ar' else 'Role',
-                     'الخطة' if lang == 'ar' else 'Plan',
-                     'الحالة' if lang == 'ar' else 'Status',
-                     'آخر دخول' if lang == 'ar' else 'Last Login']
-    
-    table_data = [table_headers]
-    
-    for user in users[:100]:  # Limit to 100 users per page
-        row = [
-            str(user.id),
-            user.username[:15],
-            user.email[:20],
-            user.phone or '-',
-            (user.company_name or '-')[:12],
-            user.role or '-',
-            user.subscription_plan or '-',
-            'نشط' if lang == 'ar' and user.is_active else 'Active' if user.is_active else 'غير نشط' if lang == 'ar' else 'Inactive',
-            user.last_login.strftime('%Y-%m-%d') if user.last_login else '-'
-        ]
-        table_data.append(row)
-    
-    # Create table
-    table = Table(table_data, colWidths=[0.6*inch, 1.2*inch, 1.2*inch, 0.8*inch, 
-                                         1*inch, 0.8*inch, 0.8*inch, 0.8*inch, 1*inch])
-    
-    # Style table
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#366092')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('FONTSIZE', (0, 1), (-1, -1), 8),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f0f0')])
-    ]))
-    
-    elements.append(table)
-    
-    # Add footer with timestamp
-    footer_style = ParagraphStyle(
-        'Footer',
-        parent=styles['Normal'],
-        fontSize=8,
-        textColor=colors.grey,
-        spaceAfter=10,
-        alignment='center'
-    )
-    elements.append(Spacer(1, 0.3*inch))
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-    elements.append(Paragraph(f'Report generated: {timestamp}', footer_style))
-    
-    # Build PDF
-    doc.build(elements)
-    output.seek(0)
-    
-    return send_file(
-        output,
-        mimetype='application/pdf',
-        as_attachment=True,
-        download_name=f'users_{datetime.utcnow().strftime("%Y%m%d_%H%M%S")}.pdf'
-    )
+    try:
+        db = get_db()
+        lang = get_lang()
+        
+        # Get users
+        query = db.session.query(User)
+        users = query.order_by(User.created_at.desc()).all()
+        
+        # Create PDF
+        output = BytesIO()
+        doc = SimpleDocTemplate(output, pagesize=A4, rightMargin=0.5*inch, leftMargin=0.5*inch,
+                               topMargin=0.5*inch, bottomMargin=0.5*inch)
+        
+        elements = []
+        
+        # Prepare table data
+        table_headers = ['ID', 'Username', 'Email', 'Phone', 'Company', 'Role', 'Plan', 'Status', 'Last Login']
+        
+        table_data = [table_headers]
+        
+        for user in users[:100]:  # Limit to 100 users per page
+            row = [
+                str(user.id),
+                user.username[:15],
+                user.email[:20],
+                user.phone or '-',
+                (user.company_name or '-')[:12],
+                user.role or '-',
+                user.subscription_plan or '-',
+                'Active' if user.is_active else 'Inactive',
+                user.last_login.strftime('%Y-%m-%d') if user.last_login else '-'
+            ]
+            table_data.append(row)
+        
+        # Create table
+        table = Table(table_data, colWidths=[0.6*inch, 1.2*inch, 1.2*inch, 0.8*inch, 
+                                             1*inch, 0.8*inch, 0.8*inch, 0.8*inch, 1*inch])
+        
+        # Style table
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#366092')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f0f0')])
+        ]))
+        
+        elements.append(table)
+        
+        # Build PDF
+        doc.build(elements)
+        output.seek(0)
+        
+        return send_file(
+            output,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'users_{datetime.utcnow().strftime("%Y%m%d_%H%M%S")}.pdf'
+        )
+    except Exception as e:
+        print(f"PDF Export Error: {str(e)}")
+        flash(f'خطأ في تصدير PDF / Error exporting PDF: {str(e)}', 'danger')
+        return redirect(url_for('admin.users.index'))
 
 
 @users_bp.route('/')
