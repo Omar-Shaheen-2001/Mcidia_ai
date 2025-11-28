@@ -1,190 +1,224 @@
 {% extends "admin/base.html" %}
 
+{% block title %}{{ 'الإشعارات' if lang == 'ar' else 'Notifications' }}{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
+
 {% block content %}
-<style>
-    .notifications-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 12px;
-    }
-
-    .notifications-table th {
-        padding: 8px 6px;
-        font-weight: 600;
-        text-align: left;
-        background-color: transparent;
-        border-bottom: 1px solid #dee2e6;
-        white-space: nowrap;
-    }
-
-    .notifications-table td {
-        padding: 8px 6px;
-        border-bottom: 1px solid #dee2e6;
-        vertical-align: top;
-    }
-
-    .notification-title {
-        font-weight: 600;
-        color: #333;
-    }
-
-    .notification-message {
-        color: #666;
-        margin-top: 4px;
-        font-size: 11px;
-    }
-
-    .notification-time {
-        color: #999;
-        font-size: 10px;
-        white-space: nowrap;
-    }
-
-    .notification-type {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 3px;
-        font-size: 10px;
-        font-weight: 600;
-    }
-
-    .notification-type.internal {
-        background-color: #e3f2fd;
-        color: #1976d2;
-    }
-
-    .notification-type.email {
-        background-color: #f3e5f5;
-        color: #7b1fa2;
-    }
-
-    .notification-type.both {
-        background-color: #e8f5e9;
-        color: #388e3c;
-    }
-
-    .notification-status {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 3px;
-        font-size: 10px;
-        font-weight: 600;
-    }
-
-    .notification-status.sent {
-        background-color: #c8e6c9;
-        color: #2e7d32;
-    }
-
-    .notification-status.pending {
-        background-color: #fff9c4;
-        color: #f57f17;
-    }
-
-    .notification-status.failed {
-        background-color: #ffcdd2;
-        color: #c62828;
-    }
-
-    .notifications-container {
-        overflow-x: auto;
-    }
-
-    .notifications-container::-webkit-scrollbar {
-        height: 8px;
-    }
-
-    .notifications-container::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .notifications-container::-webkit-scrollbar-thumb {
-        background: #0d6efd;
-        border-radius: 4px;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 40px 20px;
-        color: #999;
-    }
-
-    .empty-state-icon {
-        font-size: 48px;
-        margin-bottom: 10px;
-        opacity: 0.5;
-    }
-</style>
-
 <div class="row mb-4">
-    <div class="col-12">
-        <h2>{{ 'الإشعارات' if lang == 'ar' else 'Notifications' }}</h2>
+    <div class="col-md-8">
+        <h2 class="mb-0">{{ 'الإشعارات' if lang == 'ar' else 'Notifications' }}</h2>
         <p class="text-muted">{{ 'إدارة إشعارات المنصة والأحداث' if lang == 'ar' else 'Manage platform notifications and events' }}</p>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-12">
-        {% if notifications %}
-        <div class="notifications-container">
-            <table class="notifications-table">
-                <thead>
-                    <tr>
-                        <th style="width: 30%;">{{ 'العنوان' if lang == 'ar' else 'Title' }}</th>
-                        <th style="width: 35%;">{{ 'الرسالة' if lang == 'ar' else 'Message' }}</th>
-                        <th style="width: 12%;">{{ 'النوع' if lang == 'ar' else 'Type' }}</th>
-                        <th style="width: 10%;">{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
-                        <th style="width: 13%;">{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for notification in notifications %}
-                    <tr>
-                        <td>
-                            <div class="notification-title">{{ notification.title }}</div>
-                        </td>
-                        <td>
-                            <div class="notification-message">{{ notification.message[:100] }}{% if notification.message|length > 100 %}...{% endif %}</div>
-                        </td>
-                        <td>
-                            <span class="notification-type {{ notification.notification_type }}">
-                                {% if notification.notification_type == 'internal' %}
-                                    {{ 'داخلي' if lang == 'ar' else 'Internal' }}
-                                {% elif notification.notification_type == 'email' %}
-                                    {{ 'بريد إلكتروني' if lang == 'ar' else 'Email' }}
-                                {% elif notification.notification_type == 'both' %}
-                                    {{ 'كلاهما' if lang == 'ar' else 'Both' }}
-                                {% endif %}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="notification-status {{ notification.status }}">
-                                {% if notification.status == 'sent' %}
-                                    {{ 'مُرسل' if lang == 'ar' else 'Sent' }}
-                                {% elif notification.status == 'pending' %}
-                                    {{ 'قيد الانتظار' if lang == 'ar' else 'Pending' }}
-                                {% elif notification.status == 'failed' %}
-                                    {{ 'فشل' if lang == 'ar' else 'Failed' }}
-                                {% endif %}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="notification-time">
-                                {{ notification.created_at.strftime('%Y-%m-%d %H:%M:%S') if notification.created_at else '-' }}
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(10, 39, 86, 0.1); color: #0A2756;">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ total_notifications }}</div>
+                    <div class="stat-label">{{ 'إجمالي الإشعارات' if lang == 'ar' else 'Total Notifications' }}</div>
+                </div>
+            </div>
         </div>
-        {% else %}
-        <div class="empty-state">
-            <div class="empty-state-icon">🔔</div>
-            <p>{{ 'لا توجد إشعارات حالياً' if lang == 'ar' else 'No notifications at the moment' }}</p>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(44, 140, 86, 0.1); color: #2C8C56;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ sent_notifications }}</div>
+                    <div class="stat-label">{{ 'مُرسلة' if lang == 'ar' else 'Sent' }}</div>
+                </div>
+            </div>
         </div>
-        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(255, 193, 7, 0.1); color: #FFC107;">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ pending_notifications }}</div>
+                    <div class="stat-label">{{ 'قيد الانتظار' if lang == 'ar' else 'Pending' }}</div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
+<!-- Notifications Table -->
+<div class="table-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>{{ 'العنوان' if lang == 'ar' else 'Title' }}</th>
+                    <th>{{ 'نوع الإشعار' if lang == 'ar' else 'Type' }}</th>
+                    <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                    <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                    <th>{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for notification in notifications %}
+                <tr>
+                    <td>
+                        <strong>{{ notification.title }}</strong>
+                    </td>
+                    <td>
+                        {% if notification.notification_type == 'internal' %}
+                        <span class="badge bg-info">{{ 'داخلي' if lang == 'ar' else 'Internal' }}</span>
+                        {% elif notification.notification_type == 'email' %}
+                        <span class="badge bg-primary">{{ 'بريد إلكتروني' if lang == 'ar' else 'Email' }}</span>
+                        {% elif notification.notification_type == 'both' %}
+                        <span class="badge bg-success">{{ 'كلاهما' if lang == 'ar' else 'Both' }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if notification.status == 'sent' %}
+                        <span class="badge bg-success">{{ 'مُرسل' if lang == 'ar' else 'Sent' }}</span>
+                        {% elif notification.status == 'pending' %}
+                        <span class="badge bg-warning text-dark">{{ 'قيد الانتظار' if lang == 'ar' else 'Pending' }}</span>
+                        {% elif notification.status == 'failed' %}
+                        <span class="badge bg-danger">{{ 'فشل' if lang == 'ar' else 'Failed' }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <small class="text-muted">{{ notification.created_at.strftime('%Y-%m-%d %H:%M') if notification.created_at else '-' }}</small>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" 
+                                onclick="showNotificationDetails({{ notification.id }}, '{{ notification.title | replace("'", "\\'") }}', '{{ notification.message | replace("'", "\\'") }}', '{{ notification.notification_type }}', '{{ notification.status }}', '{{ notification.created_at.strftime('%Y-%m-%d %H:%M:%S') if notification.created_at else '-' }}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if not notifications %}
+    <div class="text-center py-5">
+        <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+        <p class="text-muted">{{ 'لا توجد إشعارات' if lang == 'ar' else 'No notifications' }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function showNotificationDetails(id, title, message, type, status, date) {
+    let typeLabel = {
+        'internal': '{{ "داخلي" if lang == "ar" else "Internal" }}',
+        'email': '{{ "بريد إلكتروني" if lang == "ar" else "Email" }}',
+        'both': '{{ "كلاهما" if lang == "ar" else "Both" }}'
+    }[type] || type;
+    
+    let statusLabel = {
+        'sent': '{{ "مُرسل" if lang == "ar" else "Sent" }}',
+        'pending': '{{ "قيد الانتظار" if lang == "ar" else "Pending" }}',
+        'failed': '{{ "فشل" if lang == "ar" else "Failed" }}'
+    }[status] || status;
+    
+    let statusColor = {
+        'sent': '#28a745',
+        'pending': '#ffc107',
+        'failed': '#dc3545'
+    }[status] || '#0d6efd';
+    
+    Swal.fire({
+        title: title,
+        html: `
+            <div style="text-align: {{ 'right' if lang == 'ar' else 'left' }}; font-size: 14px; line-height: 1.6;">
+                <p><strong>{{ 'الرسالة:' if lang == 'ar' else 'Message:' }}</strong></p>
+                <p style="background: #f8f9fa; padding: 12px; border-radius: 4px; margin: 10px 0; text-align: justify;">${message}</p>
+                
+                <div style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
+                        <strong>{{ 'النوع:' if lang == 'ar' else 'Type:' }}</strong><br>
+                        <span style="color: #0d6efd;">${typeLabel}</span>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
+                        <strong>{{ 'الحالة:' if lang == 'ar' else 'Status:' }}</strong><br>
+                        <span style="color: ${statusColor}; font-weight: bold;">${statusLabel}</span>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; grid-column: 1 / -1;">
+                        <strong>{{ 'التاريخ:' if lang == 'ar' else 'Date:' }}</strong><br>
+                        <span>${date}</span>
+                    </div>
+                </div>
+            </div>
+        `,
+        icon: 'info',
+        confirmButtonText: '{{ "حسناً" if lang == "ar" else "OK" }}',
+        confirmButtonColor: '#0d6efd',
+        width: '600px',
+        customClass: {
+            container: '{{ "swal-rtl" if lang == "ar" else "" }}'
+        }
+    });
+}
+</script>
+
+<style>
+.swal-rtl {
+    direction: rtl !important;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.stat-card:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-color: #d0d0d0;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+</style>
 {% endblock %}

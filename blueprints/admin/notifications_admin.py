@@ -20,9 +20,21 @@ def index():
     lang = get_lang()
     
     # Get all notifications (both broadcast and system notifications), sorted by newest first
-    notifications = db.session.query(Notification).order_by(Notification.created_at.desc()).limit(100).all()
+    all_notifications = db.session.query(Notification).order_by(Notification.created_at.desc()).limit(100).all()
     
-    return render_template('admin/notifications/index.html', notifications=notifications, lang=lang, module_title='الإشعارات' if lang == 'ar' else 'Notifications')
+    # Calculate statistics
+    total_notifications = db.session.query(Notification).count()
+    sent_notifications = db.session.query(Notification).filter_by(status='sent').count()
+    pending_notifications = db.session.query(Notification).filter_by(status='pending').count()
+    
+    return render_template(
+        'admin/notifications/index.html', 
+        notifications=all_notifications,
+        total_notifications=total_notifications,
+        sent_notifications=sent_notifications,
+        pending_notifications=pending_notifications,
+        lang=lang
+    )
 
 @notifications_admin_bp.route('/api', methods=['GET'])
 @login_required
