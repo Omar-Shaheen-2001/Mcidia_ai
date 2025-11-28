@@ -144,6 +144,49 @@ def login():
             flash(f'مرحباً {user.username}! / Welcome {user.username}!', 'success')
             return response
         else:
+            # Log failed login attempt
+            failed_login_log = SecurityLog(
+                user_id=user.id if user else None,
+                action='failed_login_attempt',
+                description=f'Failed login attempt for email: {email}',
+                ip_address=request.remote_addr,
+                user_agent=request.headers.get('User-Agent', '')[:500],
+                status='failed'
+            )
+            db.session.add(failed_login_log)
+            db.session.commit()
+            
+            # Check for multiple failed attempts from the same user in the last 30 minutes
+            from datetime import timedelta
+            thirty_min_ago = datetime.utcnow() - timedelta(minutes=30)
+            failed_attempts = db.session.query(SecurityLog).filter(
+                SecurityLog.action == 'failed_login_attempt',
+                SecurityLog.description.contains(email),
+                SecurityLog.created_at >= thirty_min_ago,
+                SecurityLog.status == 'failed'
+            ).count()
+            
+            # Create notification if 3 or more failed attempts
+            if failed_attempts >= 3:
+                # Check if we already created a notification for this in the last 10 minutes
+                recent_notification = db.session.query(Notification).filter(
+                    Notification.message.contains(email),
+                    Notification.message.contains('محاولات دخول فاشلة') | Notification.message.contains('failed login'),
+                    Notification.created_at >= datetime.utcnow() - timedelta(minutes=10)
+                ).first()
+                
+                if not recent_notification:
+                    admin_notification = Notification(
+                        user_id=None,  # Broadcast to all admins
+                        title='محاولات دخول فاشلة متعددة / Multiple Failed Login Attempts',
+                        message=f'تم اكتشاف {failed_attempts} محاولات دخول فاشلة للبريد: {email} خلال آخر 30 دقيقة / {failed_attempts} failed login attempts detected for email: {email} in the last 30 minutes. IP Address: {request.remote_addr}',
+                        notification_type='internal',
+                        status='sent',
+                        is_read=False
+                    )
+                    db.session.add(admin_notification)
+                    db.session.commit()
+            
             flash('البريد الإلكتروني أو كلمة المرور غير صحيحة / Invalid email or password', 'danger')
             return redirect(url_for('auth.login'))
     
