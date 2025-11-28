@@ -1,10 +1,190 @@
 {% extends "admin/base.html" %}
 
 {% block content %}
+<style>
+    .notifications-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+
+    .notifications-table th {
+        padding: 8px 6px;
+        font-weight: 600;
+        text-align: left;
+        background-color: transparent;
+        border-bottom: 1px solid #dee2e6;
+        white-space: nowrap;
+    }
+
+    .notifications-table td {
+        padding: 8px 6px;
+        border-bottom: 1px solid #dee2e6;
+        vertical-align: top;
+    }
+
+    .notification-title {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .notification-message {
+        color: #666;
+        margin-top: 4px;
+        font-size: 11px;
+    }
+
+    .notification-time {
+        color: #999;
+        font-size: 10px;
+        white-space: nowrap;
+    }
+
+    .notification-type {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 10px;
+        font-weight: 600;
+    }
+
+    .notification-type.internal {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .notification-type.email {
+        background-color: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .notification-type.both {
+        background-color: #e8f5e9;
+        color: #388e3c;
+    }
+
+    .notification-status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 10px;
+        font-weight: 600;
+    }
+
+    .notification-status.sent {
+        background-color: #c8e6c9;
+        color: #2e7d32;
+    }
+
+    .notification-status.pending {
+        background-color: #fff9c4;
+        color: #f57f17;
+    }
+
+    .notification-status.failed {
+        background-color: #ffcdd2;
+        color: #c62828;
+    }
+
+    .notifications-container {
+        overflow-x: auto;
+    }
+
+    .notifications-container::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .notifications-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .notifications-container::-webkit-scrollbar-thumb {
+        background: #0d6efd;
+        border-radius: 4px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+    }
+
+    .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 10px;
+        opacity: 0.5;
+    }
+</style>
+
 <div class="row mb-4">
     <div class="col-12">
-        <h2>{{ module_title }}</h2>
-        <p class="text-muted">{{ 'قيد التطوير' if lang == 'ar' else 'Under Development' }}</p>
+        <h2>{{ 'الإشعارات' if lang == 'ar' else 'Notifications' }}</h2>
+        <p class="text-muted">{{ 'إدارة إشعارات المنصة والأحداث' if lang == 'ar' else 'Manage platform notifications and events' }}</p>
     </div>
 </div>
+
+<div class="row">
+    <div class="col-12">
+        {% if notifications %}
+        <div class="notifications-container">
+            <table class="notifications-table">
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">{{ 'العنوان' if lang == 'ar' else 'Title' }}</th>
+                        <th style="width: 35%;">{{ 'الرسالة' if lang == 'ar' else 'Message' }}</th>
+                        <th style="width: 12%;">{{ 'النوع' if lang == 'ar' else 'Type' }}</th>
+                        <th style="width: 10%;">{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                        <th style="width: 13%;">{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for notification in notifications %}
+                    <tr>
+                        <td>
+                            <div class="notification-title">{{ notification.title }}</div>
+                        </td>
+                        <td>
+                            <div class="notification-message">{{ notification.message[:100] }}{% if notification.message|length > 100 %}...{% endif %}</div>
+                        </td>
+                        <td>
+                            <span class="notification-type {{ notification.notification_type }}">
+                                {% if notification.notification_type == 'internal' %}
+                                    {{ 'داخلي' if lang == 'ar' else 'Internal' }}
+                                {% elif notification.notification_type == 'email' %}
+                                    {{ 'بريد إلكتروني' if lang == 'ar' else 'Email' }}
+                                {% elif notification.notification_type == 'both' %}
+                                    {{ 'كلاهما' if lang == 'ar' else 'Both' }}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="notification-status {{ notification.status }}">
+                                {% if notification.status == 'sent' %}
+                                    {{ 'مُرسل' if lang == 'ar' else 'Sent' }}
+                                {% elif notification.status == 'pending' %}
+                                    {{ 'قيد الانتظار' if lang == 'ar' else 'Pending' }}
+                                {% elif notification.status == 'failed' %}
+                                    {{ 'فشل' if lang == 'ar' else 'Failed' }}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="notification-time">
+                                {{ notification.created_at.strftime('%Y-%m-%d %H:%M:%S') if notification.created_at else '-' }}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">🔔</div>
+            <p>{{ 'لا توجد إشعارات حالياً' if lang == 'ar' else 'No notifications at the moment' }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
 {% endblock %}

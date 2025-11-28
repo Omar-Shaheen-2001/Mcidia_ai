@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response, session, current_app
 from flask_jwt_extended import create_access_token, set_access_cookies, unset_jwt_cookies, get_csrf_token, get_jwt_identity, verify_jwt_in_request
-from models import User, Role, SubscriptionPlan, PasswordResetToken, SecurityLog
+from models import User, Role, SubscriptionPlan, PasswordResetToken, SecurityLog, Notification
 from datetime import datetime, timedelta
 import secrets
 import hashlib
@@ -46,6 +46,18 @@ def register():
         user.set_password(password)
         
         db.session.add(user)
+        db.session.commit()
+        
+        # Create notification for admins about new user registration
+        admin_notification = Notification(
+            user_id=None,  # Broadcast to all admins
+            title='مستخدم جديد مسجل / New User Registration',
+            message=f'مستخدم جديد "{user.username}" ({user.email}) قام بالتسجيل في المنصة / A new user "{user.username}" ({user.email}) has registered on the platform',
+            notification_type='internal',
+            status='sent',
+            is_read=False
+        )
+        db.session.add(admin_notification)
         db.session.commit()
         
         flash('تم التسجيل بنجاح! يمكنك الآن تسجيل الدخول / Registration successful! You can now login', 'success')
