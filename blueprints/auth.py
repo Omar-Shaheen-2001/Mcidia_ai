@@ -68,6 +68,9 @@ def register():
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    from datetime import timedelta
+    from user_agents import parse
+    
     if request.method == 'POST':
         db = current_app.extensions['sqlalchemy']
         email = request.form.get('email')
@@ -82,8 +85,6 @@ def login():
                 return redirect(url_for('auth.login'))
             
             # Update last login time, IP address, device, and online status
-            from datetime import datetime
-            from user_agents import parse
             
             user.last_login = datetime.utcnow()
             user.last_login_ip = request.remote_addr
@@ -118,7 +119,10 @@ def login():
             access_token = create_access_token(identity=str(user.id))
             
             # Check user's organization membership to determine where to redirect
-            from models import OrganizationMembership
+            try:
+                from models import OrganizationMembership
+            except:
+                OrganizationMembership = None
             membership = db.session.query(OrganizationMembership).filter_by(
                 user_id=user.id,
                 is_active=True
@@ -157,7 +161,6 @@ def login():
             db.session.commit()
             
             # Check for multiple failed attempts from the same user in the last 30 minutes
-            from datetime import timedelta
             thirty_min_ago = datetime.utcnow() - timedelta(minutes=30)
             failed_attempts = db.session.query(SecurityLog).filter(
                 SecurityLog.action == 'failed_login_attempt',
