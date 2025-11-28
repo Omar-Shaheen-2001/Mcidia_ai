@@ -139,17 +139,18 @@ def export_pdf():
         rows_html = ''
         for user in users[:100]:
             status = status_text[lang]['active'] if user.is_active else status_text[lang]['inactive']
+            status_class = 'status-active' if user.is_active else 'status-inactive'
             rows_html += f"""
             <tr>
-                <td>{user.id}</td>
-                <td>{user.username}</td>
-                <td>{user.email}</td>
-                <td>{user.phone or '-'}</td>
-                <td>{user.company_name or '-'}</td>
-                <td>{user.role or '-'}</td>
-                <td>{user.subscription_plan or '-'}</td>
-                <td>{status}</td>
-                <td>{user.last_login.strftime('%Y-%m-%d') if user.last_login else '-'}</td>
+                <td style="font-size: 10px; width: 5%;">{user.id}</td>
+                <td style="font-size: 10px; width: 12%;">{user.username[:20]}</td>
+                <td style="font-size: 10px; width: 18%; word-break: break-all;">{user.email[:25]}</td>
+                <td style="font-size: 10px; width: 10%;">{(user.phone or '-')[:15]}</td>
+                <td style="font-size: 10px; width: 12%;">{(user.company_name or '-')[:20]}</td>
+                <td style="font-size: 10px; width: 10%;">{user.role or '-'}</td>
+                <td style="font-size: 10px; width: 10%;">{user.subscription_plan or '-'}</td>
+                <td style="font-size: 10px; width: 8%; font-weight: bold;"><span class="{status_class}">{status}</span></td>
+                <td style="font-size: 10px; width: 15%;">{user.last_login.strftime('%Y-%m-%d') if user.last_login else '-'}</td>
             </tr>
             """
         
@@ -165,57 +166,69 @@ def export_pdf():
                     padding: 0;
                     box-sizing: border-box;
                 }}
+                html {{
+                    page-break-after: always;
+                }}
                 body {{
                     font-family: 'DejaVu Sans', Tahoma, Arial, sans-serif;
-                    margin: 15px;
-                    padding: 15px;
+                    margin: 10px 15px;
+                    padding: 10px;
                     direction: {'rtl' if lang == 'ar' else 'ltr'};
                     background-color: #fff;
-                    font-size: 11px;
-                    line-height: 1.6;
+                    font-size: 10pt;
+                    line-height: 1.4;
                 }}
                 .header {{
                     text-align: center;
-                    margin-bottom: 20px;
-                    border-bottom: 3px solid #366092;
-                    padding-bottom: 15px;
+                    margin-bottom: 15px;
+                    border-bottom: 2px solid #366092;
+                    padding-bottom: 10px;
                 }}
                 h1 {{
                     color: #366092;
-                    font-size: 22px;
-                    margin-bottom: 5px;
+                    font-size: 16pt;
+                    margin-bottom: 3px;
                     font-weight: bold;
                 }}
                 .report-date {{
                     color: #666;
-                    font-size: 10px;
-                    margin-top: 5px;
+                    font-size: 9pt;
+                    margin-top: 3px;
                 }}
                 table {{
                     width: 100%;
                     border-collapse: collapse;
-                    margin: 15px 0;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    margin: 10px 0;
+                    page-break-inside: avoid;
+                }}
+                thead {{
+                    display: table-header-group;
+                    background: #366092;
                 }}
                 thead tr {{
-                    background: linear-gradient(135deg, #366092 0%, #1e3a5c 100%);
+                    background: #366092;
                 }}
                 th {{
                     color: #fff;
-                    padding: 12px 8px;
+                    padding: 8px 4px;
                     text-align: center;
                     font-weight: bold;
                     border: 1px solid #2c5aa0;
-                    font-size: 11px;
+                    font-size: 9pt;
+                    vertical-align: middle;
+                    word-wrap: break-word;
                 }}
                 td {{
-                    padding: 10px 8px;
-                    border: 1px solid #e0e0e0;
+                    padding: 7px 4px;
+                    border: 1px solid #ccc;
                     text-align: center;
                     vertical-align: middle;
+                    font-size: 9pt;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }}
                 tbody tr {{
-                    transition: background-color 0.2s;
+                    page-break-inside: avoid;
                 }}
                 tbody tr:nth-child(odd) {{
                     background-color: #f8f9fa;
@@ -223,45 +236,49 @@ def export_pdf():
                 tbody tr:nth-child(even) {{
                     background-color: #ffffff;
                 }}
-                tbody tr:hover {{
-                    background-color: #e3f2fd;
-                }}
                 .status-active {{
-                    color: #2e7d32;
+                    color: #1b5e20;
                     font-weight: bold;
                 }}
                 .status-inactive {{
-                    color: #c62828;
+                    color: #b71c1c;
                     font-weight: bold;
                 }}
                 .footer {{
                     text-align: center;
                     color: #999;
-                    font-size: 9px;
-                    margin-top: 20px;
-                    padding-top: 10px;
+                    font-size: 8pt;
+                    margin-top: 15px;
+                    padding-top: 8px;
                     border-top: 1px solid #ddd;
                 }}
                 .stats {{
+                    margin-bottom: 12px;
+                    background-color: #f5f5f5;
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                }}
+                .stats-row {{
                     display: flex;
                     justify-content: space-around;
-                    margin-bottom: 15px;
-                    background-color: #f5f5f5;
-                    padding: 10px;
-                    border-radius: 4px;
+                    flex-wrap: wrap;
                 }}
                 .stat-item {{
                     text-align: center;
+                    padding: 5px;
+                    flex: 1;
+                    min-width: 100px;
                 }}
                 .stat-label {{
                     color: #666;
-                    font-size: 10px;
+                    font-size: 8pt;
                     display: block;
+                    margin-bottom: 3px;
                 }}
                 .stat-value {{
                     color: #366092;
                     font-weight: bold;
-                    font-size: 14px;
+                    font-size: 12pt;
                 }}
             </style>
         </head>
@@ -272,17 +289,19 @@ def export_pdf():
             </div>
             
             <div class="stats">
-                <div class="stat-item">
-                    <span class="stat-label">{'إجمالي المستخدمين' if lang == 'ar' else 'Total Users'}</span>
-                    <span class="stat-value">{len(users)}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">{'المستخدمون النشطون' if lang == 'ar' else 'Active Users'}</span>
-                    <span class="stat-value">{sum(1 for u in users if u.is_active)}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">{'المستخدمون غير النشطين' if lang == 'ar' else 'Inactive Users'}</span>
-                    <span class="stat-value">{sum(1 for u in users if not u.is_active)}</span>
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <span class="stat-label">{'إجمالي المستخدمين' if lang == 'ar' else 'Total Users'}</span>
+                        <span class="stat-value">{len(users)}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">{'المستخدمون النشطون' if lang == 'ar' else 'Active Users'}</span>
+                        <span class="stat-value">{sum(1 for u in users if u.is_active)}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">{'المستخدمون غير النشطين' if lang == 'ar' else 'Inactive Users'}</span>
+                        <span class="stat-value">{sum(1 for u in users if not u.is_active)}</span>
+                    </div>
                 </div>
             </div>
             
