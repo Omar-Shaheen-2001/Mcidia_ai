@@ -27,6 +27,7 @@ def index():
     sent_notifications = db.session.query(Notification).filter_by(status='sent').count()
     pending_notifications = db.session.query(Notification).filter_by(status='pending').count()
     payment_notifications = db.session.query(Notification).filter_by(notification_type='payment').count()
+    account_deletion_notifications = db.session.query(Notification).filter_by(notification_type='account_deletion').count()
     
     return render_template(
         'admin/notifications/index.html', 
@@ -35,6 +36,7 @@ def index():
         sent_notifications=sent_notifications,
         pending_notifications=pending_notifications,
         payment_notifications=payment_notifications,
+        account_deletion_notifications=account_deletion_notifications,
         lang=lang
     )
 
