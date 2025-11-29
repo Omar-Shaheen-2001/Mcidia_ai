@@ -482,6 +482,179 @@
         font-size: 48px;
         opacity: 0.3;
     }
+    
+    /* Document Upload Styles */
+    .input-wrapper {
+        flex: 1;
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+    }
+    
+    .message-input {
+        width: 100%;
+        padding-right: 50px;
+    }
+    
+    .input-actions {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+        display: flex;
+        gap: 8px;
+    }
+    
+    .btn-attach {
+        background: #f0f0f0;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #0A2756;
+    }
+    
+    .btn-attach:hover {
+        background: #0A2756;
+        color: white;
+    }
+    
+    .attached-documents {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .attached-docs-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #0A2756;
+    }
+    
+    .btn-clear-docs {
+        background: none;
+        border: none;
+        color: #dc3545;
+        font-size: 12px;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+    
+    .btn-clear-docs:hover {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .documents-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .document-item {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 8px 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        transition: all 0.2s;
+    }
+    
+    .document-item.analyzing {
+        border-color: #ffc107;
+        background: #fff8e1;
+    }
+    
+    .document-item.ready {
+        border-color: #28a745;
+        background: #e8f5e9;
+    }
+    
+    .document-item.error {
+        border-color: #dc3545;
+        background: #ffebee;
+    }
+    
+    .document-icon {
+        font-size: 16px;
+    }
+    
+    .document-icon.pdf { color: #dc3545; }
+    .document-icon.word { color: #2b579a; }
+    .document-icon.text { color: #666; }
+    
+    .document-name {
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .document-status {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background: #e0e0e0;
+    }
+    
+    .document-status.analyzing {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .document-status.ready {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .btn-remove-doc {
+        background: none;
+        border: none;
+        color: #999;
+        cursor: pointer;
+        padding: 2px;
+        font-size: 12px;
+    }
+    
+    .btn-remove-doc:hover {
+        color: #dc3545;
+    }
+    
+    .upload-hint {
+        margin-top: 8px;
+        color: #666;
+        font-size: 12px;
+    }
+    
+    .upload-hint i {
+        color: #0A2756;
+    }
+    
+    .document-context-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #e3f2fd;
+        color: #1565c0;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        margin-bottom: 8px;
+    }
 </style>
 {% endblock %}
 
@@ -515,12 +688,34 @@
                     </div>
                     
                     <div class="chat-input-area">
+                        <!-- Attached Documents Display -->
+                        <div id="attachedDocuments" class="attached-documents" style="display: none;">
+                            <div class="attached-docs-header">
+                                <span><i class="fas fa-paperclip"></i> {{ 'المستندات المرفقة' if lang == 'ar' else 'Attached Documents' }}</span>
+                                <button type="button" class="btn-clear-docs" onclick="clearAllDocuments()">
+                                    <i class="fas fa-times"></i> {{ 'مسح الكل' if lang == 'ar' else 'Clear All' }}
+                                </button>
+                            </div>
+                            <div id="documentsList" class="documents-list"></div>
+                        </div>
+                        
                         <div class="input-group-custom">
-                            <textarea class="message-input" id="messageInput" placeholder="{{ 'اكتب رسالتك هنا...' if lang == 'ar' else 'Type your message here...' }}" rows="2"></textarea>
+                            <div class="input-wrapper">
+                                <textarea class="message-input" id="messageInput" placeholder="{{ 'اكتب رسالتك هنا...' if lang == 'ar' else 'Type your message here...' }}" rows="2"></textarea>
+                                <div class="input-actions">
+                                    <label class="btn-attach" title="{{ 'إرفاق مستند' if lang == 'ar' else 'Attach Document' }}">
+                                        <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.txt" multiple style="display: none;">
+                                        <i class="fas fa-paperclip"></i>
+                                    </label>
+                                </div>
+                            </div>
                             <button class="btn-send" id="sendBtn" disabled>
                                 <i class="fas fa-paper-plane"></i>
                                 <span>{{ 'إرسال' if lang == 'ar' else 'Send' }}</span>
                             </button>
+                        </div>
+                        <div class="upload-hint">
+                            <small><i class="fas fa-info-circle"></i> {{ 'يمكنك إرفاق ملفات PDF, Word, أو نصية للتحليل' if lang == 'ar' else 'You can attach PDF, Word, or text files for analysis' }}</small>
                         </div>
                     </div>
                 </div>
@@ -576,8 +771,12 @@
     
     const apiUrl = '{{ url_for("consultation.send_message") }}';
     const createSessionUrl = '{{ url_for("consultation.create_session") }}';
+    const uploadDocumentUrl = '{{ url_for("consultation.upload_document") }}';
     
     const services = {{ services | tojson }};
+    
+    // Document management
+    let uploadedDocuments = [];
     
     // Format time duration
     function formatTime(ms) {
@@ -823,9 +1022,20 @@
         btn.disabled = true;
         btn.innerHTML = '<span class="loading-spinner"></span><span>{{ "جاري الإرسال..." if lang == "ar" else "Sending..." }}</span>';
         
-        // Add user message to chat
-        addMessage('user', message);
+        // Get documents context
+        const documentsContext = getDocumentsContext();
+        const hasDocuments = documentsContext.length > 0;
+        
+        // Add user message to chat (show document indicator if attached)
+        let displayMessage = message;
+        if (hasDocuments) {
+            displayMessage = `📎 ${message}`;
+        }
+        addMessage('user', displayMessage);
         input.value = '';
+        
+        // Combine message with documents context
+        const fullMessage = hasDocuments ? message + documentsContext : message;
         
         // Send to API
         fetch(apiUrl, {
@@ -834,9 +1044,10 @@
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: message,
+                message: fullMessage,
                 session_id: currentSessionId,
-                topic: currentTopic
+                topic: currentTopic,
+                has_documents: hasDocuments
             })
         })
         .then(res => res.json())
@@ -858,6 +1069,164 @@
             btn.innerHTML = '<i class="fas fa-paper-plane"></i><span>{{ "إرسال" if lang == "ar" else "Send" }}</span>';
         });
     }
+    
+    // ==================== Document Upload Functions ====================
+    
+    // Handle document upload
+    document.getElementById('documentInput').addEventListener('change', async function(e) {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+        
+        for (const file of files) {
+            await uploadDocument(file);
+        }
+        
+        // Clear input
+        e.target.value = '';
+    });
+    
+    async function uploadDocument(file) {
+        // Validate file type
+        const allowedTypes = ['application/pdf', 'application/msword', 
+                              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                              'text/plain'];
+        if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|txt)$/i)) {
+            alert(lang === 'ar' ? 'نوع الملف غير مدعوم' : 'File type not supported');
+            return;
+        }
+        
+        // Add to UI with analyzing status
+        const docId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const docItem = {
+            id: docId,
+            name: file.name,
+            type: getFileType(file.name),
+            status: 'analyzing',
+            content: ''
+        };
+        uploadedDocuments.push(docItem);
+        updateDocumentsUI();
+        
+        // Upload and extract text
+        const formData = new FormData();
+        formData.append('document', file);
+        formData.append('session_id', currentSessionId || '');
+        
+        try {
+            const response = await fetch(uploadDocumentUrl, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update document with extracted content
+                const doc = uploadedDocuments.find(d => d.id === docId);
+                if (doc) {
+                    doc.status = 'ready';
+                    doc.content = data.content;
+                    doc.preview = data.preview;
+                }
+                updateDocumentsUI();
+            } else {
+                // Mark as error
+                const doc = uploadedDocuments.find(d => d.id === docId);
+                if (doc) {
+                    doc.status = 'error';
+                    doc.error = data.error;
+                }
+                updateDocumentsUI();
+            }
+        } catch (err) {
+            console.error('Upload error:', err);
+            const doc = uploadedDocuments.find(d => d.id === docId);
+            if (doc) {
+                doc.status = 'error';
+                doc.error = lang === 'ar' ? 'خطأ في الرفع' : 'Upload failed';
+            }
+            updateDocumentsUI();
+        }
+    }
+    
+    function getFileType(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        if (ext === 'pdf') return 'pdf';
+        if (ext === 'doc' || ext === 'docx') return 'word';
+        return 'text';
+    }
+    
+    function getFileIcon(type) {
+        switch(type) {
+            case 'pdf': return '<i class="fas fa-file-pdf document-icon pdf"></i>';
+            case 'word': return '<i class="fas fa-file-word document-icon word"></i>';
+            default: return '<i class="fas fa-file-alt document-icon text"></i>';
+        }
+    }
+    
+    function updateDocumentsUI() {
+        const container = document.getElementById('attachedDocuments');
+        const list = document.getElementById('documentsList');
+        
+        if (uploadedDocuments.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        container.style.display = 'block';
+        list.innerHTML = '';
+        
+        uploadedDocuments.forEach(doc => {
+            const item = document.createElement('div');
+            item.className = `document-item ${doc.status}`;
+            
+            let statusText = '';
+            let statusClass = '';
+            if (doc.status === 'analyzing') {
+                statusText = lang === 'ar' ? 'جاري التحليل...' : 'Analyzing...';
+                statusClass = 'analyzing';
+            } else if (doc.status === 'ready') {
+                statusText = lang === 'ar' ? 'جاهز ✓' : 'Ready ✓';
+                statusClass = 'ready';
+            } else {
+                statusText = lang === 'ar' ? 'خطأ' : 'Error';
+                statusClass = 'error';
+            }
+            
+            item.innerHTML = `
+                ${getFileIcon(doc.type)}
+                <span class="document-name" title="${doc.name}">${doc.name}</span>
+                <span class="document-status ${statusClass}">${statusText}</span>
+                <button class="btn-remove-doc" onclick="removeDocument('${doc.id}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            list.appendChild(item);
+        });
+    }
+    
+    function removeDocument(docId) {
+        uploadedDocuments = uploadedDocuments.filter(d => d.id !== docId);
+        updateDocumentsUI();
+    }
+    
+    function clearAllDocuments() {
+        uploadedDocuments = [];
+        updateDocumentsUI();
+    }
+    
+    function getDocumentsContext() {
+        const readyDocs = uploadedDocuments.filter(d => d.status === 'ready' && d.content);
+        if (readyDocs.length === 0) return '';
+        
+        let context = '\n\n📄 **المستندات المرفقة / Attached Documents:**\n';
+        readyDocs.forEach((doc, idx) => {
+            context += `\n--- ${doc.name} ---\n${doc.content}\n`;
+        });
+        return context;
+    }
+    
+    // ==================== End Document Functions ====================
     
     // Initialize
     initializeTopics();
