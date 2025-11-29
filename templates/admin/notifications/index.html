@@ -12,6 +12,14 @@
         <h2 class="mb-0">{{ 'الإشعارات' if lang == 'ar' else 'Notifications' }}</h2>
         <p class="text-muted">{{ 'إدارة إشعارات المنصة والأحداث' if lang == 'ar' else 'Manage platform notifications and events' }}</p>
     </div>
+    <div class="col-md-4 text-{{ 'start' if lang == 'en' else 'end' }}">
+        <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#broadcastModal">
+            <i class="fas fa-broadcast-tower"></i> {{ 'رسالة جماعية' if lang == 'ar' else 'Broadcast Message' }}
+        </button>
+        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#privateModal">
+            <i class="fas fa-user-secret"></i> {{ 'رسالة خاصة' if lang == 'ar' else 'Private Message' }}
+        </button>
+    </div>
 </div>
 
 <!-- Statistics Cards -->
@@ -483,4 +491,208 @@ function showNotificationDetails(title, message, type, status, date) {
     font-weight: 500;
 }
 </style>
+
+<!-- Broadcast Message Modal -->
+<div class="modal fade" id="broadcastModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-broadcast-tower"></i>
+                    {{ 'إرسال رسالة جماعية' if lang == 'ar' else 'Send Broadcast Message' }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="broadcastForm">
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'العنوان' if lang == 'ar' else 'Title' }}</label>
+                        <input type="text" class="form-control" id="broadcastTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'الرسالة' if lang == 'ar' else 'Message' }}</label>
+                        <textarea class="form-control" id="broadcastMessage" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'نوع الإشعار' if lang == 'ar' else 'Notification Type' }}</label>
+                        <select class="form-select" id="broadcastType">
+                            <option value="internal">{{ 'داخلي' if lang == 'ar' else 'Internal' }}</option>
+                            <option value="important">{{ 'مهم' if lang == 'ar' else 'Important' }}</option>
+                            <option value="update">{{ 'تحديث' if lang == 'ar' else 'Update' }}</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'إلغاء' if lang == 'ar' else 'Cancel' }}</button>
+                <button type="button" class="btn btn-primary" onclick="sendBroadcastMessage()">
+                    <i class="fas fa-paper-plane"></i> {{ 'إرسال' if lang == 'ar' else 'Send' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Private Message Modal -->
+<div class="modal fade" id="privateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-secret"></i>
+                    {{ 'إرسال رسالة خاصة' if lang == 'ar' else 'Send Private Message' }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="privateForm">
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'اختر المستخدم' if lang == 'ar' else 'Select User' }}</label>
+                        <select class="form-select" id="privateUserId" required>
+                            <option value="">{{ 'اختر...' if lang == 'ar' else 'Choose...' }}</option>
+                            {% for user in all_users %}
+                            <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'العنوان' if lang == 'ar' else 'Title' }}</label>
+                        <input type="text" class="form-control" id="privateTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'الرسالة' if lang == 'ar' else 'Message' }}</label>
+                        <textarea class="form-control" id="privateMessage" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ 'نوع الإشعار' if lang == 'ar' else 'Notification Type' }}</label>
+                        <select class="form-select" id="privateType">
+                            <option value="internal">{{ 'داخلي' if lang == 'ar' else 'Internal' }}</option>
+                            <option value="important">{{ 'مهم' if lang == 'ar' else 'Important' }}</option>
+                            <option value="update">{{ 'تحديث' if lang == 'ar' else 'Update' }}</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'إلغاء' if lang == 'ar' else 'Cancel' }}</button>
+                <button type="button" class="btn btn-primary" onclick="sendPrivateMessage()">
+                    <i class="fas fa-paper-plane"></i> {{ 'إرسال' if lang == 'ar' else 'Send' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function sendBroadcastMessage() {
+    const title = document.getElementById('broadcastTitle').value;
+    const message = document.getElementById('broadcastMessage').value;
+    const type = document.getElementById('broadcastType').value;
+    
+    if (!title || !message) {
+        Swal.fire({
+            icon: 'error',
+            title: '{{ "خطأ" if lang == "ar" else "Error" }}',
+            text: '{{ "يرجى ملء جميع الحقول" if lang == "ar" else "Please fill all fields" }}'
+        });
+        return;
+    }
+    
+    fetch('/notifications/send-broadcast', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            title: title,
+            message: message,
+            type: type
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: '{{ "تم بنجاح" if lang == "ar" else "Success" }}',
+                text: '{{ "تم إرسال الرسالة الجماعية بنجاح" if lang == "ar" else "Broadcast message sent successfully" }}'
+            }).then(() => {
+                document.getElementById('broadcastForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('broadcastModal')).hide();
+                location.reload();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: '{{ "خطأ" if lang == "ar" else "Error" }}',
+                text: data.error || '{{ "حدث خطأ" if lang == "ar" else "An error occurred" }}'
+            });
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            icon: 'error',
+            title: '{{ "خطأ" if lang == "ar" else "Error" }}',
+            text: error.message
+        });
+    });
+}
+
+function sendPrivateMessage() {
+    const userId = document.getElementById('privateUserId').value;
+    const title = document.getElementById('privateTitle').value;
+    const message = document.getElementById('privateMessage').value;
+    const type = document.getElementById('privateType').value;
+    
+    if (!userId || !title || !message) {
+        Swal.fire({
+            icon: 'error',
+            title: '{{ "خطأ" if lang == "ar" else "Error" }}',
+            text: '{{ "يرجى ملء جميع الحقول" if lang == "ar" else "Please fill all fields" }}'
+        });
+        return;
+    }
+    
+    fetch('/notifications/send-private', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            user_id: parseInt(userId),
+            title: title,
+            message: message,
+            type: type
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: '{{ "تم بنجاح" if lang == "ar" else "Success" }}',
+                text: data.message
+            }).then(() => {
+                document.getElementById('privateForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('privateModal')).hide();
+                location.reload();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: '{{ "خطأ" if lang == "ar" else "Error" }}',
+                text: data.error || '{{ "حدث خطأ" if lang == "ar" else "An error occurred" }}'
+            });
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            icon: 'error',
+            title: '{{ "خطأ" if lang == "ar" else "Error" }}',
+            text: error.message
+        });
+    });
+}
+</script>
+
 {% endblock %}

@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, session, jsonify
+from flask import Blueprint, render_template, session, jsonify, request
 from utils.decorators import login_required, role_required
-from models import Notification
+from models import Notification, User
 from flask import current_app
 
 notifications_admin_bp = Blueprint('notifications_admin', __name__, url_prefix='/notifications')
@@ -18,6 +18,11 @@ def index():
     """Notifications management"""
     db = get_db()
     lang = get_lang()
+    
+    # Get all users for the private message modal
+    all_users = db.session.query(User).filter(
+        User.is_active == True
+    ).order_by(User.username).all()
     
     # Get only broadcast notifications (user_id is NULL) for Admin, sorted by newest first
     # This excludes user-specific notifications like login notifications
@@ -57,6 +62,7 @@ def index():
         payment_notifications=payment_notifications,
         account_deletion_notifications=account_deletion_notifications,
         login_notifications=login_notifications,
+        all_users=all_users,
         lang=lang
     )
 
@@ -147,7 +153,6 @@ def mark_notification_read(notification_id):
 @login_required
 def mark_all_read():
     """Mark all broadcast notifications as read - Admin Only"""
-    from models import User
     db = get_db()
     
     try:
@@ -169,6 +174,99 @@ def mark_all_read():
             'message': 'All notifications marked as read'
         }), 200
     except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@notifications_admin_bp.route('/send-broadcast', methods=['POST'])
+@login_required
+@role_required('system_admin')
+def send_broadcast():
+    """Send broadcast notification to all users"""
+    db = get_db()
+    data = request.get_json()
+    
+    try:
+        title = data.get('title')
+        message = data.get('message')
+        notif_type = data.get('type', 'internal')
+        
+        if not title or not message:
+            return jsonify({
+                'success': False,
+                'error': 'Title and message are required'
+            }), 400
+        
+        # Create broadcast notification (user_id = NULL)
+        notification = Notification(
+            user_id=None,
+            title=title,
+            message=message,
+            notification_type=notif_type,
+            status='sent'
+        )
+        db.session.add(notification)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Broadcast notification sent successfully',
+            'notification_id': notification.id
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@notifications_admin_bp.route('/send-private', methods=['POST'])
+@login_required
+@role_required('system_admin')
+def send_private():
+    """Send private notification to a specific user"""
+    db = get_db()
+    data = request.get_json()
+    
+    try:
+        user_id = data.get('user_id')
+        title = data.get('title')
+        message = data.get('message')
+        notif_type = data.get('type', 'internal')
+        
+        if not user_id or not title or not message:
+            return jsonify({
+                'success': False,
+                'error': 'User ID, title and message are required'
+            }), 400
+        
+        # Verify user exists
+        user = db.session.query(User).get(user_id)
+        if not user:
+            return jsonify({
+                'success': False,
+                'error': 'User not found'
+            }), 404
+        
+        # Create private notification (user_id = specific user)
+        notification = Notification(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type=notif_type,
+            status='sent'
+        )
+        db.session.add(notification)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Notification sent to {user.username} successfully',
+            'notification_id': notification.id
+        }), 200
+    except Exception as e:
+        db.session.rollback()
         return jsonify({
             'success': False,
             'error': str(e)
