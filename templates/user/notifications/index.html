@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'الإشعارات' if lang == 'ar' else 'Notifications' }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-0">{{ 'إشعاراتي' if lang == 'ar' else 'My Notifications' }}</h2>
+            <p class="text-muted">{{ 'إدارة إشعاراتك الشخصية' if lang == 'ar' else 'Manage your personal notifications' }}</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stat-icon" style="background: rgba(10, 39, 86, 0.1); color: #0A2756;">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                    </div>
+                    <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                        <div class="stat-value">{{ total_notifications }}</div>
+                        <div class="stat-label">{{ 'إجمالي الإشعارات' if lang == 'ar' else 'Total Notifications' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stat-icon" style="background: rgba(220, 53, 69, 0.1); color: #DC3545;">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                    </div>
+                    <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                        <div class="stat-value">{{ unread_notifications }}</div>
+                        <div class="stat-label">{{ 'غير مقروءة' if lang == 'ar' else 'Unread' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stat-icon" style="background: rgba(44, 140, 86, 0.1); color: #2C8C56;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                        <div class="stat-value">{{ read_notifications }}</div>
+                        <div class="stat-label">{{ 'مقروءة' if lang == 'ar' else 'Read' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if notifications %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{ 'العنوان' if lang == 'ar' else 'Title' }}</th>
+                            <th>{{ 'النوع' if lang == 'ar' else 'Type' }}</th>
+                            <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                            <th>{{ 'التاريخ' if lang == 'ar' else 'Date' }}</th>
+                            <th>{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for notification in notifications %}
+                        <tr style="background-color: {% if not notification.is_read %}#f8f9fa{% endif %}">
+                            <td>
+                                <strong>{{ notification.title }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ notification.notification_type }}</span>
+                            </td>
+                            <td>
+                                {% if notification.is_read %}
+                                <span class="badge bg-success">{{ 'مقروء' if lang == 'ar' else 'Read' }}</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">{{ 'جديد' if lang == 'ar' else 'New' }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ notification.created_at.strftime('%Y-%m-%d %H:%M') if notification.created_at else '-' }}</small>
+                            </td>
+                            <td>
+                                {% if not notification.is_read %}
+                                <button class="btn btn-sm btn-outline-primary" onclick="markAsRead({{ notification.id }})">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                <p class="text-muted">{{ 'لا توجد إشعارات' if lang == 'ar' else 'No notifications' }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function markAsRead(notificationId) {
+        fetch(`/user/notifications/mark-read/${notificationId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => response.json()).then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+</script>
+{% endblock %}

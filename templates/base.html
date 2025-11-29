@@ -166,6 +166,30 @@
                 </ul>
                 
                 <ul class="navbar-nav align-items-lg-center">
+                    <!-- User Notifications Icon - For Regular Users -->
+                    {% if current_user and current_user.role != 'system_admin' %}
+                    <li class="nav-item {{ 'ms-lg-2' if lang == 'en' else 'me-lg-2' }} dropdown">
+                        <a class="navbar__link nav-link" href="#" id="userNotificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ 'الإشعارات' if lang == 'ar' else 'Notifications' }}" style="position: relative; font-size: 1.25rem;">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge" id="userNotificationBadge" style="position: absolute; top: -5px; {{ 'right' if lang == 'ar' else 'left' }}: -5px; background: #dc3545; color: white; border-radius: 50%; width: 20px; height: 20px; display: none; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">0</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end notifications-dropdown" id="userNotificationsMenu" aria-labelledby="userNotificationsDropdown" style="min-width: 350px; max-width: 450px;">
+                            <div id="userNotificationsContent">
+                                <div style="text-align: center; padding: 40px 20px; color: #999;">
+                                    <i class="fas fa-bell-slash" style="font-size: 32px; margin-bottom: 12px; display: block; opacity: 0.4;"></i>
+                                    <p style="margin: 0; font-size: 0.95rem;">{{ 'لا يوجد إشعارات' if lang == 'ar' else 'No notifications' }}</p>
+                                </div>
+                            </div>
+                            <div id="userNotificationsFooter" style="border-top: 1px solid #f0f0f0; padding: 10px; display: flex; flex-direction: column; gap: 5px;">
+                                <a href="{{ url_for('user_notifications.index') }}" class="dropdown-item" style="text-align: center; font-size: 0.9rem; color: #0d6efd;">
+                                    <i class="fas fa-arrow-left {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                                    {{ 'عرض الكل' if lang == 'ar' else 'View All' }}
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                    {% endif %}
+                    
                     <!-- Notifications Icon - Admin Only -->
                     {% if current_user and current_user.role == 'system_admin' %}
                     <li class="nav-item {{ 'ms-lg-2' if lang == 'en' else 'me-lg-2' }} dropdown">
