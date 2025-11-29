@@ -1017,12 +1017,19 @@
         
         if (!message || !currentSessionId || !currentTopic) return;
         
+        // Check if any documents are still being analyzed
+        const analyzingDocs = uploadedDocuments.filter(d => d.status === 'analyzing');
+        if (analyzingDocs.length > 0) {
+            alert(lang === 'ar' ? 'يرجى الانتظار حتى اكتمال تحليل المستندات' : 'Please wait for document analysis to complete');
+            return;
+        }
+        
         // Disable send button
         const btn = document.getElementById('sendBtn');
         btn.disabled = true;
         btn.innerHTML = '<span class="loading-spinner"></span><span>{{ "جاري الإرسال..." if lang == "ar" else "Sending..." }}</span>';
         
-        // Get documents context
+        // Get documents context from ready documents only
         const documentsContext = getDocumentsContext();
         const hasDocuments = documentsContext.length > 0;
         

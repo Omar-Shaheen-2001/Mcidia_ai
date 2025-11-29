@@ -4,8 +4,10 @@ from utils.decorators import login_required
 from models import AILog, ChatSession, Service
 from utils.ai_providers.ai_manager import AIManager
 from datetime import datetime
+from werkzeug.utils import secure_filename
 import json
 import time
+import os
 
 consultation_bp = Blueprint('consultation', __name__)
 
@@ -320,6 +322,143 @@ def create_session():
         'domain': chat_session.domain,
         'created_at': chat_session.created_at.isoformat()
     })
+
+# ==================== DOCUMENT UPLOAD FOR AI ANALYSIS ====================
+
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'txt'}
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def extract_text_from_pdf(file_path):
+    """Extract text from PDF file using PyPDF2"""
+    try:
+        from PyPDF2 import PdfReader
+        reader = PdfReader(file_path)
+        text = ""
+        for page in reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
+        return text.strip()
+    except Exception as e:
+        current_app.logger.error(f"PDF extraction error: {str(e)}")
+        return None
+
+def extract_text_from_docx(file_path):
+    """Extract text from Word document using python-docx"""
+    try:
+        from docx import Document
+        doc = Document(file_path)
+        text = ""
+        for para in doc.paragraphs:
+            if para.text:
+                text += para.text + "\n"
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    if cell.text:
+                        text += cell.text + " "
+                text += "\n"
+        return text.strip()
+    except Exception as e:
+        current_app.logger.error(f"DOCX extraction error: {str(e)}")
+        return None
+
+def extract_text_from_txt(file_path):
+    """Extract text from plain text file"""
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            return f.read().strip()
+    except Exception as e:
+        current_app.logger.error(f"TXT extraction error: {str(e)}")
+        return None
+
+@consultation_bp.route('/api/upload-document', methods=['POST'])
+@login_required
+def upload_document():
+    """API endpoint to upload and extract text from documents for AI analysis"""
+    user_id = int(get_jwt_identity())
+    
+    # Check if file was uploaded
+    if 'document' not in request.files:
+        return jsonify({'success': False, 'error': 'لم يتم تحميل ملف / No file uploaded'}), 400
+    
+    file = request.files['document']
+    
+    if file.filename == '':
+        return jsonify({'success': False, 'error': 'لم يتم اختيار ملف / No file selected'}), 400
+    
+    if not allowed_file(file.filename):
+        return jsonify({'success': False, 'error': 'نوع الملف غير مدعوم. يرجى استخدام PDF, Word, أو TXT / File type not supported. Please use PDF, Word, or TXT'}), 400
+    
+    # Check file size
+    file.seek(0, 2)
+    file_size = file.tell()
+    file.seek(0)
+    
+    if file_size > MAX_FILE_SIZE:
+        return jsonify({'success': False, 'error': 'حجم الملف كبير جداً (أقصى 10MB) / File too large (max 10MB)'}), 400
+    
+    try:
+        # Secure filename and save
+        filename = secure_filename(file.filename)
+        timestamp = int(time.time())
+        unique_filename = f"{user_id}_{timestamp}_{filename}"
+        
+        # Create upload directory if not exists
+        upload_dir = os.path.join(current_app.root_path, 'uploads', 'documents', 'consultation')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        file_path = os.path.join(upload_dir, unique_filename)
+        file.save(file_path)
+        
+        # Extract text based on file type
+        extension = filename.rsplit('.', 1)[1].lower()
+        extracted_text = None
+        
+        if extension == 'pdf':
+            extracted_text = extract_text_from_pdf(file_path)
+        elif extension in ['doc', 'docx']:
+            extracted_text = extract_text_from_docx(file_path)
+        elif extension == 'txt':
+            extracted_text = extract_text_from_txt(file_path)
+        
+        # Clean up file after extraction
+        try:
+            os.remove(file_path)
+        except:
+            pass
+        
+        if not extracted_text:
+            return jsonify({
+                'success': False,
+                'error': 'فشل استخراج النص من الملف / Failed to extract text from file'
+            }), 500
+        
+        # Truncate if too long (max 15000 characters for context)
+        max_length = 15000
+        if len(extracted_text) > max_length:
+            extracted_text = extracted_text[:max_length] + "\n... [تم اقتطاع النص بسبب الطول / Text truncated due to length]"
+        
+        # Create preview (first 500 characters)
+        preview = extracted_text[:500] + "..." if len(extracted_text) > 500 else extracted_text
+        
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'content': extracted_text,
+            'preview': preview,
+            'length': len(extracted_text)
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Document upload error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'خطأ في معالجة الملف / Error processing file: {str(e)}'
+        }), 500
 
 # ==================== STRATEGIC PLANNING SUBMODULE ====================
 
