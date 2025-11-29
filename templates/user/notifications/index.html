@@ -79,7 +79,13 @@
                     </thead>
                     <tbody>
                         {% for notification in notifications %}
-                        <tr style="background-color: {% if not notification.is_read %}#f8f9fa{% endif %}; cursor: pointer;" onclick="showNotificationDetail(this, {{ notification.id }}, '{{ notification.title | replace("'", "\\'") }}', '{{ notification.message | replace("'", "\\'") }}', '{{ notification.notification_type }}')">
+                        <tr style="background-color: {% if not notification.is_read %}#f8f9fa{% endif %}; cursor: pointer;" 
+                            data-notification-id="{{ notification.id }}"
+                            data-notification-title="{{ notification.title }}"
+                            data-notification-message="{{ notification.message }}"
+                            data-notification-type="{{ notification.notification_type }}"
+                            data-notification-read="{{ notification.is_read }}"
+                            onclick="showNotificationDetail(this)">
                             <td>
                                 <strong>{{ notification.title }}</strong>
                             </td>
@@ -155,7 +161,13 @@
         });
     }
 
-    function showNotificationDetail(row, notificationId, title, message, type) {
+    function showNotificationDetail(row) {
+        const notificationId = row.dataset.notificationId;
+        const title = row.dataset.notificationTitle;
+        const message = row.dataset.notificationMessage;
+        const type = row.dataset.notificationType;
+        const isRead = row.dataset.notificationRead === 'True';
+
         let data = {};
         try {
             data = JSON.parse(message);
@@ -219,7 +231,7 @@
         document.getElementById('notificationDetailContent').innerHTML = content;
         $('#notificationDetailModal').modal('show');
 
-        if (!row.dataset.read) {
+        if (!isRead) {
             markAsRead(notificationId);
         }
     }
