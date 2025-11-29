@@ -598,7 +598,7 @@ function sendBroadcastMessage() {
         return;
     }
     
-    fetch('/notifications/send-broadcast', {
+    fetch('/admin/notifications/send-broadcast', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -653,7 +653,7 @@ function sendPrivateMessage() {
         return;
     }
     
-    fetch('/notifications/send-private', {
+    fetch('/admin/notifications/send-private', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
