@@ -170,6 +170,7 @@ def create_app():
     from blueprints.erp import erp_bp
     from blueprints.hr_module import hr_module_bp
     from blueprints.admin.settings import settings_bp
+    from blueprints.admin.notifications_admin import notifications_admin_bp
     from blueprints.knowledge_rag import knowledge_rag_bp
     from blueprints.user_notifications import user_notifications_bp
     
@@ -196,6 +197,7 @@ def create_app():
     app.register_blueprint(erp_bp)
     app.register_blueprint(hr_module_bp)
     app.register_blueprint(settings_bp, url_prefix='/admin/settings')
+    app.register_blueprint(notifications_admin_bp, url_prefix='/admin')
     app.register_blueprint(user_notifications_bp)
     
     # Create tables and seed default data
