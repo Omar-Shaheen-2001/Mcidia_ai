@@ -50,7 +50,10 @@ def role_required(*roles):
         def decorated_function(*args, **kwargs):
             try:
                 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
-                from flask import current_app
+                from flask import current_app, jsonify
+                
+                # Check if this is an API request
+                is_api_request = '/api' in request.path or 'application/json' in request.headers.get('Accept', '') or request.method in ['POST', 'PUT', 'DELETE', 'PATCH']
                 
                 # Try JWT first
                 try:
@@ -60,6 +63,8 @@ def role_required(*roles):
                     print(f"[role_required] JWT verification failed: {jwt_error}")
                     # Fallback to session
                     if 'user_id' not in session:
+                        if is_api_request:
+                            return jsonify({'success': False, 'error': 'Authentication required'}), 401
                         raise jwt_error
                     user_id = session.get('user_id')
                     print(f"[role_required] Using session fallback: user_id={user_id}")
@@ -76,6 +81,8 @@ def role_required(*roles):
                     return f(*args, **kwargs)
                 else:
                     print(f"[role_required] Access denied - user does not have required role")
+                    if is_api_request:
+                        return jsonify({'success': False, 'error': 'Permission denied'}), 403
                     lang = session.get('language', 'ar')
                     flash('ليس لديك صلاحية للوصول / You do not have permission to access this page' if lang == 'ar' else 'You do not have permission to access this page', 'danger')
                     return redirect(url_for('dashboard.index'))
@@ -83,6 +90,11 @@ def role_required(*roles):
                 print(f"[role_required] Exception: {type(e).__name__}: {str(e)}")
                 import traceback
                 traceback.print_exc()
+                # Check if this is an API request
+                is_api_request = '/api' in request.path or 'application/json' in request.headers.get('Accept', '') or request.method in ['POST', 'PUT', 'DELETE', 'PATCH']
+                if is_api_request:
+                    from flask import jsonify
+                    return jsonify({'success': False, 'error': str(e)}), 401
                 lang = session.get('language', 'ar')
                 flash('يرجى تسجيل الدخول / Please login' if lang == 'ar' else 'Please login', 'warning')
                 return redirect(url_for('auth.login'))
