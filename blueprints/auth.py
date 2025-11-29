@@ -110,7 +110,7 @@ def login():
             user.last_login_device = device_type
             db.session.commit()
             
-            # Create user notification for login
+            # Create login notification
             import json
             login_notification_data = {
                 'login_time': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
@@ -121,16 +121,21 @@ def login():
                 'browser': ua.browser.family if ua.browser.family else 'Unknown',
                 'os': ua.os.family if ua.os.family else 'Unknown'
             }
-            login_notification = Notification(
-                user_id=user.id,
-                title='✅ تم تسجيل الدخول / Login Successful',
-                message=json.dumps(login_notification_data),
-                notification_type='login',
-                status='sent',
-                is_read=False
-            )
-            db.session.add(login_notification)
-            db.session.commit()
+            
+            # Only create login notification for the user if they are Admin
+            # Admin sees it as a broadcast notification (user_id=NULL)
+            # Regular users don't see login notifications of other users
+            if user.role == 'system_admin':
+                login_notification = Notification(
+                    user_id=None,  # Broadcast to all admins
+                    title='✅ Admin تم تسجيل الدخول / Admin Login Successful',
+                    message=json.dumps(login_notification_data),
+                    notification_type='login',
+                    status='sent',
+                    is_read=False
+                )
+                db.session.add(login_notification)
+                db.session.commit()
             
             # Store user ID in Flask session as backup
             session['user_id'] = user.id
