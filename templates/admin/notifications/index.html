@@ -119,6 +119,22 @@
             </div>
         </div>
     </div>
+    
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(108, 117, 125, 0.1); color: #6c757d;">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ update_notifications }}</div>
+                    <div class="stat-label">🔄 {{ 'إشعارات التحديث' if lang == 'ar' else 'Update Notifications' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Notifications Table -->
