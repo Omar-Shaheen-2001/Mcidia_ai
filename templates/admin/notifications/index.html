@@ -121,6 +121,8 @@
                         <span class="badge bg-success">💳 {{ 'دفع' if lang == 'ar' else 'Payment' }}</span>
                         {% elif notification.notification_type == 'account_deletion' %}
                         <span class="badge bg-danger">🗑️ {{ 'حذف حساب' if lang == 'ar' else 'Account Deletion' }}</span>
+                        {% elif notification.notification_type == 'login' %}
+                        <span class="badge bg-success">✅ {{ 'تسجيل دخول' if lang == 'ar' else 'Login' }}</span>
                         {% elif notification.notification_type == 'internal' %}
                         <span class="badge bg-info">{{ 'داخلي' if lang == 'ar' else 'Internal' }}</span>
                         {% elif notification.notification_type == 'email' %}
@@ -193,20 +195,70 @@ function showNotificationDetails(title, message, type, status, date) {
         <div style="text-align: {{ 'right' if lang == 'ar' else 'left' }}; font-size: 13px; line-height: 1.8;">
     `;
     
-    // Try to parse message as JSON for payment or account deletion notifications
+    // Try to parse message as JSON for payment or account deletion or login notifications
     let isPayment = false;
     let isAccountDeletion = false;
+    let isLogin = false;
     let paymentData = {};
     try {
         paymentData = JSON.parse(message);
         isPayment = type === 'payment';
         isAccountDeletion = type === 'account_deletion';
+        isLogin = type === 'login';
     } catch(e) {
         isPayment = false;
         isAccountDeletion = false;
+        isLogin = false;
     }
     
-    if (isAccountDeletion && paymentData.user_name) {
+    if (isLogin && paymentData.login_time) {
+        // Login notification detailed view
+        htmlContent += `
+            <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <h4 style="margin: 0; font-size: 16px;">✅ ${title}</h4>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
+                    <div style="color: #666; font-size: 12px;">{{ 'المستخدم' if lang == 'ar' else 'User' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.user_name}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
+                    <div style="color: #666; font-size: 12px;">{{ 'البريد' if lang == 'ar' else 'Email' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px; word-break: break-all;">${paymentData.user_email}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
+                    <div style="color: #666; font-size: 12px;">{{ 'وقت التسجيل' if lang == 'ar' else 'Login Time' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.login_time}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
+                    <div style="color: #666; font-size: 12px;">{{ 'الجهاز' if lang == 'ar' else 'Device' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.device}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
+                    <div style="color: #666; font-size: 12px;">{{ 'المتصفح' if lang == 'ar' else 'Browser' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.browser}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
+                    <div style="color: #666; font-size: 12px;">{{ 'نظام التشغيل' if lang == 'ar' else 'OS' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.os}</div>
+                </div>
+            </div>
+            
+            <div style="background: #e7f3ff; padding: 12px; border-radius: 6px; border-left: 3px solid #0d6efd;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <div style="color: #666; font-size: 12px;">IP Address</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px; font-size: 12px; word-break: break-all;">${paymentData.ip_address}</div>
+                    </div>
+                    <div>
+                        <div style="color: #666; font-size: 12px;">{{ 'التاريخ' if lang == 'ar' else 'Date' }}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${date}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (isAccountDeletion && paymentData.user_name) {
         // Account deletion notification detailed view
         htmlContent += `
             <div style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
@@ -360,12 +412,12 @@ function showNotificationDetails(title, message, type, status, date) {
     htmlContent += `</div>`;
     
     Swal.fire({
-        title: isPayment ? '💳 ' + title : title,
+        title: isPayment ? '💳 ' + title : isLogin ? '✅ ' + title : title,
         html: htmlContent,
         icon: 'info',
         confirmButtonText: '{{ "حسناً" if lang == "ar" else "OK" }}',
         confirmButtonColor: '#0d6efd',
-        width: isPayment ? '700px' : '600px',
+        width: (isPayment || isLogin) ? '700px' : '600px',
         customClass: {
             container: '{{ "swal-rtl" if lang == "ar" else "" }}'
         }
