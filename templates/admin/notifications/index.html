@@ -36,13 +36,13 @@
         <div class="stat-card">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <div class="stat-icon" style="background: rgba(44, 140, 86, 0.1); color: #2C8C56;">
-                        <i class="fas fa-check-circle"></i>
+                    <div class="stat-icon" style="background: rgba(23, 162, 184, 0.1); color: #17a2b8;">
+                        <i class="fas fa-envelope-open"></i>
                     </div>
                 </div>
                 <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
-                    <div class="stat-value">{{ sent_notifications }}</div>
-                    <div class="stat-label">{{ 'مُرسلة' if lang == 'ar' else 'Sent' }}</div>
+                    <div class="stat-value">{{ internal_notifications }}</div>
+                    <div class="stat-label">{{ 'داخلي' if lang == 'ar' else 'Internal' }}</div>
                 </div>
             </div>
         </div>

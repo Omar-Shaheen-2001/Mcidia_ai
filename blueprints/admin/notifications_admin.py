@@ -24,7 +24,7 @@ def index():
     
     # Calculate statistics
     total_notifications = db.session.query(Notification).count()
-    sent_notifications = db.session.query(Notification).filter_by(status='sent').count()
+    internal_notifications = db.session.query(Notification).filter_by(notification_type='internal').count()
     pending_notifications = db.session.query(Notification).filter_by(status='pending').count()
     payment_notifications = db.session.query(Notification).filter_by(notification_type='payment').count()
     account_deletion_notifications = db.session.query(Notification).filter_by(notification_type='account_deletion').count()
@@ -33,7 +33,7 @@ def index():
         'admin/notifications/index.html', 
         notifications=all_notifications,
         total_notifications=total_notifications,
-        sent_notifications=sent_notifications,
+        internal_notifications=internal_notifications,
         pending_notifications=pending_notifications,
         payment_notifications=payment_notifications,
         account_deletion_notifications=account_deletion_notifications,
