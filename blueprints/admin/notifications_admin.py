@@ -196,6 +196,7 @@ def send_broadcast():
     """Send broadcast notification to all users"""
     db = get_db()
     data = request.get_json()
+    admin_id = session.get('user_id')
     
     try:
         title = data.get('title')
@@ -216,6 +217,7 @@ def send_broadcast():
         for user in all_users:
             notification = Notification(
                 user_id=user.id,  # Personal notification for each user
+                admin_id=admin_id,  # Track which admin sent this
                 title=title,
                 message=message,
                 notification_type=notif_type,

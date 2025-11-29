@@ -204,7 +204,15 @@
                 </div>
             `;
         } else {
-            content = `<p>${message}</p>`;
+            // Handle regular notifications (broadcast messages, etc)
+            content = `
+                <div style="background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <h4 style="margin: 0; font-size: 16px;">📢 ${title}</h4>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 3px solid #0d6efd; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">
+                    ${message.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+                </div>
+            `;
         }
 
         document.getElementById('notificationDetailTitle').textContent = title;
