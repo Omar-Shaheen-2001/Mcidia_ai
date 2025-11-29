@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template, request, session
+from flask import Blueprint, render_template, request, session, current_app
 from utils.decorators import login_required, role_required
 from models import Transaction, User
-from flask import current_app
+from utils.payment_notifications import create_payment_success_notification
 
 billing_bp = Blueprint('billing', __name__, url_prefix='/billing')
 
@@ -88,3 +88,31 @@ def index():
                          unique_users=unique_users,
                          payment_methods=payment_methods,
                          lang=lang)
+
+
+@billing_bp.route('/create-payment-notification/<int:transaction_id>', methods=['POST'])
+@login_required
+@role_required('system_admin')
+def create_payment_notification(transaction_id):
+    """Create a notification for a payment (admin endpoint for testing/manual triggering)"""
+    db = get_db()
+    
+    try:
+        transaction = db.session.query(Transaction).get(transaction_id)
+        if not transaction:
+            return {'success': False, 'error': 'Transaction not found'}, 404
+        
+        user = db.session.query(User).get(transaction.user_id)
+        if not user:
+            return {'success': False, 'error': 'User not found'}, 404
+        
+        # Create notification
+        notification = create_payment_success_notification(db, user, transaction, current_app)
+        
+        if notification:
+            return {'success': True, 'message': 'Payment notification created', 'notification_id': notification.id}, 200
+        else:
+            return {'success': False, 'error': 'Failed to create notification'}, 500
+    
+    except Exception as e:
+        return {'success': False, 'error': str(e)}, 500
