@@ -2,6 +2,7 @@ from flask import current_app, Blueprint, render_template, request, flash, sessi
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required, role_required
 from models import User, Transaction, SubscriptionPlan
+from utils.payment_notifications import create_payment_success_notification
 import stripe
 import os
 import unicodedata
@@ -263,6 +264,9 @@ def success():
         )
         db.session.add(transaction)
         db.session.commit()
+        
+        # Create admin notification for payment success
+        create_payment_success_notification(db, user, transaction, current_app)
         
         flash('تم الاشتراك بنجاح! / Subscription successful!', 'success')
     except Exception as e:
