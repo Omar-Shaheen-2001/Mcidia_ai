@@ -201,6 +201,13 @@ def delete_account():
         user.is_active = False
         db.session.commit()
         
+        # Create admin notification about account deletion
+        try:
+            from utils.payment_notifications import create_account_deletion_notification
+            create_account_deletion_notification(db, user, current_app)
+        except Exception as e:
+            print(f"Warning: Failed to create account deletion notification: {str(e)}")
+        
         # Logout the user
         from flask import make_response
         from flask_jwt_extended import unset_jwt_cookies

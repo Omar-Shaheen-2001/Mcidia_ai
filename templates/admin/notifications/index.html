@@ -103,6 +103,8 @@
                     <td>
                         {% if notification.notification_type == 'payment' %}
                         <span class="badge bg-success">💳 {{ 'دفع' if lang == 'ar' else 'Payment' }}</span>
+                        {% elif notification.notification_type == 'account_deletion' %}
+                        <span class="badge bg-danger">🗑️ {{ 'حذف حساب' if lang == 'ar' else 'Account Deletion' }}</span>
                         {% elif notification.notification_type == 'internal' %}
                         <span class="badge bg-info">{{ 'داخلي' if lang == 'ar' else 'Internal' }}</span>
                         {% elif notification.notification_type == 'email' %}
@@ -151,6 +153,7 @@
 function showNotificationDetails(title, message, type, status, date) {
     let typeLabel = {
         'payment': '💳 {{ "دفع" if lang == "ar" else "Payment" }}',
+        'account_deletion': '🗑️ {{ "حذف حساب" if lang == "ar" else "Account Deletion" }}',
         'internal': '{{ "داخلي" if lang == "ar" else "Internal" }}',
         'email': '{{ "بريد إلكتروني" if lang == "ar" else "Email" }}',
         'both': '{{ "كلاهما" if lang == "ar" else "Both" }}'
@@ -174,17 +177,83 @@ function showNotificationDetails(title, message, type, status, date) {
         <div style="text-align: {{ 'right' if lang == 'ar' else 'left' }}; font-size: 13px; line-height: 1.8;">
     `;
     
-    // Try to parse message as JSON for payment notifications
+    // Try to parse message as JSON for payment or account deletion notifications
     let isPayment = false;
+    let isAccountDeletion = false;
     let paymentData = {};
     try {
         paymentData = JSON.parse(message);
         isPayment = type === 'payment';
+        isAccountDeletion = type === 'account_deletion';
     } catch(e) {
         isPayment = false;
+        isAccountDeletion = false;
     }
     
-    if (isPayment && paymentData.user_name) {
+    if (isAccountDeletion && paymentData.user_name) {
+        // Account deletion notification detailed view
+        htmlContent += `
+            <div style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <h4 style="margin: 0; font-size: 16px;">🗑️ ${title}</h4>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #dc3545;">
+                    <div style="color: #666; font-size: 12px;">{{ 'المستخدم' if lang == 'ar' else 'User' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.user_name}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #dc3545;">
+                    <div style="color: #666; font-size: 12px;">{{ 'البريد' if lang == 'ar' else 'Email' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px; word-break: break-all;">${paymentData.user_email}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #dc3545;">
+                    <div style="color: #666; font-size: 12px;">{{ 'المؤسسة' if lang == 'ar' else 'Organization' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.organization}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #dc3545;">
+                    <div style="color: #666; font-size: 12px;">{{ 'رقم الهاتف' if lang == 'ar' else 'Phone' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.phone}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #dc3545;">
+                    <div style="color: #666; font-size: 12px;">{{ 'الخطة' if lang == 'ar' else 'Plan' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.subscription_plan}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #dc3545;">
+                    <div style="color: #666; font-size: 12px;">{{ 'تاريخ الإنشاء' if lang == 'ar' else 'Created' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.created_date}</div>
+                </div>
+            </div>
+            
+            <div style="background: #fff3cd; padding: 12px; border-radius: 6px; border-left: 3px solid #ffc107; margin-bottom: 15px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <div style="color: #666; font-size: 12px;">{{ 'تاريخ الحذف' if lang == 'ar' else 'Deletion Date' }}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.deletion_date}</div>
+                    </div>
+                    <div>
+                        <div style="color: #666; font-size: 12px;">{{ 'وقت الحذف' if lang == 'ar' else 'Deletion Time' }}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.deletion_time}</div>
+                    </div>
+                    <div>
+                        <div style="color: #666; font-size: 12px;">{{ 'آخر تسجيل دخول' if lang == 'ar' else 'Last Login' }}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.last_login}</div>
+                    </div>
+                    <div>
+                        <div style="color: #666; font-size: 12px;">{{ 'IP آخر تسجيل دخول' if lang == 'ar' else 'Last Login IP' }}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px; font-size: 12px;">${paymentData.last_login_ip}</div>
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <div style="color: #666; font-size: 12px;">{{ 'جهاز آخر تسجيل دخول' if lang == 'ar' else 'Last Login Device' }}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.last_login_device}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                ${paymentData.user_url ? `<a href="${paymentData.user_url}" target="_blank" class="btn btn-sm btn-outline-primary" style="text-decoration: none; display: block; padding: 8px 12px; border: 1px solid #0d6efd; color: #0d6efd; border-radius: 4px; text-align: center;">👤 {{ 'فتح الملف الشخصي' if lang == 'ar' else 'Open Profile' }}</a>` : ''}
+            </div>
+        `;
+    } else if (isPayment && paymentData.user_name) {
         // Payment notification detailed view
         htmlContent += `
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
