@@ -52,8 +52,18 @@ def role_required(*roles):
                 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
                 from flask import current_app
                 
-                verify_jwt_in_request(optional=False, locations=['cookies', 'headers'])
-                user_id = int(get_jwt_identity())
+                # Try JWT first
+                try:
+                    verify_jwt_in_request(optional=False, locations=['cookies', 'headers'])
+                    user_id = int(get_jwt_identity())
+                except Exception as jwt_error:
+                    print(f"[role_required] JWT verification failed: {jwt_error}")
+                    # Fallback to session
+                    if 'user_id' not in session:
+                        raise jwt_error
+                    user_id = session.get('user_id')
+                    print(f"[role_required] Using session fallback: user_id={user_id}")
+                
                 db = current_app.extensions['sqlalchemy']
                 user = db.session.query(User).get(user_id)
                 
