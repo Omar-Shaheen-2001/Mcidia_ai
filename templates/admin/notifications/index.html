@@ -63,6 +63,22 @@
             </div>
         </div>
     </div>
+    
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-icon" style="background: rgba(102, 126, 234, 0.1); color: #667eea;">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                </div>
+                <div class="text-{{ 'start' if lang == 'en' else 'end' }}">
+                    <div class="stat-value">{{ payment_notifications }}</div>
+                    <div class="stat-label">💳 {{ 'إشعارات الدفع' if lang == 'ar' else 'Payment Notifications' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Notifications Table -->
