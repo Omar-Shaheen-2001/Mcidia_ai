@@ -286,3 +286,65 @@ def send_private():
             'success': False,
             'error': str(e)
         }), 500
+
+@notifications_admin_bp.route('/delete/<int:notification_id>', methods=['POST'])
+@login_required
+@role_required('system_admin')
+def delete_notification(notification_id):
+    """Delete a single notification sent by this admin"""
+    from models import User
+    db = get_db()
+    
+    try:
+        current_admin_id = session.get('user_id')
+        
+        # Only allow deleting notifications sent by this admin
+        notification = db.session.query(Notification).filter(
+            Notification.id == notification_id,
+            Notification.admin_id == current_admin_id
+        ).first()
+        
+        if notification:
+            db.session.delete(notification)
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'message': 'Notification deleted successfully'
+            }), 200
+        return jsonify({
+            'success': False,
+            'error': 'Notification not found or unauthorized'
+        }), 404
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@notifications_admin_bp.route('/delete-all', methods=['POST'])
+@login_required
+@role_required('system_admin')
+def delete_all():
+    """Delete all notifications sent by this admin"""
+    from models import User
+    db = get_db()
+    
+    try:
+        current_admin_id = session.get('user_id')
+        
+        # Delete only notifications sent by this admin
+        db.session.query(Notification).filter(
+            Notification.admin_id == current_admin_id
+        ).delete()
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': 'All notifications deleted successfully'
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500

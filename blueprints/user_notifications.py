@@ -201,3 +201,81 @@ def mark_all_read():
             'success': False,
             'error': str(e)
         }), 500
+
+@user_notifications_bp.route('/delete/<int:notification_id>', methods=['POST'])
+@login_required
+def delete_notification(notification_id):
+    """Delete a single notification"""
+    db = get_db()
+    
+    # Get user_id from JWT token or session
+    user_id = None
+    try:
+        user_id_str = get_jwt_identity()
+        if user_id_str:
+            user_id = int(user_id_str)
+    except:
+        pass
+    
+    if not user_id:
+        user_id = session.get('user_id')
+    
+    try:
+        # Only allow deleting personal notifications
+        notification = db.session.query(Notification).filter(
+            Notification.id == notification_id,
+            Notification.user_id == user_id
+        ).first()
+        
+        if notification:
+            db.session.delete(notification)
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'message': 'Notification deleted successfully'
+            }), 200
+        return jsonify({
+            'success': False,
+            'error': 'Notification not found'
+        }), 404
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@user_notifications_bp.route('/delete-all', methods=['POST'])
+@login_required
+def delete_all():
+    """Delete all user notifications"""
+    db = get_db()
+    
+    # Get user_id from JWT token or session
+    user_id = None
+    try:
+        user_id_str = get_jwt_identity()
+        if user_id_str:
+            user_id = int(user_id_str)
+    except:
+        pass
+    
+    if not user_id:
+        user_id = session.get('user_id')
+    
+    try:
+        # Delete only personal notifications (not broadcast)
+        db.session.query(Notification).filter(
+            Notification.user_id == user_id
+        ).delete()
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': 'All notifications deleted successfully'
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
