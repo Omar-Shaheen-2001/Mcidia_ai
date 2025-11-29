@@ -443,6 +443,19 @@
             }
         }
         
+        // User notifications badge visibility
+        function updateUserNotificationBadge(count) {
+            const badge = document.getElementById('userNotificationBadge');
+            if (badge) {
+                if (count > 0) {
+                    badge.style.display = 'flex';
+                    badge.textContent = count;
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+        
         // Mark notification as read
         function markNotificationRead(notificationId) {
             fetch('/admin/notifications/mark-read/' + notificationId, {
@@ -559,13 +572,77 @@
             }
         });
         
+        // Load user notifications
+        function loadUserNotifications() {
+            // Check if user notifications icon exists
+            const userNotificationIcon = document.getElementById('userNotificationsDropdown');
+            if (!userNotificationIcon) return;
+            
+            fetch('/user/notifications/api')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.count > 0) {
+                        updateUserNotificationBadge(data.count);
+                        const userNotificationsContent = document.getElementById('userNotificationsContent');
+                        let html = '';
+                        
+                        data.data.slice(0, 5).forEach(notification => {
+                            const createdDate = new Date(notification.created_at);
+                            const now = new Date();
+                            let dateStr = '';
+                            
+                            const diffMs = now - createdDate;
+                            const diffMins = Math.floor(diffMs / 60000);
+                            const diffHours = Math.floor(diffMs / 3600000);
+                            const diffDays = Math.floor(diffMs / 86400000);
+                            
+                            if (diffMins < 1) {
+                                dateStr = '{{ "للتو" if lang == "ar" else "Just now" }}';
+                            } else if (diffMins < 60) {
+                                dateStr = diffMins + ' {{ "دقيقة" if lang == "ar" else "min" }} {{ "مضت" if lang == "ar" else "ago" }}';
+                            } else if (diffHours < 24) {
+                                dateStr = diffHours + ' {{ "ساعة" if lang == "ar" else "hour" }} {{ "مضت" if lang == "ar" else "ago" }}';
+                            } else if (diffDays < 7) {
+                                dateStr = diffDays + ' {{ "يوم" if lang == "ar" else "day" }} {{ "مضت" if lang == "ar" else "ago" }}';
+                            } else {
+                                dateStr = createdDate.toLocaleDateString('{{ "ar-SA" if lang == "ar" else "en-US" }}', {
+                                    month: 'short',
+                                    day: 'numeric'
+                                });
+                            }
+                            
+                            const messagePreview = notification.title.substring(0, 85) + (notification.title.length > 85 ? '...' : '');
+                            
+                            html += `
+                                <div class="notification-item" style="position: relative; padding-{{ 'left' if lang == 'ar' else 'right' }}: 45px !important;">
+                                    <a href="{{ url_for('user_notifications.index') }}" style="text-decoration: none; color: inherit; display: block;">
+                                        <div class="notification-item-title">${notification.title}</div>
+                                        <div class="notification-item-time">${dateStr}</div>
+                                    </a>
+                                </div>
+                            `;
+                        });
+                        
+                        userNotificationsContent.innerHTML = html;
+                    } else {
+                        updateUserNotificationBadge(0);
+                    }
+                })
+                .catch(error => {
+                    console.log('Could not load user notifications');
+                });
+        }
+        
         // Initialize notification badge and load notifications on page load
         document.addEventListener('DOMContentLoaded', function() {
             updateNotificationBadge(0);
+            updateUserNotificationBadge(0);
             loadAdminNotifications();
+            loadUserNotifications();
             
             // Reload notifications every 30 seconds
             setInterval(loadAdminNotifications, 30000);
+            setInterval(loadUserNotifications, 30000);
         });
     </script>
     

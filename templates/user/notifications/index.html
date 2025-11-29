@@ -79,12 +79,16 @@
                     </thead>
                     <tbody>
                         {% for notification in notifications %}
-                        <tr style="background-color: {% if not notification.is_read %}#f8f9fa{% endif %}">
+                        <tr style="background-color: {% if not notification.is_read %}#f8f9fa{% endif %}; cursor: pointer;" onclick="showNotificationDetail(this, {{ notification.id }}, '{{ notification.title | replace("'", "\\'") }}', '{{ notification.message | replace("'", "\\'") }}', '{{ notification.notification_type }}')">
                             <td>
                                 <strong>{{ notification.title }}</strong>
                             </td>
                             <td>
+                                {% if notification.notification_type == 'login' %}
+                                <span class="badge bg-success">✅ {{ 'دخول' if lang == 'ar' else 'Login' }}</span>
+                                {% else %}
                                 <span class="badge bg-primary">{{ notification.notification_type }}</span>
+                                {% endif %}
                             </td>
                             <td>
                                 {% if notification.is_read %}
@@ -96,7 +100,7 @@
                             <td>
                                 <small class="text-muted">{{ notification.created_at.strftime('%Y-%m-%d %H:%M') if notification.created_at else '-' }}</small>
                             </td>
-                            <td>
+                            <td onclick="event.stopPropagation();">
                                 {% if not notification.is_read %}
                                 <button class="btn btn-sm btn-outline-primary" onclick="markAsRead({{ notification.id }})">
                                     <i class="fas fa-check"></i>
@@ -107,6 +111,25 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+            
+            <!-- Notification Detail Modal -->
+            <div class="modal fade" id="notificationDetailModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="notificationDetailTitle"></h5>
+                            <button type="button" class="close" data-dismiss="modal">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body" id="notificationDetailContent">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ 'إغلاق' if lang == 'ar' else 'Close' }}</button>
+                        </div>
+                    </div>
+                </div>
             </div>
             {% else %}
             <div class="text-center py-5">
@@ -130,6 +153,67 @@
                 location.reload();
             }
         });
+    }
+
+    function showNotificationDetail(row, notificationId, title, message, type) {
+        let data = {};
+        try {
+            data = JSON.parse(message);
+        } catch(e) {
+            data = { message: message };
+        }
+
+        let content = '';
+        let lang = '{{ lang }}';
+
+        if (type === 'login' && data.login_time) {
+            content = `
+                <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <h4 style="margin: 0; font-size: 16px;">✅ ${title}</h4>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+                    <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
+                        <div style="color: #666; font-size: 12px;">${lang === 'ar' ? 'وقت التسجيل' : 'Login Time'}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${data.login_time}</div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
+                        <div style="color: #666; font-size: 12px;">${lang === 'ar' ? 'الجهاز' : 'Device'}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${data.device}</div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
+                        <div style="color: #666; font-size: 12px;">IP Address</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px; font-size: 12px;">${data.ip_address}</div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
+                        <div style="color: #666; font-size: 12px;">${lang === 'ar' ? 'المتصفح' : 'Browser'}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${data.browser}</div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
+                        <div style="color: #666; font-size: 12px;">${lang === 'ar' ? 'نظام التشغيل' : 'OS'}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${data.os}</div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
+                        <div style="color: #666; font-size: 12px;">${lang === 'ar' ? 'المستخدم' : 'User'}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${data.user_name}</div>
+                    </div>
+                </div>
+                <div style="background: #e7f3ff; padding: 12px; border-radius: 6px; border-left: 3px solid #0d6efd;">
+                    <div style="color: #666; font-size: 12px;">${lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px; word-break: break-all;">${data.user_email}</div>
+                </div>
+            `;
+        } else {
+            content = `<p>${message}</p>`;
+        }
+
+        document.getElementById('notificationDetailTitle').textContent = title;
+        document.getElementById('notificationDetailContent').innerHTML = content;
+        $('#notificationDetailModal').modal('show');
+
+        if (!row.dataset.read) {
+            markAsRead(notificationId);
+        }
     }
 </script>
 {% endblock %}

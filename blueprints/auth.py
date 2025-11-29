@@ -110,6 +110,28 @@ def login():
             user.last_login_device = device_type
             db.session.commit()
             
+            # Create user notification for login
+            import json
+            login_notification_data = {
+                'login_time': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
+                'ip_address': request.remote_addr,
+                'device': device_type,
+                'user_name': user.username,
+                'user_email': user.email,
+                'browser': ua.browser.family if ua.browser.family else 'Unknown',
+                'os': ua.os.family if ua.os.family else 'Unknown'
+            }
+            login_notification = Notification(
+                user_id=user.id,
+                title='✅ تم تسجيل الدخول / Login Successful',
+                message=json.dumps(login_notification_data),
+                notification_type='login',
+                status='sent',
+                is_read=False
+            )
+            db.session.add(login_notification)
+            db.session.commit()
+            
             # Store user ID in Flask session as backup
             session['user_id'] = user.id
             session['username'] = user.username
