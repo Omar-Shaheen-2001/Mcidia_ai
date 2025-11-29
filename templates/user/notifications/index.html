@@ -2,6 +2,10 @@
 
 {% block title %}{{ 'الإشعارات' if lang == 'ar' else 'Notifications' }}{% endblock %}
 
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
     <div class="row mb-4">
@@ -173,33 +177,83 @@
     }
 
     function deleteNotification(notificationId) {
-        if (confirm('{{ "هل تريد حذف هذا الإشعار؟" if lang == "ar" else "Are you sure you want to delete this notification?" }}')) {
-            fetch(`/user/notifications/delete/${notificationId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then(response => response.json()).then(data => {
-                if (data.success) {
-                    location.reload();
-                }
-            });
-        }
+        Swal.fire({
+            title: '{{ "تأكيد الحذف" if lang == "ar" else "Confirm Delete" }}',
+            text: '{{ "هل تريد حذف هذا الإشعار؟" if lang == "ar" else "Are you sure you want to delete this notification?" }}',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '{{ "حذف" if lang == "ar" else "Delete" }}',
+            cancelButtonText: '{{ "إلغاء" if lang == "ar" else "Cancel" }}',
+            reverseButtons: {{ 'true' if lang == 'ar' else 'false' }}
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/user/notifications/delete/${notificationId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(response => response.json()).then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '{{ "تم الحذف" if lang == "ar" else "Deleted" }}',
+                            text: '{{ "تم حذف الإشعار بنجاح" if lang == "ar" else "Notification deleted successfully" }}',
+                            confirmButtonText: '{{ "حسناً" if lang == "ar" else "OK" }}'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '{{ "خطأ" if lang == "ar" else "Error" }}',
+                            text: data.error || '{{ "حدث خطأ" if lang == "ar" else "An error occurred" }}'
+                        });
+                    }
+                });
+            }
+        });
     }
 
     function deleteAllNotifications() {
-        if (confirm('{{ "هل تريد حذف جميع الإشعارات؟" if lang == "ar" else "Are you sure you want to delete all notifications?" }}')) {
-            fetch(`/user/notifications/delete-all`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then(response => response.json()).then(data => {
-                if (data.success) {
-                    location.reload();
-                }
-            });
-        }
+        Swal.fire({
+            title: '{{ "تأكيد الحذف" if lang == "ar" else "Confirm Delete All" }}',
+            text: '{{ "هل تريد حذف جميع الإشعارات؟ لا يمكن التراجع عن هذا الإجراء." if lang == "ar" else "Are you sure you want to delete all notifications? This action cannot be undone." }}',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '{{ "حذف الكل" if lang == "ar" else "Delete All" }}',
+            cancelButtonText: '{{ "إلغاء" if lang == "ar" else "Cancel" }}',
+            reverseButtons: {{ 'true' if lang == 'ar' else 'false' }}
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/user/notifications/delete-all`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(response => response.json()).then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '{{ "تم الحذف" if lang == "ar" else "Deleted" }}',
+                            text: '{{ "تم حذف جميع الإشعارات بنجاح" if lang == "ar" else "All notifications deleted successfully" }}',
+                            confirmButtonText: '{{ "حسناً" if lang == "ar" else "OK" }}'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '{{ "خطأ" if lang == "ar" else "Error" }}',
+                            text: data.error || '{{ "حدث خطأ" if lang == "ar" else "An error occurred" }}'
+                        });
+                    }
+                });
+            }
+        });
     }
 
     function showNotificationDetail(row) {
