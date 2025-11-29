@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, session, jsonify, request
 from utils.decorators import login_required, role_required
 from models import Notification, User
 from flask import current_app
+from sqlalchemy import or_
 
 notifications_admin_bp = Blueprint('notifications_admin', __name__, url_prefix='/notifications')
 
@@ -18,38 +19,62 @@ def index():
     """Notifications management"""
     db = get_db()
     lang = get_lang()
+    current_admin_id = session.get('user_id')
     
     # Get all users for the private message modal
     all_users = db.session.query(User).filter(
         User.is_active == True
     ).order_by(User.username).all()
     
-    # Get only broadcast notifications (user_id is NULL) for Admin, sorted by newest first
-    # This excludes user-specific notifications like login notifications
+    # Get broadcast notifications (user_id is NULL) OR notifications sent by this admin
+    # Show both broadcast and private messages that this admin sent
     all_notifications = db.session.query(Notification).filter(
-        Notification.user_id.is_(None)
+        or_(
+            Notification.user_id.is_(None),  # Broadcast
+            Notification.admin_id == current_admin_id  # Sent by this admin
+        )
     ).order_by(Notification.created_at.desc()).limit(100).all()
     
-    # Calculate statistics (only for broadcast notifications)
-    total_notifications = db.session.query(Notification).filter(Notification.user_id.is_(None)).count()
+    # Calculate statistics (broadcast + sent by this admin)
+    total_notifications = db.session.query(Notification).filter(
+        or_(
+            Notification.user_id.is_(None),
+            Notification.admin_id == current_admin_id
+        )
+    ).count()
     internal_notifications = db.session.query(Notification).filter(
-        Notification.user_id.is_(None),
+        or_(
+            Notification.user_id.is_(None),
+            Notification.admin_id == current_admin_id
+        ),
         Notification.notification_type == 'internal'
     ).count()
     pending_notifications = db.session.query(Notification).filter(
-        Notification.user_id.is_(None),
+        or_(
+            Notification.user_id.is_(None),
+            Notification.admin_id == current_admin_id
+        ),
         Notification.status == 'pending'
     ).count()
     payment_notifications = db.session.query(Notification).filter(
-        Notification.user_id.is_(None),
+        or_(
+            Notification.user_id.is_(None),
+            Notification.admin_id == current_admin_id
+        ),
         Notification.notification_type == 'payment'
     ).count()
     account_deletion_notifications = db.session.query(Notification).filter(
-        Notification.user_id.is_(None),
+        or_(
+            Notification.user_id.is_(None),
+            Notification.admin_id == current_admin_id
+        ),
         Notification.notification_type == 'account_deletion'
     ).count()
     login_notifications = db.session.query(Notification).filter(
-        Notification.user_id.is_(None),
+        or_(
+            Notification.user_id.is_(None),
+            Notification.admin_id == current_admin_id
+        ),
         Notification.notification_type == 'login'
     ).count()
     
@@ -228,6 +253,7 @@ def send_private():
     """Send private notification to a specific user"""
     db = get_db()
     data = request.get_json()
+    admin_id = session.get('user_id')
     
     try:
         user_id = data.get('user_id')
@@ -249,9 +275,10 @@ def send_private():
                 'error': 'User not found'
             }), 404
         
-        # Create private notification (user_id = specific user)
+        # Create private notification (user_id = specific user, admin_id = who sent it)
         notification = Notification(
             user_id=user_id,
+            admin_id=admin_id,
             title=title,
             message=message,
             notification_type=notif_type,

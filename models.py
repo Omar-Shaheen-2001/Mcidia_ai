@@ -671,6 +671,7 @@ class Notification(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # NULL for broadcast
+    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # Admin who sent this notification
     title = db.Column(db.String(200), nullable=False)
     message = db.Column(db.Text, nullable=False)
     notification_type = db.Column(db.String(50))  # email, internal, both
