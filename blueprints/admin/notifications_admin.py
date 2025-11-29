@@ -26,62 +26,37 @@ def index():
         User.is_active == True
     ).order_by(User.username).all()
     
-    # Get broadcast notifications (user_id is NULL) OR notifications sent by this admin
-    # Show both broadcast and private messages that this admin sent
+    # Get notifications sent by this admin (broadcast and private messages)
     all_notifications = db.session.query(Notification).filter(
-        or_(
-            Notification.user_id.is_(None),  # Broadcast
-            Notification.admin_id == current_admin_id  # Sent by this admin
-        )
+        Notification.admin_id == current_admin_id
     ).order_by(Notification.created_at.desc()).limit(100).all()
     
-    # Calculate statistics (broadcast + sent by this admin)
+    # Calculate statistics for notifications sent by this admin
     total_notifications = db.session.query(Notification).filter(
-        or_(
-            Notification.user_id.is_(None),
-            Notification.admin_id == current_admin_id
-        )
+        Notification.admin_id == current_admin_id
     ).count()
     internal_notifications = db.session.query(Notification).filter(
-        or_(
-            Notification.user_id.is_(None),
-            Notification.admin_id == current_admin_id
-        ),
+        Notification.admin_id == current_admin_id,
         Notification.notification_type == 'internal'
     ).count()
     pending_notifications = db.session.query(Notification).filter(
-        or_(
-            Notification.user_id.is_(None),
-            Notification.admin_id == current_admin_id
-        ),
+        Notification.admin_id == current_admin_id,
         Notification.status == 'pending'
     ).count()
     payment_notifications = db.session.query(Notification).filter(
-        or_(
-            Notification.user_id.is_(None),
-            Notification.admin_id == current_admin_id
-        ),
+        Notification.admin_id == current_admin_id,
         Notification.notification_type == 'payment'
     ).count()
     account_deletion_notifications = db.session.query(Notification).filter(
-        or_(
-            Notification.user_id.is_(None),
-            Notification.admin_id == current_admin_id
-        ),
+        Notification.admin_id == current_admin_id,
         Notification.notification_type == 'account_deletion'
     ).count()
     login_notifications = db.session.query(Notification).filter(
-        or_(
-            Notification.user_id.is_(None),
-            Notification.admin_id == current_admin_id
-        ),
+        Notification.admin_id == current_admin_id,
         Notification.notification_type == 'login'
     ).count()
     update_notifications = db.session.query(Notification).filter(
-        or_(
-            Notification.user_id.is_(None),
-            Notification.admin_id == current_admin_id
-        ),
+        Notification.admin_id == current_admin_id,
         Notification.notification_type == 'update'
     ).count()
     
@@ -115,9 +90,9 @@ def api_notifications():
                 'error': 'Unauthorized'
             }), 403
         
-        # Get only broadcast unread notifications (user_id is NULL and is_read is False)
+        # Get unread notifications sent by this admin
         notifications = db.session.query(Notification).filter(
-            Notification.user_id.is_(None),
+            Notification.admin_id == session.get('user_id'),
             Notification.is_read == False
         ).order_by(Notification.created_at.desc()).limit(50).all()
         
@@ -160,10 +135,11 @@ def mark_notification_read(notification_id):
                 'error': 'Unauthorized'
             }), 403
         
-        # Only allow marking broadcast notifications as read (user_id is NULL)
+        # Mark notification as read if sent by this admin
+        current_admin_id = session.get('user_id')
         notification = db.session.query(Notification).filter(
             Notification.id == notification_id,
-            Notification.user_id.is_(None)
+            Notification.admin_id == current_admin_id
         ).first()
         if notification:
             notification.is_read = True
@@ -197,8 +173,9 @@ def mark_all_read():
                 'error': 'Unauthorized'
             }), 403
         
+        current_admin_id = session.get('user_id')
         db.session.query(Notification).filter(
-            Notification.user_id.is_(None),
+            Notification.admin_id == current_admin_id,
             Notification.is_read == False
         ).update({'is_read': True})
         db.session.commit()
@@ -231,21 +208,30 @@ def send_broadcast():
                 'error': 'Title and message are required'
             }), 400
         
-        # Create broadcast notification (user_id = NULL)
-        notification = Notification(
-            user_id=None,
-            title=title,
-            message=message,
-            notification_type=notif_type,
-            status='sent'
-        )
-        db.session.add(notification)
+        # Get all users
+        all_users = db.session.query(User).all()
+        notification_ids = []
+        
+        # Create notification for each user
+        for user in all_users:
+            notification = Notification(
+                user_id=user.id,  # Personal notification for each user
+                title=title,
+                message=message,
+                notification_type=notif_type,
+                status='sent',
+                is_read=False
+            )
+            db.session.add(notification)
+            notification_ids.append(notification.id)
+        
         db.session.commit()
         
         return jsonify({
             'success': True,
             'message': 'Broadcast notification sent successfully',
-            'notification_id': notification.id
+            'notification_ids': notification_ids,
+            'users_count': len(all_users)
         }), 200
     except Exception as e:
         db.session.rollback()
