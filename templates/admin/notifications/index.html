@@ -85,21 +85,27 @@
                         <strong>{{ notification.title }}</strong>
                     </td>
                     <td>
-                        {% if notification.notification_type == 'internal' %}
+                        {% if notification.notification_type == 'payment' %}
+                        <span class="badge bg-success">💳 {{ 'دفع' if lang == 'ar' else 'Payment' }}</span>
+                        {% elif notification.notification_type == 'internal' %}
                         <span class="badge bg-info">{{ 'داخلي' if lang == 'ar' else 'Internal' }}</span>
                         {% elif notification.notification_type == 'email' %}
                         <span class="badge bg-primary">{{ 'بريد إلكتروني' if lang == 'ar' else 'Email' }}</span>
                         {% elif notification.notification_type == 'both' %}
-                        <span class="badge bg-success">{{ 'كلاهما' if lang == 'ar' else 'Both' }}</span>
+                        <span class="badge bg-warning">{{ 'كلاهما' if lang == 'ar' else 'Both' }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ notification.notification_type }}</span>
                         {% endif %}
                     </td>
                     <td>
                         {% if notification.status == 'sent' %}
-                        <span class="badge bg-success">{{ 'مُرسل' if lang == 'ar' else 'Sent' }}</span>
+                        <span class="badge bg-success">✓ {{ 'مُرسل' if lang == 'ar' else 'Sent' }}</span>
                         {% elif notification.status == 'pending' %}
                         <span class="badge bg-warning text-dark">{{ 'قيد الانتظار' if lang == 'ar' else 'Pending' }}</span>
                         {% elif notification.status == 'failed' %}
                         <span class="badge bg-danger">{{ 'فشل' if lang == 'ar' else 'Failed' }}</span>
+                        {% elif notification.status == 'active' %}
+                        <span class="badge bg-info">{{ 'نشط' if lang == 'ar' else 'Active' }}</span>
                         {% endif %}
                     </td>
                     <td>
@@ -107,7 +113,7 @@
                     </td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary" 
-                                onclick="showNotificationDetails({{ notification.id }}, '{{ notification.title | replace("'", "\\'") }}', '{{ notification.message | replace("'", "\\'") }}', '{{ notification.notification_type }}', '{{ notification.status }}', '{{ notification.created_at.strftime('%Y-%m-%d %H:%M:%S') if notification.created_at else '-' }}')">
+                                onclick="showNotificationDetails('{{ notification.title | replace("'", "\\'") }}', '{{ notification.message | replace("'", "\\'") }}', '{{ notification.notification_type }}', '{{ notification.status }}', '{{ notification.created_at.strftime('%Y-%m-%d %H:%M:%S') if notification.created_at else '-' }}')">
                             <i class="fas fa-eye"></i>
                         </button>
                     </td>
@@ -126,8 +132,9 @@
 </div>
 
 <script>
-function showNotificationDetails(id, title, message, type, status, date) {
+function showNotificationDetails(title, message, type, status, date) {
     let typeLabel = {
+        'payment': '💳 {{ "دفع" if lang == "ar" else "Payment" }}',
         'internal': '{{ "داخلي" if lang == "ar" else "Internal" }}',
         'email': '{{ "بريد إلكتروني" if lang == "ar" else "Email" }}',
         'both': '{{ "كلاهما" if lang == "ar" else "Both" }}'
@@ -136,42 +143,128 @@ function showNotificationDetails(id, title, message, type, status, date) {
     let statusLabel = {
         'sent': '{{ "مُرسل" if lang == "ar" else "Sent" }}',
         'pending': '{{ "قيد الانتظار" if lang == "ar" else "Pending" }}',
-        'failed': '{{ "فشل" if lang == "ar" else "Failed" }}'
+        'failed': '{{ "فشل" if lang == "ar" else "Failed" }}',
+        'active': '{{ "نشط" if lang == "ar" else "Active" }}'
     }[status] || status;
     
     let statusColor = {
         'sent': '#28a745',
         'pending': '#ffc107',
-        'failed': '#dc3545'
+        'failed': '#dc3545',
+        'active': '#0d6efd'
     }[status] || '#0d6efd';
     
-    Swal.fire({
-        title: title,
-        html: `
-            <div style="text-align: {{ 'right' if lang == 'ar' else 'left' }}; font-size: 14px; line-height: 1.6;">
-                <p><strong>{{ 'الرسالة:' if lang == 'ar' else 'Message:' }}</strong></p>
-                <p style="background: #f8f9fa; padding: 12px; border-radius: 4px; margin: 10px 0; text-align: justify;">${message}</p>
-                
-                <div style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
-                        <strong>{{ 'النوع:' if lang == 'ar' else 'Type:' }}</strong><br>
-                        <span style="color: #0d6efd;">${typeLabel}</span>
+    let htmlContent = `
+        <div style="text-align: {{ 'right' if lang == 'ar' else 'left' }}; font-size: 13px; line-height: 1.8;">
+    `;
+    
+    // Try to parse message as JSON for payment notifications
+    let isPayment = false;
+    let paymentData = {};
+    try {
+        paymentData = JSON.parse(message);
+        isPayment = type === 'payment';
+    } catch(e) {
+        isPayment = false;
+    }
+    
+    if (isPayment && paymentData.user_name) {
+        // Payment notification detailed view
+        htmlContent += `
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <h4 style="margin: 0; font-size: 16px;">💳 ${title}</h4>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #667eea;">
+                    <div style="color: #666; font-size: 12px;">{{ 'المستخدم' if lang == 'ar' else 'User' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.user_name}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #667eea;">
+                    <div style="color: #666; font-size: 12px;">{{ 'البريد' if lang == 'ar' else 'Email' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px; word-break: break-all;">${paymentData.user_email}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #667eea;">
+                    <div style="color: #666; font-size: 12px;">{{ 'المؤسسة' if lang == 'ar' else 'Organization' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.organization}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #667eea;">
+                    <div style="color: #666; font-size: 12px;">{{ 'الخطة' if lang == 'ar' else 'Plan' }}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.plan}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #667eea;">
+                    <div style="color: #666; font-size: 12px;">{{ 'المبلغ' if lang == 'ar' else 'Amount' }}</div>
+                    <div style="font-weight: 700; color: #28a745; margin-top: 4px; font-size: 15px;">${paymentData.amount}</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #667eea;">
+                    <div style="color: #666; font-size: 12px;">{{ 'الحالة' if lang == 'ar' else 'Status' }}</div>
+                    <div style="font-weight: 600; color: #28a745; margin-top: 4px;">✓ ${paymentData.status}</div>
+                </div>
+            </div>
+            
+            <div style="background: #f0f7ff; padding: 12px; border-radius: 6px; border-left: 3px solid #0d6efd; margin-bottom: 15px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <div style="color: #666; font-size: 12px;">{{ 'رقم العملية' if lang == 'ar' else 'Transaction ID' }}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px; font-size: 12px;">${paymentData.transaction_id}</div>
                     </div>
-                    <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
-                        <strong>{{ 'الحالة:' if lang == 'ar' else 'Status:' }}</strong><br>
-                        <span style="color: ${statusColor}; font-weight: bold;">${statusLabel}</span>
+                    <div>
+                        <div style="color: #666; font-size: 12px;">{{ 'رقم الفاتورة' if lang == 'ar' else 'Invoice ID' }}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px; font-size: 12px;">${paymentData.invoice_id}</div>
                     </div>
-                    <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; grid-column: 1 / -1;">
-                        <strong>{{ 'التاريخ:' if lang == 'ar' else 'Date:' }}</strong><br>
-                        <span>${date}</span>
+                    <div>
+                        <div style="color: #666; font-size: 12px;">{{ 'التاريخ' if lang == 'ar' else 'Date' }}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.payment_date} @ ${paymentData.payment_time}</div>
+                    </div>
+                    <div>
+                        <div style="color: #666; font-size: 12px;">{{ 'طريقة الدفع' if lang == 'ar' else 'Payment Method' }}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.payment_method}</div>
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <div style="color: #666; font-size: 12px;">{{ 'تجديد الاشتراك' if lang == 'ar' else 'Renewal Date' }}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${paymentData.renewal_date}</div>
                     </div>
                 </div>
             </div>
-        `,
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                ${paymentData.user_url ? `<a href="${paymentData.user_url}" target="_blank" class="btn btn-sm btn-outline-primary" style="text-decoration: none; display: block; padding: 8px 12px; border: 1px solid #0d6efd; color: #0d6efd; border-radius: 4px; text-align: center;">👤 {{ 'فتح المستخدم' if lang == 'ar' else 'Open User' }}</a>` : ''}
+                ${paymentData.invoice_url ? `<a href="${paymentData.invoice_url}" target="_blank" class="btn btn-sm btn-outline-primary" style="text-decoration: none; display: block; padding: 8px 12px; border: 1px solid #0d6efd; color: #0d6efd; border-radius: 4px; text-align: center;">📄 {{ 'عرض الفاتورة' if lang == 'ar' else 'View Invoice' }}</a>` : ''}
+                ${paymentData.stripe_url ? `<a href="${paymentData.stripe_url}" target="_blank" class="btn btn-sm btn-outline-primary" style="text-decoration: none; display: block; padding: 8px 12px; border: 1px solid #0d6efd; color: #0d6efd; border-radius: 4px; text-align: center;">🔗 Stripe</a>` : ''}
+            </div>
+        `;
+    } else {
+        // Generic notification view
+        htmlContent += `
+            <p><strong>{{ 'الرسالة:' if lang == 'ar' else 'Message:' }}</strong></p>
+            <p style="background: #f8f9fa; padding: 12px; border-radius: 4px; margin: 10px 0; text-align: justify;">${message}</p>
+            
+            <div style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
+                    <strong>{{ 'النوع:' if lang == 'ar' else 'Type:' }}</strong><br>
+                    <span style="color: #0d6efd;">${typeLabel}</span>
+                </div>
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
+                    <strong>{{ 'الحالة:' if lang == 'ar' else 'Status:' }}</strong><br>
+                    <span style="color: ${statusColor}; font-weight: bold;">${statusLabel}</span>
+                </div>
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; grid-column: 1 / -1;">
+                    <strong>{{ 'التاريخ:' if lang == 'ar' else 'Date:' }}</strong><br>
+                    <span>${date}</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    htmlContent += `</div>`;
+    
+    Swal.fire({
+        title: isPayment ? '💳 ' + title : title,
+        html: htmlContent,
         icon: 'info',
         confirmButtonText: '{{ "حسناً" if lang == "ar" else "OK" }}',
         confirmButtonColor: '#0d6efd',
-        width: '600px',
+        width: isPayment ? '700px' : '600px',
         customClass: {
             container: '{{ "swal-rtl" if lang == "ar" else "" }}'
         }

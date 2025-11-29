@@ -1,6 +1,7 @@
 """Payment notification utility for admin alerts on successful payments"""
 from datetime import datetime
 from flask import url_for
+import json
 
 
 def create_payment_success_notification(db, user, transaction, app):
@@ -17,7 +18,8 @@ def create_payment_success_notification(db, user, transaction, app):
     
     try:
         # Format payment date
-        payment_date = transaction.created_at.strftime('%Y-%m-%d %H:%M:%S') if transaction.created_at else 'N/A'
+        payment_date = transaction.created_at.strftime('%Y-%m-%d') if transaction.created_at else 'N/A'
+        payment_time = transaction.created_at.strftime('%H:%M:%S') if transaction.created_at else 'N/A'
         
         # Determine subscription type
         subscription_type = user.plan_ref.name if user.plan_ref else 'Unknown'
@@ -29,47 +31,40 @@ def create_payment_success_notification(db, user, transaction, app):
         }
         subscription_type_display = plan_names.get(subscription_type, subscription_type)
         
-        # Build notification title and message
-        title = f'✅ دفع ناجح - Successful Payment'
+        # Get renewal date
+        renewal_date = transaction.subscription_renewal_date.strftime('%Y-%m-%d') if transaction.subscription_renewal_date else 'N/A'
         
-        message = f"""
-        <strong>اسم المستخدم / Username:</strong> {user.username}<br>
-        <strong>البريد الإلكتروني / Email:</strong> {user.email}<br>
-        <strong>رقم الحساب / User ID:</strong> #{user.id}<br>
-        <strong>نوع الاشتراك / Subscription Type:</strong> {subscription_type_display}<br>
-        <strong>رقم العملية / Transaction ID:</strong> {transaction.stripe_payment_id or transaction.id}<br>
-        <strong>المبلغ / Amount:</strong> {transaction.amount} {transaction.currency.upper()}<br>
-        <strong>تاريخ ووقت الدفع / Payment Date:</strong> {payment_date}<br>
-        """
+        # Build notification title
+        title = f'💳 دفع ناجح - Successful Payment'
         
-        # Add links
-        try:
-            with app.app_context():
-                # Invoice link
-                if transaction.stripe_invoice_url:
-                    message += f'<a href="{transaction.stripe_invoice_url}" target="_blank" class="btn btn-sm btn-link">📄 الفاتورة / Invoice</a><br>'
-                
-                # Stripe dashboard link
-                if transaction.stripe_payment_id:
-                    stripe_url = f"https://dashboard.stripe.com/payments/{transaction.stripe_payment_id}"
-                    message += f'<a href="{stripe_url}" target="_blank" class="btn btn-sm btn-link">🔗 Stripe Dashboard</a><br>'
-                
-                # Admin user panel link - try both naming conventions
-                try:
-                    user_admin_url = url_for('admin.users.index', _external=False)
-                except:
-                    user_admin_url = '/admin/users'
-                message += f'<a href="{user_admin_url}?search={user.username}" target="_blank" class="btn btn-sm btn-link">👤 عرض المستخدم / View User</a>'
-        except Exception as link_error:
-            print(f"Warning: Could not build links: {str(link_error)}")
-            # Continue without links if there's an error
+        # Build detailed message with transaction details
+        payment_details = {
+            'user_name': user.username,
+            'user_email': user.email,
+            'organization': user.company_name or 'N/A',
+            'plan': subscription_type_display,
+            'amount': f'{transaction.amount} {transaction.currency.upper()}',
+            'status': 'Succeeded',
+            'transaction_id': transaction.stripe_payment_id or f'#{transaction.id}',
+            'invoice_id': transaction.stripe_invoice_url or 'N/A',
+            'payment_date': payment_date,
+            'payment_time': payment_time,
+            'payment_method': transaction.payment_method or 'Stripe Card',
+            'renewal_date': renewal_date,
+            'stripe_url': f"https://dashboard.stripe.com/payments/{transaction.stripe_payment_id}" if transaction.stripe_payment_id else None,
+            'invoice_url': transaction.stripe_invoice_url,
+            'user_url': f'/admin/users?search={user.username}'
+        }
         
-        # Create notification
+        # Create message with all details
+        message = json.dumps(payment_details)
+        
+        # Create notification with type='payment' and status='sent'
         notification = Notification(
             title=title,
             message=message,
-            notification_type='payment_success',
-            status='active',
+            notification_type='payment',
+            status='sent',
             is_read=False,
             user_id=None  # Broadcast to all admins
         )
