@@ -43,6 +43,10 @@ def index():
         Notification.user_id.is_(None),
         Notification.notification_type == 'account_deletion'
     ).count()
+    login_notifications = db.session.query(Notification).filter(
+        Notification.user_id.is_(None),
+        Notification.notification_type == 'login'
+    ).count()
     
     return render_template(
         'admin/notifications/index.html', 
@@ -52,6 +56,7 @@ def index():
         pending_notifications=pending_notifications,
         payment_notifications=payment_notifications,
         account_deletion_notifications=account_deletion_notifications,
+        login_notifications=login_notifications,
         lang=lang
     )
 
