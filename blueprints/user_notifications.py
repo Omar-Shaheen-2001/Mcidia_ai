@@ -118,7 +118,8 @@ def api_notifications():
                     'status': n.status,
                     'is_read': n.is_read,
                     'created_at': n.created_at.isoformat() if n.created_at else None,
-                    'user_id': n.user_id
+                    'user_id': n.user_id,
+                    'is_broadcast': n.user_id is None
                 }
                 for n in notifications
             ]
