@@ -122,27 +122,15 @@ def login():
                 'os': ua.os.family if ua.os.family else 'Unknown'
             }
             
-            # Create login notification for all users
-            if user.role == 'system_admin':
-                # Admin sees it as a broadcast notification (user_id=NULL)
-                login_notification = Notification(
-                    user_id=None,  # Broadcast to all admins
-                    title='✅ Admin تم تسجيل الدخول / Admin Login Successful',
-                    message=json.dumps(login_notification_data),
-                    notification_type='login',
-                    status='sent',
-                    is_read=False
-                )
-            else:
-                # Regular users see their own login notification (user_id = user.id)
-                login_notification = Notification(
-                    user_id=user.id,
-                    title='✅ تم تسجيل الدخول / Login Successful',
-                    message=json.dumps(login_notification_data),
-                    notification_type='login',
-                    status='sent',
-                    is_read=False
-                )
+            # Create login notification (admin logins stay private to admin only)
+            login_notification = Notification(
+                user_id=user.id,  # Always personal notification (admin to admin, user to user)
+                title='✅ تم تسجيل الدخول / Login Successful',
+                message=json.dumps(login_notification_data),
+                notification_type='login',
+                status='sent',
+                is_read=False
+            )
             
             db.session.add(login_notification)
             db.session.commit()
