@@ -122,9 +122,10 @@ def login():
                 'os': ua.os.family if ua.os.family else 'Unknown'
             }
             
-            # Create login notification (admin logins stay private to admin only)
+            # Create login notification
             login_notification = Notification(
-                user_id=user.id,  # Always personal notification (admin to admin, user to user)
+                user_id=user.id,  # Personal notification
+                admin_id=user.id if user.role == 'system_admin' else None,  # Track admin logins
                 title='✅ تم تسجيل الدخول / Login Successful',
                 message=json.dumps(login_notification_data),
                 notification_type='login',
