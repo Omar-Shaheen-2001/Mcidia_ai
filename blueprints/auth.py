@@ -122,10 +122,9 @@ def login():
                 'os': ua.os.family if ua.os.family else 'Unknown'
             }
             
-            # Only create login notification for the user if they are Admin
-            # Admin sees it as a broadcast notification (user_id=NULL)
-            # Regular users don't see login notifications of other users
+            # Create login notification for all users
             if user.role == 'system_admin':
+                # Admin sees it as a broadcast notification (user_id=NULL)
                 login_notification = Notification(
                     user_id=None,  # Broadcast to all admins
                     title='✅ Admin تم تسجيل الدخول / Admin Login Successful',
@@ -134,8 +133,19 @@ def login():
                     status='sent',
                     is_read=False
                 )
-                db.session.add(login_notification)
-                db.session.commit()
+            else:
+                # Regular users see their own login notification (user_id = user.id)
+                login_notification = Notification(
+                    user_id=user.id,
+                    title='✅ تم تسجيل الدخول / Login Successful',
+                    message=json.dumps(login_notification_data),
+                    notification_type='login',
+                    status='sent',
+                    is_read=False
+                )
+            
+            db.session.add(login_notification)
+            db.session.commit()
             
             # Store user ID in Flask session as backup
             session['user_id'] = user.id
