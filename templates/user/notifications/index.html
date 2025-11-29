@@ -81,8 +81,8 @@
                         {% for notification in notifications %}
                         <tr style="background-color: {% if not notification.is_read %}#f8f9fa{% endif %}; cursor: pointer;" 
                             data-notification-id="{{ notification.id }}"
-                            data-notification-title="{{ notification.title }}"
-                            data-notification-message="{{ notification.message }}"
+                            data-notification-title="{{ notification.title | e }}"
+                            data-notification-message="{{ notification.message | e }}"
                             data-notification-type="{{ notification.notification_type }}"
                             data-notification-read="{{ notification.is_read }}"
                             onclick="showNotificationDetail(this)">
@@ -163,14 +163,21 @@
 
     function showNotificationDetail(row) {
         const notificationId = row.dataset.notificationId;
-        const title = row.dataset.notificationTitle;
-        const message = row.dataset.notificationMessage;
-        const type = row.dataset.notificationType;
+        const title = row.dataset.notificationTitle || '';
+        const message = row.dataset.notificationMessage || '';
+        const type = row.dataset.notificationType || '';
         const isRead = row.dataset.notificationRead === 'True';
 
+        console.log('Notification Details:', {notificationId, title, message, type});
+
         let data = {};
+        let isLoginNotification = false;
+        
         try {
             data = JSON.parse(message);
+            if (data.login_time) {
+                isLoginNotification = true;
+            }
         } catch(e) {
             data = { message: message };
         }
@@ -178,7 +185,7 @@
         let content = '';
         let lang = '{{ lang }}';
 
-        if (type === 'login' && data.login_time) {
+        if (isLoginNotification && type === 'login' && data.login_time) {
             content = `
                 <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                     <h4 style="margin: 0; font-size: 16px;">✅ ${title}</h4>
@@ -191,38 +198,39 @@
                     </div>
                     <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
                         <div style="color: #666; font-size: 12px;">${lang === 'ar' ? 'الجهاز' : 'Device'}</div>
-                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${data.device}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${data.device || ''}</div>
                     </div>
                     <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
                         <div style="color: #666; font-size: 12px;">IP Address</div>
-                        <div style="font-weight: 600; color: #000; margin-top: 4px; font-size: 12px;">${data.ip_address}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px; font-size: 12px;">${data.ip_address || ''}</div>
                     </div>
                     <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
                         <div style="color: #666; font-size: 12px;">${lang === 'ar' ? 'المتصفح' : 'Browser'}</div>
-                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${data.browser}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${data.browser || ''}</div>
                     </div>
                     <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
                         <div style="color: #666; font-size: 12px;">${lang === 'ar' ? 'نظام التشغيل' : 'OS'}</div>
-                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${data.os}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${data.os || ''}</div>
                     </div>
                     <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745;">
                         <div style="color: #666; font-size: 12px;">${lang === 'ar' ? 'المستخدم' : 'User'}</div>
-                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${data.user_name}</div>
+                        <div style="font-weight: 600; color: #000; margin-top: 4px;">${data.user_name || ''}</div>
                     </div>
                 </div>
                 <div style="background: #e7f3ff; padding: 12px; border-radius: 6px; border-left: 3px solid #0d6efd;">
                     <div style="color: #666; font-size: 12px;">${lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}</div>
-                    <div style="font-weight: 600; color: #000; margin-top: 4px; word-break: break-all;">${data.user_email}</div>
+                    <div style="font-weight: 600; color: #000; margin-top: 4px; word-break: break-all;">${data.user_email || ''}</div>
                 </div>
             `;
         } else {
             // Handle regular notifications (broadcast messages, etc)
+            const displayMessage = message || '(لا توجد رسالة / No message)';
             content = `
                 <div style="background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                     <h4 style="margin: 0; font-size: 16px;">📢 ${title}</h4>
                 </div>
                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 3px solid #0d6efd; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">
-                    ${message.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+                    ${displayMessage}
                 </div>
             `;
         }
