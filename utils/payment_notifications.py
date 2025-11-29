@@ -43,19 +43,26 @@ def create_payment_success_notification(db, user, transaction, app):
         """
         
         # Add links
-        with app.app_context():
-            # Invoice link
-            if transaction.stripe_invoice_url:
-                message += f'<a href="{transaction.stripe_invoice_url}" target="_blank" class="btn btn-sm btn-link">📄 الفاتورة / Invoice</a><br>'
-            
-            # Stripe dashboard link
-            if transaction.stripe_payment_id:
-                stripe_url = f"https://dashboard.stripe.com/payments/{transaction.stripe_payment_id}"
-                message += f'<a href="{stripe_url}" target="_blank" class="btn btn-sm btn-link">🔗 Stripe Dashboard</a><br>'
-            
-            # Admin user panel link
-            user_admin_url = url_for('admin.users_admin.index', _external=False)
-            message += f'<a href="{user_admin_url}?search={user.username}" target="_blank" class="btn btn-sm btn-link">👤 عرض المستخدم / View User</a>'
+        try:
+            with app.app_context():
+                # Invoice link
+                if transaction.stripe_invoice_url:
+                    message += f'<a href="{transaction.stripe_invoice_url}" target="_blank" class="btn btn-sm btn-link">📄 الفاتورة / Invoice</a><br>'
+                
+                # Stripe dashboard link
+                if transaction.stripe_payment_id:
+                    stripe_url = f"https://dashboard.stripe.com/payments/{transaction.stripe_payment_id}"
+                    message += f'<a href="{stripe_url}" target="_blank" class="btn btn-sm btn-link">🔗 Stripe Dashboard</a><br>'
+                
+                # Admin user panel link - try both naming conventions
+                try:
+                    user_admin_url = url_for('admin.users.index', _external=False)
+                except:
+                    user_admin_url = '/admin/users'
+                message += f'<a href="{user_admin_url}?search={user.username}" target="_blank" class="btn btn-sm btn-link">👤 عرض المستخدم / View User</a>'
+        except Exception as link_error:
+            print(f"Warning: Could not build links: {str(link_error)}")
+            # Continue without links if there's an error
         
         # Create notification
         notification = Notification(
