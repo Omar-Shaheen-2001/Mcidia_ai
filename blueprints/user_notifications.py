@@ -3,6 +3,7 @@ from utils.decorators import login_required
 from models import Notification
 from flask import current_app
 from flask_jwt_extended import get_jwt_identity
+from sqlalchemy import or_
 
 user_notifications_bp = Blueprint('user_notifications', __name__, url_prefix='/user/notifications')
 
@@ -31,21 +32,33 @@ def index():
     if not user_id:
         user_id = session.get('user_id')
     
-    # Get user personal notifications
+    # Get user personal notifications + broadcast notifications
     notifications = db.session.query(Notification).filter(
-        Notification.user_id == user_id
+        or_(
+            Notification.user_id == user_id,  # Personal notifications
+            Notification.user_id.is_(None)  # Broadcast notifications
+        )
     ).order_by(Notification.created_at.desc()).limit(100).all()
     
     # Calculate statistics
     total_notifications = db.session.query(Notification).filter(
-        Notification.user_id == user_id
+        or_(
+            Notification.user_id == user_id,
+            Notification.user_id.is_(None)
+        )
     ).count()
     unread_notifications = db.session.query(Notification).filter(
-        Notification.user_id == user_id,
+        or_(
+            Notification.user_id == user_id,
+            Notification.user_id.is_(None)
+        ),
         Notification.is_read == False
     ).count()
     read_notifications = db.session.query(Notification).filter(
-        Notification.user_id == user_id,
+        or_(
+            Notification.user_id == user_id,
+            Notification.user_id.is_(None)
+        ),
         Notification.is_read == True
     ).count()
     
@@ -84,9 +97,12 @@ def api_notifications():
         }), 401
     
     try:
-        # Get unread notifications for current user
+        # Get unread notifications for current user (personal + broadcast)
         notifications = db.session.query(Notification).filter(
-            Notification.user_id == user_id,
+            or_(
+                Notification.user_id == user_id,
+                Notification.user_id.is_(None)
+            ),
             Notification.is_read == False
         ).order_by(Notification.created_at.desc()).limit(50).all()
         
@@ -169,6 +185,7 @@ def mark_all_read():
         user_id = session.get('user_id')
     
     try:
+        # Mark personal notifications as read (not broadcast ones)
         db.session.query(Notification).filter(
             Notification.user_id == user_id,
             Notification.is_read == False

@@ -209,31 +209,23 @@ def send_broadcast():
                 'error': 'Title and message are required'
             }), 400
         
-        # Get all users
-        all_users = db.session.query(User).all()
-        notification_ids = []
-        
-        # Create notification for each user
-        for user in all_users:
-            notification = Notification(
-                user_id=user.id,  # Personal notification for each user
-                admin_id=admin_id,  # Track which admin sent this
-                title=title,
-                message=message,
-                notification_type=notif_type,
-                status='sent',
-                is_read=False
-            )
-            db.session.add(notification)
-            notification_ids.append(notification.id)
-        
+        # Create ONE broadcast notification (user_id = NULL for all users to see)
+        notification = Notification(
+            user_id=None,  # Broadcast to all users
+            admin_id=admin_id,  # Track which admin sent this
+            title=title,
+            message=message,
+            notification_type=notif_type,
+            status='sent',
+            is_read=False
+        )
+        db.session.add(notification)
         db.session.commit()
         
         return jsonify({
             'success': True,
             'message': 'Broadcast notification sent successfully',
-            'notification_ids': notification_ids,
-            'users_count': len(all_users)
+            'notification_id': notification.id
         }), 200
     except Exception as e:
         db.session.rollback()
