@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, session, jsonify
 from utils.decorators import login_required
 from models import Notification
 from flask import current_app
+from flask_jwt_extended import get_jwt_identity
 
 user_notifications_bp = Blueprint('user_notifications', __name__, url_prefix='/user/notifications')
 
@@ -17,7 +18,18 @@ def index():
     """User notifications dashboard"""
     db = get_db()
     lang = get_lang()
-    user_id = session.get('user_id')
+    
+    # Get user_id from JWT token or session
+    user_id = None
+    try:
+        user_id_str = get_jwt_identity()
+        if user_id_str:
+            user_id = int(user_id_str)
+    except:
+        pass
+    
+    if not user_id:
+        user_id = session.get('user_id')
     
     # Get user notifications (where user_id matches current user)
     notifications = db.session.query(Notification).filter_by(user_id=user_id).order_by(Notification.created_at.desc()).limit(100).all()
@@ -41,7 +53,25 @@ def index():
 def api_notifications():
     """API endpoint for fetching unread user notifications as JSON"""
     db = get_db()
-    user_id = session.get('user_id')
+    
+    # Get user_id from JWT token or session
+    user_id = None
+    try:
+        user_id_str = get_jwt_identity()
+        if user_id_str:
+            user_id = int(user_id_str)
+    except:
+        pass
+    
+    # Fallback to session
+    if not user_id:
+        user_id = session.get('user_id')
+    
+    if not user_id:
+        return jsonify({
+            'success': False,
+            'error': 'User not authenticated'
+        }), 401
     
     try:
         # Get unread notifications for current user
@@ -78,7 +108,18 @@ def api_notifications():
 def mark_notification_read(notification_id):
     """Mark a user notification as read"""
     db = get_db()
-    user_id = session.get('user_id')
+    
+    # Get user_id from JWT token or session
+    user_id = None
+    try:
+        user_id_str = get_jwt_identity()
+        if user_id_str:
+            user_id = int(user_id_str)
+    except:
+        pass
+    
+    if not user_id:
+        user_id = session.get('user_id')
     
     try:
         notification = db.session.query(Notification).filter_by(id=notification_id, user_id=user_id).first()
@@ -104,7 +145,18 @@ def mark_notification_read(notification_id):
 def mark_all_read():
     """Mark all user notifications as read"""
     db = get_db()
-    user_id = session.get('user_id')
+    
+    # Get user_id from JWT token or session
+    user_id = None
+    try:
+        user_id_str = get_jwt_identity()
+        if user_id_str:
+            user_id = int(user_id_str)
+    except:
+        pass
+    
+    if not user_id:
+        user_id = session.get('user_id')
     
     try:
         db.session.query(Notification).filter(
