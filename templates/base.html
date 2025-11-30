@@ -104,10 +104,68 @@
             text-align: center;
         }
         
+        /* User Dropdown Menu Improvements */
+        .navbar-nav .dropdown-menu {
+            max-width: 320px;
+            min-width: 220px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+            border: 1px solid #e8e8e8 !important;
+            border-radius: 8px !important;
+            animation: slideDown 0.2s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .dropdown-menu .dropdown-item {
+            padding: 10px 16px;
+            font-size: 0.95rem;
+            color: #333;
+            transition: all 0.2s ease;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+        
+        .dropdown-menu .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #0d6efd;
+            padding-{{ 'right' if lang == 'ar' else 'left' }}: 20px;
+        }
+        
+        .dropdown-menu .dropdown-divider {
+            margin: 6px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .navbar-nav .dropdown-menu {
+                position: absolute !important;
+                {{ 'left' if lang == 'ar' else 'right' }}: 0 !important;
+                max-width: 300px;
+                min-width: 200px;
+            }
+        }
+        
         @media (max-width: 576px) {
             .notifications-dropdown {
                 min-width: 280px !important;
                 max-width: 90vw !important;
+            }
+            
+            .navbar-nav .dropdown-menu {
+                position: fixed !important;
+                top: auto !important;
+                {{ 'left' if lang == 'ar' else 'right' }}: 10px !important;
+                max-width: calc(100vw - 20px) !important;
+                min-width: auto !important;
+                width: auto !important;
             }
         }
     </style>
