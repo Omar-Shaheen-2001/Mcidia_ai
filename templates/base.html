@@ -181,6 +181,10 @@
                                 </div>
                             </div>
                             <div id="userNotificationsFooter" style="border-top: 1px solid #f0f0f0; padding: 10px; display: flex; flex-direction: column; gap: 5px;">
+                                <button class="dropdown-item mark-all-read-btn" id="userMarkAllReadBtn" style="font-size: 0.9rem; color: #0d6efd; display: none; border: none; background: none; cursor: pointer; text-align: center; padding: 8px 10px; width: 100%;">
+                                    <i class="fas fa-check-double {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                                    {{ 'تمييز الكل كمقروء' if lang == 'ar' else 'Mark all as read' }}
+                                </button>
                                 <a href="{{ url_for('user_notifications.index') }}" class="dropdown-item" style="text-align: center; font-size: 0.9rem; color: #0d6efd;">
                                     <i class="fas fa-arrow-left {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
                                     {{ 'عرض الكل' if lang == 'ar' else 'View All' }}
@@ -572,7 +576,35 @@
                     markAllNotificationsRead();
                 });
             }
+            
+            const userMarkAllReadBtn = document.getElementById('userMarkAllReadBtn');
+            if (userMarkAllReadBtn) {
+                userMarkAllReadBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    markAllUserNotificationsRead();
+                });
+            }
         });
+        
+        // Mark all user notifications as read
+        function markAllUserNotificationsRead() {
+            fetch('/user/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateUserNotificationBadge(0);
+                    document.getElementById('userMarkAllReadBtn').style.display = 'none';
+                    loadUserNotifications();
+                }
+            })
+            .catch(error => console.log('Error marking all user notifications as read'));
+        }
         
         // Load user notifications
         function loadUserNotifications() {
@@ -629,6 +661,10 @@
                             });
                             
                             userNotificationsContent.innerHTML = html;
+                            document.getElementById('userMarkAllReadBtn').style.display = 'block';
+                        } else {
+                            updateUserNotificationBadge(0);
+                            document.getElementById('userMarkAllReadBtn').style.display = 'none';
                         }
                     }
                 })
