@@ -71,7 +71,13 @@
         <div class="card-body">
             {% if notifications %}
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div></div>
+                <div>
+                    {% if unread_notifications > 0 %}
+                    <button class="btn btn-sm btn-success" onclick="markAllAsRead()">
+                        <i class="fas fa-check-double me-1"></i> {{ 'تمييز الكل كمقروءة' if lang == 'ar' else 'Mark All as Read' }}
+                    </button>
+                    {% endif %}
+                </div>
                 <button class="btn btn-sm btn-danger" onclick="deleteAllNotifications()">
                     <i class="fas fa-trash"></i> {{ 'حذف الكل' if lang == 'ar' else 'Delete All' }}
                 </button>
@@ -211,6 +217,52 @@
                             text: data.error || '{{ "حدث خطأ" if lang == "ar" else "An error occurred" }}'
                         });
                     }
+                });
+            }
+        });
+    }
+
+    function markAllAsRead() {
+        Swal.fire({
+            title: '{{ "تمييز الكل كمقروءة" if lang == "ar" else "Mark All as Read" }}',
+            text: '{{ "هل تريد تمييز جميع الإشعارات كمقروءة؟" if lang == "ar" else "Are you sure you want to mark all notifications as read?" }}',
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '{{ "نعم" if lang == "ar" else "Yes" }}',
+            cancelButtonText: '{{ "إلغاء" if lang == "ar" else "Cancel" }}',
+            reverseButtons: {{ 'true' if lang == 'ar' else 'false' }}
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/user/notifications/mark-all-read`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(response => response.json()).then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '{{ "تم بنجاح" if lang == "ar" else "Success" }}',
+                            text: '{{ "تم تمييز جميع الإشعارات كمقروءة" if lang == "ar" else "All notifications marked as read" }}',
+                            confirmButtonText: '{{ "حسناً" if lang == "ar" else "OK" }}'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '{{ "خطأ" if lang == "ar" else "Error" }}',
+                            text: data.error || '{{ "حدث خطأ" if lang == "ar" else "An error occurred" }}'
+                        });
+                    }
+                }).catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '{{ "خطأ" if lang == "ar" else "Error" }}',
+                        text: '{{ "حدث خطأ في الاتصال" if lang == "ar" else "Connection error" }}'
+                    });
                 });
             }
         });
