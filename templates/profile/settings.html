@@ -204,6 +204,67 @@
                 </div>
             </div>
             
+            <!-- Active Session Section -->
+            <div class="card mb-4 border-success border-opacity-50">
+                <div class="card__header bg-success bg-opacity-10">
+                    <h5 class="card__title mb-0 text-success">
+                        <i class="fas fa-wifi me-2"></i>
+                        {{ 'الجلسة النشطة حالياً' if lang == 'ar' else 'Current Active Session' }}
+                    </h5>
+                </div>
+                <div class="card__body">
+                    {% if user.last_login %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-2">
+                                <div class="text-muted small mb-2">
+                                    <i class="fas fa-map-marker-alt me-2"></i>
+                                    {{ 'عنوان IP' if lang == 'ar' else 'IP Address' }}
+                                </div>
+                                <div class="fw-semibold" style="font-family: 'Courier New', monospace;">
+                                    {{ user.last_login_ip if user.last_login_ip else 'N/A' }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-2">
+                                <div class="text-muted small mb-2">
+                                    <i class="fas fa-laptop me-2"></i>
+                                    {{ 'نوع الجهاز' if lang == 'ar' else 'Device Type' }}
+                                </div>
+                                <div class="fw-semibold">
+                                    {{ user.last_login_device if user.last_login_device else 'N/A' }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded-2">
+                                <div class="text-muted small mb-2">
+                                    <i class="fas fa-clock me-2"></i>
+                                    {{ 'آخر تسجيل دخول' if lang == 'ar' else 'Last Login Time' }}
+                                </div>
+                                <div class="fw-semibold">
+                                    {{ user.last_login.strftime('%Y-%m-%d %H:%M:%S') if user.last_login else 'N/A' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3 mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {{ 'هذه هي معلومات جلستك الحالية والمعلومات الأمنية المتعلقة بها' if lang == 'ar' else 'These are your current session details and security information' }}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-circle-notch fa-3x mb-3 opacity-50"></i>
+                        <p>{{ 'لا توجد معلومات جلسة متاحة' if lang == 'ar' else 'No session information available' }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
             <!-- Account Actions Section -->
             <div class="card border-danger">
                 <div class="card__header bg-danger bg-opacity-10">
