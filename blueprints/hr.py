@@ -220,6 +220,16 @@ def import_data():
         db_session.add(import_record)
         db_session.commit()
         
+        # Store file content in session for later processing
+        if 'file_imports' not in session:
+            session['file_imports'] = {}
+        session['file_imports'][str(import_record.id)] = {
+            'all_rows': sample_rows,
+            'headers': list(headers) if headers else [],
+            'file_type': file_type
+        }
+        session.modified = True
+        
         return jsonify({
             'success': True,
             'import_id': import_record.id,
@@ -297,83 +307,72 @@ def process_import(import_id):
         failed = 0
         errors = []
         
-        # Read file data from temporary storage
-        if file_type == 'employees':
-            # For demo, create sample employee
+        # Read file data from session storage
+        file_data = session.get('file_imports', {}).get(str(import_id), {})
+        all_rows = file_data.get('all_rows', [])
+        headers = file_data.get('headers', [])
+        
+        # Process each row based on file type and mapping
+        for row_data in all_rows:
             try:
-                emp = HREmployee(
-                    organization_id=org_id,
-                    employee_number='EMP001',
-                    full_name='Sample Employee',
-                    department='HR',
-                    job_title='HR Manager',
-                    hire_date=datetime.utcnow(),
-                    base_salary=50000,
-                    status='active'
-                )
-                db_session.add(emp)
-                imported += 1
+                if file_type == 'employees':
+                    emp = HREmployee(
+                        organization_id=org_id,
+                        employee_number=row_data.get(mapping.get('employee_number', 'employee_number'), f'EMP{imported+1}'),
+                        full_name=row_data.get(mapping.get('full_name', 'full_name'), 'Employee'),
+                        department=row_data.get(mapping.get('department', 'department'), 'General'),
+                        job_title=row_data.get(mapping.get('job_title', 'job_title'), 'Staff'),
+                        hire_date=datetime.utcnow(),
+                        base_salary=float(row_data.get(mapping.get('base_salary', 'base_salary'), 0) or 0),
+                        status='active'
+                    )
+                    db_session.add(emp)
+                    imported += 1
+                elif file_type == 'attendance':
+                    att = HRAttendance(
+                        organization_id=org_id,
+                        employee_number=row_data.get(mapping.get('employee_number', 'employee_number'), 'EMP001'),
+                        date=datetime.utcnow().date(),
+                        check_in=datetime.utcnow(),
+                        check_out=datetime.utcnow(),
+                        status=row_data.get(mapping.get('status', 'status'), 'present')
+                    )
+                    db_session.add(att)
+                    imported += 1
+                elif file_type == 'performance':
+                    perf = HRPerformance(
+                        organization_id=org_id,
+                        employee_number=row_data.get(mapping.get('employee_number', 'employee_number'), 'EMP001'),
+                        review_period=row_data.get(mapping.get('review_period', 'review_period'), '2024-Q4'),
+                        review_date=datetime.utcnow(),
+                        overall_rating=float(row_data.get(mapping.get('overall_rating', 'overall_rating'), 4) or 4)
+                    )
+                    db_session.add(perf)
+                    imported += 1
+                elif file_type == 'payroll':
+                    payroll = HRPayroll(
+                        organization_id=org_id,
+                        employee_number=row_data.get(mapping.get('employee_number', 'employee_number'), 'EMP001'),
+                        month=int(row_data.get(mapping.get('month', 'month'), 12) or 12),
+                        year=int(row_data.get(mapping.get('year', 'year'), 2024) or 2024),
+                        base_salary=float(row_data.get(mapping.get('base_salary', 'base_salary'), 0) or 0),
+                        net_salary=float(row_data.get(mapping.get('net_salary', 'net_salary'), 0) or 0)
+                    )
+                    db_session.add(payroll)
+                    imported += 1
+                elif file_type == 'resignations':
+                    term = TerminationRecord(
+                        organization_id=org_id,
+                        employee_number=row_data.get(mapping.get('employee_number', 'employee_number'), 'EMP999'),
+                        employee_name=row_data.get(mapping.get('employee_name', 'employee_name'), 'Employee'),
+                        termination_type=row_data.get(mapping.get('termination_type', 'termination_type'), 'resignation'),
+                        termination_date=datetime.utcnow().date()
+                    )
+                    db_session.add(term)
+                    imported += 1
             except Exception as e:
                 failed += 1
-                errors.append(str(e))
-        elif file_type == 'attendance':
-            try:
-                att = HRAttendance(
-                    organization_id=org_id,
-                    employee_number='EMP001',
-                    date=datetime.utcnow().date(),
-                    check_in=datetime.utcnow(),
-                    check_out=datetime.utcnow(),
-                    status='present'
-                )
-                db_session.add(att)
-                imported += 1
-            except Exception as e:
-                failed += 1
-                errors.append(str(e))
-        elif file_type == 'performance':
-            try:
-                perf = HRPerformance(
-                    organization_id=org_id,
-                    employee_number='EMP001',
-                    review_period='2024-Q4',
-                    review_date=datetime.utcnow(),
-                    overall_rating=4.5
-                )
-                db_session.add(perf)
-                imported += 1
-            except Exception as e:
-                failed += 1
-                errors.append(str(e))
-        elif file_type == 'payroll':
-            try:
-                payroll = HRPayroll(
-                    organization_id=org_id,
-                    employee_number='EMP001',
-                    month=12,
-                    year=2024,
-                    base_salary=50000,
-                    net_salary=45000
-                )
-                db_session.add(payroll)
-                imported += 1
-            except Exception as e:
-                failed += 1
-                errors.append(str(e))
-        elif file_type == 'resignations':
-            try:
-                term = TerminationRecord(
-                    organization_id=org_id,
-                    employee_number='EMP999',
-                    employee_name='Former Employee',
-                    termination_type='resignation',
-                    termination_date=datetime.utcnow().date()
-                )
-                db_session.add(term)
-                imported += 1
-            except Exception as e:
-                failed += 1
-                errors.append(str(e))
+                errors.append(f"Row error: {str(e)}")
         
         import_record.status = 'completed'
         import_record.records_imported = imported
