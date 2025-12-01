@@ -395,30 +395,37 @@ def create_session():
     data = request.get_json()
     
     topic = data.get('topic', 'General Consultation')
+    service_id = data.get('service_id')  # Get service_id from frontend
     
     # Check if service has file upload enabled
     enable_file_upload = True  # Default to True - allow file uploads by default
     
     try:
-        # Find service by title (try both Arabic and English)
-        service = db.session.query(Service).filter_by(title_ar=topic).first()
-        if not service:
-            service = db.session.query(Service).filter_by(title_en=topic).first()
+        # Find service by ID first (more reliable)
+        service = None
+        if service_id:
+            service = db.session.query(Service).filter_by(id=service_id).first()
+            current_app.logger.info(f"✅ Service lookup by ID {service_id}: {service.title_ar if service else 'NOT FOUND'}")
         
-        # Debug log
-        current_app.logger.info(f"Service search for topic: '{topic}' - Found: {service is not None}")
+        # Fallback: Find service by title if ID not provided
+        if not service:
+            service = db.session.query(Service).filter_by(title_ar=topic).first()
+            if not service:
+                service = db.session.query(Service).filter_by(title_en=topic).first()
+            current_app.logger.info(f"⚠️ Service lookup by title '{topic}': {service.title_ar if service else 'NOT FOUND'}")
         
         # If service found and has offerings, check if any offering has file upload enabled
         if service and service.offerings and len(service.offerings) > 0:
             # If ANY offering has file upload enabled, show the button
             enable_file_upload = any(o.enable_file_upload for o in service.offerings)
-            current_app.logger.info(f"Service '{topic}' has {len(service.offerings)} offerings. Any enabled: {enable_file_upload}")
-            current_app.logger.info(f"Offerings details: {[(o.title_ar, o.enable_file_upload) for o in service.offerings]}")
+            current_app.logger.info(f"✅ Service '{topic}' has {len(service.offerings)} offerings. File upload enabled: {enable_file_upload}")
+            for o in service.offerings:
+                current_app.logger.info(f"   - {o.title_ar}: enable_file_upload={o.enable_file_upload}")
         else:
-            current_app.logger.info(f"Service '{topic}' not found or has no offerings. Default: file upload enabled")
+            current_app.logger.info(f"⚠️ Service '{topic}' not found or has no offerings. Default: file upload enabled")
             enable_file_upload = True  # Default to True
     except Exception as e:
-        current_app.logger.error(f"Error checking service file upload: {str(e)}")
+        current_app.logger.error(f"❌ Error checking service file upload: {str(e)}")
         enable_file_upload = True  # Default to True on error
     
     # Create new session

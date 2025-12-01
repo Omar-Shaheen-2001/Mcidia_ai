@@ -825,22 +825,25 @@
         // Enable send button
         document.getElementById('sendBtn').disabled = false;
         
-        // Create session if not exists
+        // Create session if not exists - send serviceId instead of topicName
         if (!currentSessionId) {
-            createNewSession(topicName);
+            createNewSession(serviceId, topicName);
         }
     }
     
     // Create new session
-    function createNewSession(topicName) {
-        console.log('🔄 Creating session for topic:', topicName);
+    function createNewSession(serviceId, topicName) {
+        console.log('🔄 Creating session for topic:', topicName, 'Service ID:', serviceId);
         
         fetch(createSessionUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ topic: topicName })
+            body: JSON.stringify({ 
+                topic: topicName,
+                service_id: serviceId 
+            })
         })
         .then(res => {
             console.log('📡 API Response status:', res.status);
