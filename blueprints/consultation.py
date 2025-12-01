@@ -1,10 +1,12 @@
-from flask import Blueprint, render_template, request, flash, session, redirect, url_for, current_app, jsonify
+from flask import Blueprint, render_template, request, flash, session, redirect, url_for, current_app, jsonify, send_file
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
 from models import AILog, ChatSession, Service
 from utils.ai_providers.ai_manager import AIManager
 from datetime import datetime
 from werkzeug.utils import secure_filename
+from weasyprint import HTML
+from io import BytesIO
 import json
 import time
 import os
@@ -481,6 +483,247 @@ def upload_document():
         }), 500
 
 # ==================== STRATEGIC PLANNING SUBMODULE ====================
+
+@consultation_bp.route('/export-pdf/<int:session_id>')
+@login_required
+def export_session_pdf(session_id):
+    """Export consultation session as professional PDF"""
+    lang = session.get('language', 'ar')
+    db = current_app.extensions['sqlalchemy']
+    user_id = int(get_jwt_identity())
+    
+    # Get the session
+    chat_session = db.session.query(ChatSession).filter_by(
+        id=session_id,
+        user_id=user_id
+    ).first()
+    
+    if not chat_session:
+        return jsonify({'error': 'Session not found'}), 404
+    
+    # Parse messages
+    try:
+        messages = json.loads(chat_session.messages) if chat_session.messages else []
+    except:
+        messages = []
+    
+    # Calculate total cost
+    total_cost = sum(m.get('cost', 0) for m in messages if m.get('role') == 'assistant')
+    
+    # Generate HTML for PDF
+    html_content = f"""
+    <!DOCTYPE html>
+    <html dir="{'rtl' if lang == 'ar' else 'ltr'}" lang="{lang}">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            * {{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }}
+            
+            @page {{
+                size: A4;
+                margin: 2cm;
+            }}
+            
+            body {{
+                font-family: {'Cairo' if lang == 'ar' else 'Inter'}, Arial, sans-serif;
+                direction: {'rtl' if lang == 'ar' else 'ltr'};
+                text-align: {'right' if lang == 'ar' else 'left'};
+                line-height: 1.8;
+                color: #333;
+                font-size: 14px;
+                background: white;
+            }}
+            
+            .header {{
+                background: linear-gradient(135deg, #0A2756 0%, #2767B1 100%);
+                color: white;
+                padding: 30px;
+                margin-bottom: 30px;
+                border-radius: 8px;
+                text-align: center;
+            }}
+            
+            .header h1 {{
+                font-size: 28px;
+                font-weight: 700;
+                margin-bottom: 15px;
+            }}
+            
+            .header-meta {{
+                font-size: 13px;
+                opacity: 0.95;
+                line-height: 1.8;
+            }}
+            
+            .header-meta strong {{
+                font-weight: 600;
+            }}
+            
+            .message {{
+                margin-bottom: 25px;
+                padding: 18px;
+                border-{'right' if lang == 'ar' else 'left'}: 5px solid #0A2756;
+                background: #f8f9fa;
+                border-radius: 4px;
+                page-break-inside: avoid;
+            }}
+            
+            .message.assistant {{
+                border-{'right' if lang == 'ar' else 'left'}-color: #2C8C56;
+                background: #f0f8f5;
+            }}
+            
+            .message-role {{
+                font-weight: 700;
+                font-size: 12px;
+                text-transform: uppercase;
+                color: #0A2756;
+                margin-bottom: 10px;
+                letter-spacing: 0.5px;
+            }}
+            
+            .message.assistant .message-role {{
+                color: #2C8C56;
+            }}
+            
+            .message-content {{
+                font-size: 14px;
+                line-height: 1.8;
+                color: #333;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }}
+            
+            .message-cost {{
+                font-size: 12px;
+                color: #FFC107;
+                margin-top: 12px;
+                font-weight: 600;
+                text-align: {'left' if lang == 'ar' else 'right'};
+            }}
+            
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin: 15px 0;
+                font-size: 13px;
+            }}
+            
+            table th {{
+                background: #0A2756;
+                color: white;
+                padding: 12px;
+                text-align: {'right' if lang == 'ar' else 'left'};
+                font-weight: 700;
+            }}
+            
+            table td {{
+                padding: 10px 12px;
+                border-bottom: 1px solid #ddd;
+            }}
+            
+            table tr:nth-child(even) {{
+                background: #f9f9f9;
+            }}
+            
+            .footer {{
+                margin-top: 40px;
+                padding-top: 20px;
+                border-top: 2px solid #0A2756;
+                text-align: center;
+                font-size: 12px;
+                color: #666;
+            }}
+            
+            .total-cost {{
+                text-align: {'left' if lang == 'ar' else 'right'};
+                font-size: 16px;
+                font-weight: 700;
+                color: #0A2756;
+                margin-top: 20px;
+                padding: 15px;
+                background: #f0f8f5;
+                border-radius: 4px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>{"تقرير الاستشارة" if lang == 'ar' else 'Consultation Report'}</h1>
+            <div class="header-meta">
+                <div><strong>{"الموضوع:" if lang == 'ar' else 'Topic:'}</strong> {chat_session.domain}</div>
+                <div><strong>{"رقم الجلسة:" if lang == 'ar' else 'Session #:'}</strong> {chat_session.id}</div>
+                <div><strong>{"عدد الرسائل:" if lang == 'ar' else 'Messages:'}</strong> {len(messages)}</div>
+                <div><strong>{"التاريخ:" if lang == 'ar' else 'Date:'}</strong> {datetime.now().strftime("%Y-%m-%d")}</div>
+            </div>
+        </div>
+        
+        <div class="messages-container">
+    """
+    
+    for msg in messages:
+        content = msg.get('content', '')
+        # Escape HTML special characters
+        content = (content.replace('&', '&amp;')
+                          .replace('<', '&lt;')
+                          .replace('>', '&gt;')
+                          .replace('"', '&quot;'))
+        # Preserve line breaks
+        content = content.replace('\n', '<br>')
+        
+        cost_html = f"<div class='message-cost'>💰 ${msg.get('cost', 0):.4f}</div>" if msg.get('cost') else ""
+        
+        role_label = "المستخدم" if lang == 'ar' else "User" if msg.get('role') == 'user' else "المساعد" if lang == 'ar' else "Assistant"
+        
+        html_content += f"""
+        <div class="message {msg.get('role', 'user')}">
+            <div class="message-role">{role_label}</div>
+            <div class="message-content">{content}</div>
+            {cost_html}
+        </div>
+        """
+    
+    html_content += f"""
+        </div>
+        
+        <div class="total-cost">
+            {"التكلفة الإجمالية:" if lang == 'ar' else 'Total Cost:'} ${total_cost:.4f}
+        </div>
+        
+        <div class="footer">
+            <p>{"تم إنشاء هذا التقرير بواسطة منصة Mcidia" if lang == 'ar' else 'Generated by Mcidia Platform'}</p>
+            <p style="font-size: 11px; color: #999; margin-top: 8px;">{"هذا الملف يحتوي على معلومات سرية" if lang == 'ar' else 'This file contains confidential information'}</p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    try:
+        # Generate PDF using WeasyPrint
+        pdf = HTML(string=html_content).write_pdf()
+        
+        # Create BytesIO object
+        pdf_io = BytesIO(pdf)
+        pdf_io.seek(0)
+        
+        filename = f"consultation_{chat_session.id}_{int(time.time())}.pdf"
+        
+        return send_file(
+            pdf_io,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=filename
+        )
+    except Exception as e:
+        current_app.logger.error(f"PDF export error: {str(e)}")
+        return jsonify({'error': f'Failed to generate PDF: {str(e)}'}), 500
 
 @consultation_bp.route('/strategic-planning')
 @login_required
