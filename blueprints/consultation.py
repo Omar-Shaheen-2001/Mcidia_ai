@@ -484,7 +484,7 @@ def upload_document():
 
 # ==================== STRATEGIC PLANNING SUBMODULE ====================
 
-@consultation_bp.route('/export-pdf/<int:session_id>')
+@consultation_bp.route('/export-pdf/<int:session_id>', methods=['GET', 'POST'])
 @login_required
 def export_session_pdf(session_id):
     """Export consultation session as professional PDF"""
@@ -507,17 +507,21 @@ def export_session_pdf(session_id):
     except:
         messages = []
     
+    # Get chart images from request if POST
+    chart_images = {}
+    if request.method == 'POST':
+        data = request.get_json() or {}
+        chart_images = data.get('chartImages', {})
+    
     # Calculate total cost
     total_cost = sum(m.get('cost', 0) for m in messages if m.get('role') == 'assistant')
     
-    # Generate HTML for PDF
+    # Generate HTML for PDF with proper styling
     html_content = f"""
     <!DOCTYPE html>
     <html dir="{'rtl' if lang == 'ar' else 'ltr'}" lang="{lang}">
     <head>
         <meta charset="UTF-8">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
             * {{
@@ -548,6 +552,7 @@ def export_session_pdf(session_id):
                 margin-bottom: 30px;
                 border-radius: 8px;
                 text-align: center;
+                page-break-inside: avoid;
             }}
             
             .header h1 {{
@@ -601,6 +606,53 @@ def export_session_pdf(session_id):
                 overflow-wrap: break-word;
             }}
             
+            .message-content table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin: 15px 0;
+                font-size: 12px;
+                page-break-inside: avoid;
+            }}
+            
+            .message-content table th {{
+                background: #0A2756;
+                color: white;
+                padding: 10px;
+                text-align: {'right' if lang == 'ar' else 'left'};
+                font-weight: 700;
+                border: 1px solid #0A2756;
+            }}
+            
+            .message-content table td {{
+                padding: 8px 10px;
+                border: 1px solid #ddd;
+                text-align: {'right' if lang == 'ar' else 'left'};
+            }}
+            
+            .message-content table tr:nth-child(even) {{
+                background: #f9f9f9;
+            }}
+            
+            .message-content table tr:nth-child(odd) {{
+                background: #fff;
+            }}
+            
+            .chart-image {{
+                width: 100%;
+                height: auto;
+                margin: 15px 0;
+                text-align: center;
+                page-break-inside: avoid;
+            }}
+            
+            .chart-image img {{
+                max-width: 100%;
+                height: auto;
+                border: 1px solid #e8ecf0;
+                border-radius: 4px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }}
+            
             .message-cost {{
                 font-size: 12px;
                 color: #FFC107;
@@ -609,28 +661,17 @@ def export_session_pdf(session_id):
                 text-align: {'left' if lang == 'ar' else 'right'};
             }}
             
-            table {{
-                width: 100%;
-                border-collapse: collapse;
-                margin: 15px 0;
-                font-size: 13px;
-            }}
-            
-            table th {{
-                background: #0A2756;
-                color: white;
-                padding: 12px;
-                text-align: {'right' if lang == 'ar' else 'left'};
+            .total-cost {{
+                text-align: {'left' if lang == 'ar' else 'right'};
+                font-size: 16px;
                 font-weight: 700;
-            }}
-            
-            table td {{
-                padding: 10px 12px;
-                border-bottom: 1px solid #ddd;
-            }}
-            
-            table tr:nth-child(even) {{
-                background: #f9f9f9;
+                color: #0A2756;
+                margin-top: 30px;
+                margin-bottom: 30px;
+                padding: 15px;
+                background: #f0f8f5;
+                border-radius: 4px;
+                page-break-inside: avoid;
             }}
             
             .footer {{
@@ -640,17 +681,32 @@ def export_session_pdf(session_id):
                 text-align: center;
                 font-size: 12px;
                 color: #666;
+                page-break-inside: avoid;
             }}
             
-            .total-cost {{
-                text-align: {'left' if lang == 'ar' else 'right'};
-                font-size: 16px;
+            .response-section, .response-title, .response-text, .response-list {{
+                margin-bottom: 10px;
+            }}
+            
+            .response-title {{
+                font-size: 15px;
                 font-weight: 700;
                 color: #0A2756;
-                margin-top: 20px;
-                padding: 15px;
-                background: #f0f8f5;
-                border-radius: 4px;
+                margin-bottom: 8px;
+            }}
+            
+            .response-text {{
+                font-size: 14px;
+                line-height: 1.8;
+                margin-bottom: 8px;
+            }}
+            
+            .response-list {{
+                padding-{'right' if lang == 'ar' else 'left'}: 20px;
+            }}
+            
+            .response-list li {{
+                margin-bottom: 6px;
             }}
         </style>
     </head>
@@ -661,34 +717,46 @@ def export_session_pdf(session_id):
                 <div><strong>{"الموضوع:" if lang == 'ar' else 'Topic:'}</strong> {chat_session.domain}</div>
                 <div><strong>{"رقم الجلسة:" if lang == 'ar' else 'Session #:'}</strong> {chat_session.id}</div>
                 <div><strong>{"عدد الرسائل:" if lang == 'ar' else 'Messages:'}</strong> {len(messages)}</div>
-                <div><strong>{"التاريخ:" if lang == 'ar' else 'Date:'}</strong> {datetime.now().strftime("%Y-%m-%d")}</div>
+                <div><strong>{"التاريخ:" if lang == 'ar' else 'Date:'}</strong> {datetime.now().strftime("%Y-%m-%d %H:%M")}</div>
             </div>
         </div>
         
         <div class="messages-container">
     """
     
-    for msg in messages:
+    for idx, msg in enumerate(messages):
         content = msg.get('content', '')
-        # Escape HTML special characters
-        content = (content.replace('&', '&amp;')
-                          .replace('<', '&lt;')
-                          .replace('>', '&gt;')
-                          .replace('"', '&quot;'))
-        # Preserve line breaks
-        content = content.replace('\n', '<br>')
+        
+        # Don't escape HTML for assistant messages - they may contain tables
+        if msg.get('role') == 'assistant':
+            # For assistant messages, keep the HTML formatting
+            display_content = content
+        else:
+            # For user messages, escape HTML
+            display_content = (content.replace('&', '&amp;')
+                                     .replace('<', '&lt;')
+                                     .replace('>', '&gt;'))
+            display_content = display_content.replace('\n', '<br>')
         
         cost_html = f"<div class='message-cost'>💰 ${msg.get('cost', 0):.4f}</div>" if msg.get('cost') else ""
-        
         role_label = "المستخدم" if lang == 'ar' else "User" if msg.get('role') == 'user' else "المساعد" if lang == 'ar' else "Assistant"
         
         html_content += f"""
         <div class="message {msg.get('role', 'user')}">
             <div class="message-role">{role_label}</div>
-            <div class="message-content">{content}</div>
+            <div class="message-content">{display_content}</div>
             {cost_html}
         </div>
         """
+        
+        # Add chart image if available
+        chart_key = f"chart-{idx}"
+        if chart_key in chart_images:
+            html_content += f"""
+            <div class="chart-image">
+                <img src="{chart_images[chart_key]}" alt="Chart" />
+            </div>
+            """
     
     html_content += f"""
         </div>

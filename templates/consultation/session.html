@@ -1040,40 +1040,63 @@
         window.URL.revokeObjectURL(url);
     });
     
-    document.getElementById('exportPdfBtn').addEventListener('click', function() {
+    document.getElementById('exportPdfBtn').addEventListener('click', async function() {
         // Show loading state
         const btn = this;
         const originalText = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         btn.disabled = true;
         
-        // Download PDF from server
-        fetch(`/consultation/export-pdf/${sessionId}`)
-            .then(response => {
-                if (!response.ok) throw new Error('Failed to generate PDF');
-                return response.blob();
-            })
-            .then(blob => {
-                // Create download link
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `consultation-${sessionId}-${new Date().getTime()}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                
-                // Restore button
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            })
-            .catch(error => {
-                console.error('PDF export error:', error);
-                alert(lang === 'ar' ? 'فشل تصدير الملف' : 'Failed to export PDF');
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+        try {
+            // Collect all chart images
+            const chartImages = {};
+            const charts = document.querySelectorAll('canvas');
+            let chartIdx = 0;
+            
+            for (let canvas of charts) {
+                if (canvas.offsetHeight > 0 && canvas.offsetWidth > 0) {
+                    chartImages[`chart-${chartIdx}`] = canvas.toDataURL('image/png');
+                }
+                chartIdx++;
+            }
+            
+            // Prepare export data
+            const exportData = {
+                chartImages: chartImages
+            };
+            
+            // Download PDF from server with chart images
+            const response = await fetch(`/consultation/export-pdf/${sessionId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(exportData)
             });
+            
+            if (!response.ok) throw new Error('Failed to generate PDF');
+            
+            const blob = await response.blob();
+            
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `consultation-${sessionId}-${new Date().getTime()}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            // Restore button
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        } catch (error) {
+            console.error('PDF export error:', error);
+            alert(lang === 'ar' ? 'فشل تصدير الملف' : 'Failed to export PDF');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
     });
     
     // Fullscreen functionality
