@@ -167,6 +167,30 @@
         </div>
     </div>
 
+    <!-- PESTEL Chart Visualization -->
+    <div class="row mt-4">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        {{ 'مخطط PESTEL' if lang == 'ar' else 'PESTEL Chart' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div id="pestelRadarChart" style="width: 100%; height: 300px;"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="pestelBarChart" style="width: 100%; height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row mt-4">
         <div class="col-12">
             <div class="d-flex justify-content-between">
@@ -215,5 +239,63 @@ document.getElementById('generatePestelBtn')?.addEventListener('click', async fu
         btn.innerHTML = originalText;
     }
 });
+
+// Render PESTEL Charts if data exists
+{% if pestel_data %}
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.mcidiaChartRenderer) {
+        const pestelLabels = [
+            '{{ "سياسي" if lang == "ar" else "Political" }}',
+            '{{ "اقتصادي" if lang == "ar" else "Economic" }}',
+            '{{ "اجتماعي" if lang == "ar" else "Social" }}',
+            '{{ "تقني" if lang == "ar" else "Technological" }}',
+            '{{ "بيئي" if lang == "ar" else "Environmental" }}',
+            '{{ "قانوني" if lang == "ar" else "Legal" }}'
+        ];
+        
+        const pestelData = [
+            {{ pestel_data.political|length }},
+            {{ pestel_data.economic|length }},
+            {{ pestel_data.social|length }},
+            {{ pestel_data.technological|length }},
+            {{ pestel_data.environmental|length }},
+            {{ pestel_data.legal|length }}
+        ];
+
+        // Radar Chart
+        const radarConfig = {
+            type: 'radar',
+            title: '{{ "توزيع عوامل PESTEL" if lang == "ar" else "PESTEL Factors Distribution" }}',
+            labels: pestelLabels,
+            datasets: [{
+                label: '{{ "عدد العوامل" if lang == "ar" else "Number of Factors" }}',
+                data: pestelData,
+                backgroundColor: 'rgba(39, 103, 177, 0.2)',
+                borderColor: '#2767B1',
+                borderWidth: 2
+            }],
+            options: {
+                scales: {
+                    r: { beginAtZero: true }
+                }
+            }
+        };
+        window.mcidiaChartRenderer.render('pestelRadarChart', radarConfig);
+
+        // Bar Chart
+        const barConfig = {
+            type: 'bar',
+            title: '{{ "مقارنة عوامل PESTEL" if lang == "ar" else "PESTEL Factors Comparison" }}',
+            labels: pestelLabels,
+            datasets: [{
+                label: '{{ "عدد العوامل" if lang == "ar" else "Number of Factors" }}',
+                data: pestelData,
+                backgroundColor: ['#0A2756', '#2767B1', '#17a2b8', '#ffc107', '#28a745', '#dc3545']
+            }]
+        };
+        window.mcidiaChartRenderer.render('pestelBarChart', barConfig);
+    }
+});
+{% endif %}
 </script>
 {% endblock %}

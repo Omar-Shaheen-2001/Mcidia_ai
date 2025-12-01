@@ -187,6 +187,36 @@
             </div>
         </div>
     </div>
+
+    <!-- KPIs Dashboard Charts -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        {{ 'توزيع KPIs حسب الحالة' if lang == 'ar' else 'KPIs Status Distribution' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="kpiStatusChart" style="width: 100%; height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        {{ 'أفضل المؤشرات أداءً' if lang == 'ar' else 'Top Performing KPIs' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="topKpiChart" style="width: 100%; height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endif %}
 
     <!-- SWOT Analysis Summary -->
@@ -350,6 +380,68 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Dashboard Charts JavaScript -->
+<script>
+{% if kpis %}
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.mcidiaChartRenderer) {
+        // Calculate KPI progress distribution
+        let onTrack = 0, atRisk = 0, behind = 0;
+        const kpiNames = [];
+        const kpiProgress = [];
+        
+        {% for kpi in kpis %}
+        {% set progress = ((kpi.current_value / kpi.target_value) * 100) if kpi.target_value > 0 else 0 %}
+        {% if progress >= 80 %}
+        onTrack++;
+        {% elif progress >= 50 %}
+        atRisk++;
+        {% else %}
+        behind++;
+        {% endif %}
+        kpiNames.push('{{ kpi.name[:15] }}');
+        kpiProgress.push({{ "%.1f"|format(progress) }});
+        {% endfor %}
+
+        // Status Distribution Pie Chart
+        const statusConfig = {
+            type: 'doughnut',
+            title: '{{ "حالة المؤشرات" if lang == "ar" else "KPI Status" }}',
+            labels: [
+                '{{ "على المسار" if lang == "ar" else "On Track" }}',
+                '{{ "في خطر" if lang == "ar" else "At Risk" }}',
+                '{{ "متأخر" if lang == "ar" else "Behind" }}'
+            ],
+            datasets: [{
+                data: [onTrack, atRisk, behind],
+                backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+            }]
+        };
+        window.mcidiaChartRenderer.render('kpiStatusChart', statusConfig);
+
+        // Top KPIs Bar Chart
+        const topKpiConfig = {
+            type: 'bar',
+            title: '{{ "نسبة التقدم" if lang == "ar" else "Progress %" }}',
+            labels: kpiNames.slice(0, 5),
+            datasets: [{
+                label: '{{ "التقدم %" if lang == "ar" else "Progress %" }}',
+                data: kpiProgress.slice(0, 5),
+                backgroundColor: '#2767B1'
+            }],
+            options: {
+                indexAxis: 'y',
+                scales: {
+                    x: { beginAtZero: true, max: 100 }
+                }
+            }
+        };
+        window.mcidiaChartRenderer.render('topKpiChart', topKpiConfig);
+    }
+});
+{% endif %}
+</script>
 
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
