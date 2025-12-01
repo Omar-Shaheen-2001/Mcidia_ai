@@ -431,12 +431,19 @@ def create_session():
     db.session.add(chat_session)
     db.session.commit()
     
-    return jsonify({
+    # Debug logging
+    current_app.logger.info(f"✅ Session created - ID: {chat_session.id}, Topic: {topic}, enable_file_upload: {enable_file_upload}, Type: {type(enable_file_upload)}")
+    
+    response_data = {
         'session_id': chat_session.id,
         'domain': chat_session.domain,
-        'enable_file_upload': enable_file_upload,
+        'enable_file_upload': bool(enable_file_upload),  # Ensure it's a boolean
         'created_at': chat_session.created_at.isoformat()
-    })
+    }
+    
+    current_app.logger.info(f"📤 Response data: {response_data}")
+    
+    return jsonify(response_data)
 
 # ==================== DOCUMENT UPLOAD FOR AI ANALYSIS ====================
 

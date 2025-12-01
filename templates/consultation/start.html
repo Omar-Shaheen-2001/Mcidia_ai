@@ -833,6 +833,8 @@
     
     // Create new session
     function createNewSession(topicName) {
+        console.log('🔄 Creating session for topic:', topicName);
+        
         fetch(createSessionUrl, {
             method: 'POST',
             headers: {
@@ -840,29 +842,46 @@
             },
             body: JSON.stringify({ topic: topicName })
         })
-        .then(res => res.json())
+        .then(res => {
+            console.log('📡 API Response status:', res.status);
+            return res.json();
+        })
         .then(data => {
+            console.log('✅ API Response data:', data);
+            
             currentSessionId = data.session_id;
-            enableFileUpload = data.enable_file_upload !== false;  // Get from server
+            enableFileUpload = data.enable_file_upload === true;  // Explicitly check for true
+            
+            console.log('🔐 Enable File Upload:', enableFileUpload);
+            console.log('📋 Raw enable_file_upload value:', data.enable_file_upload);
+            
             document.getElementById('sessionBadge').textContent = `#${currentSessionId}`;
             document.getElementById('sessionStatus').textContent = lang === 'ar' ? 'نشطة' : 'Active';
             
             // Show/hide file upload button based on enableFileUpload flag
-            console.log('Enable File Upload:', enableFileUpload);  // Debug log
-            
             const attachLabel = document.getElementById('attachLabel');
+            const uploadHint = document.getElementById('uploadHint');
+            
+            console.log('🎯 attachLabel element:', attachLabel);
+            console.log('🎯 uploadHint element:', uploadHint);
+            
             if (attachLabel) {
-                attachLabel.style.display = enableFileUpload ? 'block' : 'none';
+                const displayValue = enableFileUpload ? 'block' : 'none';
+                console.log('👁️ Setting attachLabel display to:', displayValue);
+                attachLabel.style.display = displayValue;
             }
             
-            const uploadHint = document.getElementById('uploadHint');
             if (uploadHint) {
-                uploadHint.style.display = enableFileUpload ? 'block' : 'none';
+                const displayValue = enableFileUpload ? 'block' : 'none';
+                console.log('👁️ Setting uploadHint display to:', displayValue);
+                uploadHint.style.display = displayValue;
             }
             
             clearChatMessages();
         })
-        .catch(err => console.error('Error creating session:', err));
+        .catch(err => {
+            console.error('❌ Error creating session:', err);
+        });
     }
     
     // Clear chat messages
