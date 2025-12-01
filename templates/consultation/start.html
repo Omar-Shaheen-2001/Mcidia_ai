@@ -703,7 +703,7 @@
                             <div class="input-wrapper">
                                 <textarea class="message-input" id="messageInput" placeholder="{{ 'اكتب رسالتك هنا...' if lang == 'ar' else 'Type your message here...' }}" rows="2"></textarea>
                                 <div class="input-actions">
-                                    <label class="btn-attach" id="attachLabel" title="{{ 'إرفاق مستند' if lang == 'ar' else 'Attach Document' }}" style="display: block;">
+                                    <label class="btn-attach" id="attachLabel" title="{{ 'إرفاق مستند' if lang == 'ar' else 'Attach Document' }}" style="display: none;">
                                         <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.txt" multiple style="display: none;">
                                         <i class="fas fa-paperclip"></i>
                                     </label>
@@ -714,7 +714,7 @@
                                 <span>{{ 'إرسال' if lang == 'ar' else 'Send' }}</span>
                             </button>
                         </div>
-                        <div class="upload-hint" id="uploadHint" style="display: block;">
+                        <div class="upload-hint" id="uploadHint" style="display: none;">
                             <small><i class="fas fa-info-circle"></i> {{ 'يمكنك إرفاق ملفات PDF, Word, أو نصية للتحليل' if lang == 'ar' else 'You can attach PDF, Word, or text files for analysis' }}</small>
                         </div>
                     </div>
