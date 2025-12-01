@@ -396,11 +396,24 @@ def create_session():
     
     topic = data.get('topic', 'General Consultation')
     
+    # Check if service has file upload enabled
+    enable_file_upload = True  # Default to True
+    service = db.session.query(Service).filter_by(
+        title_ar=topic
+    ).first() or db.session.query(Service).filter_by(
+        title_en=topic
+    ).first()
+    
+    if service and service.offerings:
+        # Check if any offering in this service has file upload enabled
+        enable_file_upload = any(o.enable_file_upload for o in service.offerings)
+    
     # Create new session
     chat_session = ChatSession(
         user_id=user_id,
         domain=topic,
-        messages=json.dumps([])
+        messages=json.dumps([]),
+        enable_file_upload=enable_file_upload
     )
     db.session.add(chat_session)
     db.session.commit()
@@ -408,6 +421,7 @@ def create_session():
     return jsonify({
         'session_id': chat_session.id,
         'domain': chat_session.domain,
+        'enable_file_upload': enable_file_upload,
         'created_at': chat_session.created_at.isoformat()
     })
 

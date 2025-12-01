@@ -462,6 +462,7 @@ class ChatSession(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     domain = db.Column(db.String(50))  # strategy, hr, finance, quality, governance
     messages = db.Column(db.Text)  # JSON string of messages array
+    enable_file_upload = db.Column(db.Boolean, default=True)  # Allow file uploads in this session
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

@@ -703,7 +703,7 @@
                             <div class="input-wrapper">
                                 <textarea class="message-input" id="messageInput" placeholder="{{ 'اكتب رسالتك هنا...' if lang == 'ar' else 'Type your message here...' }}" rows="2"></textarea>
                                 <div class="input-actions">
-                                    <label class="btn-attach" title="{{ 'إرفاق مستند' if lang == 'ar' else 'Attach Document' }}">
+                                    <label class="btn-attach" title="{{ 'إرفاق مستند' if lang == 'ar' else 'Attach Document' }}" style="display: none;">
                                         <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.txt" multiple style="display: none;">
                                         <i class="fas fa-paperclip"></i>
                                     </label>
@@ -714,7 +714,7 @@
                                 <span>{{ 'إرسال' if lang == 'ar' else 'Send' }}</span>
                             </button>
                         </div>
-                        <div class="upload-hint">
+                        <div class="upload-hint" style="display: none;">
                             <small><i class="fas fa-info-circle"></i> {{ 'يمكنك إرفاق ملفات PDF, Word, أو نصية للتحليل' if lang == 'ar' else 'You can attach PDF, Word, or text files for analysis' }}</small>
                         </div>
                     </div>
@@ -777,6 +777,7 @@
     
     // Document management
     let uploadedDocuments = [];
+    let enableFileUpload = true;  // Default: file uploads enabled
     
     // Format time duration
     function formatTime(ms) {
@@ -842,8 +843,20 @@
         .then(res => res.json())
         .then(data => {
             currentSessionId = data.session_id;
+            enableFileUpload = data.enable_file_upload !== false;  // Get from server
             document.getElementById('sessionBadge').textContent = `#${currentSessionId}`;
             document.getElementById('sessionStatus').textContent = lang === 'ar' ? 'نشطة' : 'Active';
+            
+            // Show/hide file upload button based on enableFileUpload flag
+            const attachBtn = document.querySelector('.btn-attach');
+            if (attachBtn) {
+                attachBtn.style.display = enableFileUpload ? 'block' : 'none';
+            }
+            const uploadHint = document.querySelector('.upload-hint');
+            if (uploadHint) {
+                uploadHint.style.display = enableFileUpload ? 'block' : 'none';
+            }
+            
             clearChatMessages();
         })
         .catch(err => console.error('Error creating session:', err));
