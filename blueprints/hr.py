@@ -19,23 +19,30 @@ def index():
     lang = session.get('language', 'ar')
     user_id = session.get('user_id')
     
-    db_session = get_db_session()
-    user = db_session.get(User, user_id)
-    if not user or not user.organization_id:
-        return render_template('hr/index.html', lang=lang, data_status={}, has_org=False)
-    
-    org_id = user.organization_id
-    
-    employees_count = db_session.query(HREmployee).filter_by(organization_id=org_id).count()
-    attendance_count = db_session.query(HRAttendance).filter_by(organization_id=org_id).count()
-    performance_count = db_session.query(HRPerformance).filter_by(organization_id=org_id).count()
-    payroll_count = db_session.query(HRPayroll).filter_by(organization_id=org_id).count()
-    resignations_count = db_session.query(TerminationRecord).filter_by(organization_id=org_id).count()
-    
-    erp_integration = db_session.query(ERPIntegration).filter_by(organization_id=org_id, is_active=True).first()
-    
-    last_imports = db_session.query(HRDataImport).filter_by(organization_id=org_id)\
-        .order_by(HRDataImport.created_at.desc()).limit(5).all()
+    try:
+        db_session = get_db_session()
+        db_session.rollback()
+        user = db_session.get(User, user_id)
+        if not user or not user.organization_id:
+            return render_template('hr/index.html', lang=lang, data_status={}, has_org=False)
+        
+        org_id = user.organization_id
+        
+        employees_count = db_session.query(HREmployee).filter_by(organization_id=org_id).count()
+        attendance_count = db_session.query(HRAttendance).filter_by(organization_id=org_id).count()
+        performance_count = db_session.query(HRPerformance).filter_by(organization_id=org_id).count()
+        payroll_count = db_session.query(HRPayroll).filter_by(organization_id=org_id).count()
+        resignations_count = db_session.query(TerminationRecord).filter_by(organization_id=org_id).count()
+        
+        erp_integration = db_session.query(ERPIntegration).filter_by(organization_id=org_id, is_active=True).first()
+        
+        last_imports = db_session.query(HRDataImport).filter_by(organization_id=org_id)\
+            .order_by(HRDataImport.created_at.desc()).limit(5).all()
+    except Exception as e:
+        db_session = get_db_session()
+        db_session.rollback()
+        print(f"HR Index Error: {str(e)}")
+        return render_template('hr/index.html', lang=lang, data_status={}, has_org=False), 500
     
     import_dates = {}
     for imp in last_imports:
@@ -91,20 +98,26 @@ def index():
 @login_required
 def api_data_status():
     """API endpoint to get current data status"""
-    user_id = session.get('user_id')
-    db_session = get_db_session()
-    user = db_session.get(User, user_id)
-    
-    if not user or not user.organization_id:
-        return jsonify({'error': 'No organization found'}), 400
-    
-    org_id = user.organization_id
-    
-    employees_count = db_session.query(HREmployee).filter_by(organization_id=org_id).count()
-    attendance_count = db_session.query(HRAttendance).filter_by(organization_id=org_id).count()
-    performance_count = db_session.query(HRPerformance).filter_by(organization_id=org_id).count()
-    payroll_count = db_session.query(HRPayroll).filter_by(organization_id=org_id).count()
-    resignations_count = db_session.query(TerminationRecord).filter_by(organization_id=org_id).count()
+    try:
+        user_id = session.get('user_id')
+        db_session = get_db_session()
+        db_session.rollback()
+        user = db_session.get(User, user_id)
+        
+        if not user or not user.organization_id:
+            return jsonify({'error': 'No organization found'}), 400
+        
+        org_id = user.organization_id
+        
+        employees_count = db_session.query(HREmployee).filter_by(organization_id=org_id).count()
+        attendance_count = db_session.query(HRAttendance).filter_by(organization_id=org_id).count()
+        performance_count = db_session.query(HRPerformance).filter_by(organization_id=org_id).count()
+        payroll_count = db_session.query(HRPayroll).filter_by(organization_id=org_id).count()
+        resignations_count = db_session.query(TerminationRecord).filter_by(organization_id=org_id).count()
+    except Exception as e:
+        db_session = get_db_session()
+        db_session.rollback()
+        return jsonify({'error': str(e)}), 500
     
     return jsonify({
         'employees': employees_count,
@@ -195,6 +208,10 @@ def import_data():
         })
         
     except Exception as e:
+        try:
+            db_session.rollback()
+        except:
+            pass
         return jsonify({'error': str(e)}), 500
 
 
@@ -202,22 +219,28 @@ def import_data():
 @login_required
 def map_columns(import_id):
     """Apply column mapping and process import"""
-    user_id = session.get('user_id')
-    db_session = get_db_session()
-    user = db_session.get(User, user_id)
-    
-    if not user or not user.organization_id:
-        return jsonify({'error': 'No organization found'}), 400
-    
-    import_record = db_session.query(HRDataImport).get(import_id)
-    if not import_record or import_record.organization_id != user.organization_id:
-        return jsonify({'error': 'Import record not found'}), 404
-    
-    mapping = request.json.get('mapping', {})
-    
-    import_record.column_mapping = json.dumps(mapping)
-    import_record.status = 'processing'
-    db_session.commit()
+    try:
+        user_id = session.get('user_id')
+        db_session = get_db_session()
+        db_session.rollback()
+        user = db_session.get(User, user_id)
+        
+        if not user or not user.organization_id:
+            return jsonify({'error': 'No organization found'}), 400
+        
+        import_record = db_session.query(HRDataImport).get(import_id)
+        if not import_record or import_record.organization_id != user.organization_id:
+            return jsonify({'error': 'Import record not found'}), 404
+        
+        mapping = request.json.get('mapping', {})
+        
+        import_record.column_mapping = json.dumps(mapping)
+        import_record.status = 'processing'
+        db_session.commit()
+    except Exception as e:
+        db_session = get_db_session()
+        db_session.rollback()
+        return jsonify({'error': str(e)}), 500
     
     return jsonify({
         'success': True,
@@ -230,20 +253,20 @@ def map_columns(import_id):
 @login_required
 def process_import(import_id):
     """Process the mapped import data"""
-    user_id = session.get('user_id')
-    db_session = get_db_session()
-    user = db_session.get(User, user_id)
-    
-    if not user or not user.organization_id:
-        return jsonify({'error': 'No organization found'}), 400
-    
-    org_id = user.organization_id
-    import_record = db_session.query(HRDataImport).get(import_id)
-    
-    if not import_record or import_record.organization_id != org_id:
-        return jsonify({'error': 'Import record not found'}), 404
-    
     try:
+        user_id = session.get('user_id')
+        db_session = get_db_session()
+        db_session.rollback()
+        user = db_session.get(User, user_id)
+        
+        if not user or not user.organization_id:
+            return jsonify({'error': 'No organization found'}), 400
+        
+        org_id = user.organization_id
+        import_record = db_session.query(HRDataImport).get(import_id)
+        
+        if not import_record or import_record.organization_id != org_id:
+            return jsonify({'error': 'Import record not found'}), 404
         mapping = json.loads(import_record.column_mapping) if import_record.column_mapping else {}
         file_type = import_record.file_type
         
@@ -264,11 +287,12 @@ def process_import(import_id):
             'failed': failed,
             'errors': errors[:10]
         })
-        
     except Exception as e:
-        import_record.status = 'failed'
-        import_record.error_log = str(e)
-        db_session.commit()
+        db_session = get_db_session()
+        try:
+            db_session.rollback()
+        except:
+            pass
         return jsonify({'error': str(e)}), 500
 
 
@@ -276,108 +300,135 @@ def process_import(import_id):
 @login_required
 def connect_erp():
     """Connect to external ERP system"""
-    user_id = session.get('user_id')
-    db_session = get_db_session()
-    user = db_session.get(User, user_id)
-    
-    if not user or not user.organization_id:
-        return jsonify({'error': 'No organization found'}), 400
-    
-    org_id = user.organization_id
-    data = request.json
-    
-    erp_type = data.get('erp_type')
-    api_url = data.get('api_url')
-    api_key = data.get('api_key')
-    company_id = data.get('company_id')
-    client_id = data.get('client_id')
-    
-    if not erp_type or not api_url:
-        return jsonify({'error': 'ERP type and API URL are required'}), 400
-    
-    existing = db_session.query(ERPIntegration).filter_by(organization_id=org_id).first()
-    
-    if existing:
-        existing.erp_type = erp_type
-        existing.api_base_url = api_url
-        existing.api_key = api_key
-        existing.company_id = company_id
-        existing.client_id = client_id
-        existing.connection_status = 'connected'
-        existing.is_active = True
-        existing.updated_at = datetime.utcnow()
-    else:
-        integration = ERPIntegration(
-            organization_id=org_id,
-            erp_type=erp_type,
-            api_base_url=api_url,
-            api_key=api_key,
-            company_id=company_id,
-            client_id=client_id,
-            connection_status='connected',
-            is_active=True
-        )
-        db_session.add(integration)
-    
-    db_session.commit()
-    
-    return jsonify({
-        'success': True,
-        'message': f'Successfully connected to {erp_type.upper()} ERP',
-        'erp_type': erp_type
-    })
+    try:
+        user_id = session.get('user_id')
+        db_session = get_db_session()
+        db_session.rollback()
+        user = db_session.get(User, user_id)
+        
+        if not user or not user.organization_id:
+            return jsonify({'error': 'No organization found'}), 400
+        
+        org_id = user.organization_id
+        data = request.json
+        
+        erp_type = data.get('erp_type')
+        api_url = data.get('api_url')
+        api_key = data.get('api_key')
+        company_id = data.get('company_id')
+        client_id = data.get('client_id')
+        
+        if not erp_type or not api_url:
+            return jsonify({'error': 'ERP type and API URL are required'}), 400
+        
+        existing = db_session.query(ERPIntegration).filter_by(organization_id=org_id).first()
+        
+        if existing:
+            existing.erp_type = erp_type
+            existing.api_base_url = api_url
+            existing.api_key = api_key
+            existing.company_id = company_id
+            existing.client_id = client_id
+            existing.connection_status = 'connected'
+            existing.is_active = True
+            existing.updated_at = datetime.utcnow()
+        else:
+            integration = ERPIntegration(
+                organization_id=org_id,
+                erp_type=erp_type,
+                api_base_url=api_url,
+                api_key=api_key,
+                company_id=company_id,
+                client_id=client_id,
+                connection_status='connected',
+                is_active=True
+            )
+            db_session.add(integration)
+        
+        db_session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Successfully connected to {erp_type.upper()} ERP',
+            'erp_type': erp_type
+        })
+    except Exception as e:
+        db_session = get_db_session()
+        try:
+            db_session.rollback()
+        except:
+            pass
+        return jsonify({'error': str(e)}), 500
 
 
 @hr_bp.route('/api/erp/disconnect', methods=['POST'])
 @login_required
 def disconnect_erp():
     """Disconnect from external ERP system"""
-    user_id = session.get('user_id')
-    db_session = get_db_session()
-    user = db_session.get(User, user_id)
-    
-    if not user or not user.organization_id:
-        return jsonify({'error': 'No organization found'}), 400
-    
-    integration = db_session.query(ERPIntegration).filter_by(organization_id=user.organization_id).first()
-    
-    if integration:
-        integration.connection_status = 'disconnected'
-        integration.is_active = False
-        db_session.commit()
-    
-    return jsonify({'success': True, 'message': 'ERP disconnected'})
+    try:
+        user_id = session.get('user_id')
+        db_session = get_db_session()
+        db_session.rollback()
+        user = db_session.get(User, user_id)
+        
+        if not user or not user.organization_id:
+            return jsonify({'error': 'No organization found'}), 400
+        
+        integration = db_session.query(ERPIntegration).filter_by(organization_id=user.organization_id).first()
+        
+        if integration:
+            integration.connection_status = 'disconnected'
+            integration.is_active = False
+            db_session.commit()
+        
+        return jsonify({'success': True, 'message': 'ERP disconnected'})
+    except Exception as e:
+        db_session = get_db_session()
+        try:
+            db_session.rollback()
+        except:
+            pass
+        return jsonify({'error': str(e)}), 500
 
 
 @hr_bp.route('/api/erp/sync', methods=['POST'])
 @login_required  
 def sync_erp():
     """Trigger ERP data sync"""
-    user_id = session.get('user_id')
-    db_session = get_db_session()
-    user = db_session.get(User, user_id)
-    
-    if not user or not user.organization_id:
-        return jsonify({'error': 'No organization found'}), 400
-    
-    integration = db_session.query(ERPIntegration).filter_by(
-        organization_id=user.organization_id,
-        is_active=True
-    ).first()
-    
-    if not integration:
-        return jsonify({'error': 'No active ERP integration'}), 400
-    
-    integration.last_sync_at = datetime.utcnow()
-    integration.last_sync_status = 'success'
-    integration.last_sync_message = 'Data synchronized successfully'
-    db_session.commit()
-    
-    return jsonify({
-        'success': True,
-        'message': 'Data synchronized successfully',
-        'synced_at': integration.last_sync_at.isoformat()
-    })
+    try:
+        user_id = session.get('user_id')
+        db_session = get_db_session()
+        db_session.rollback()
+        user = db_session.get(User, user_id)
+        
+        if not user or not user.organization_id:
+            return jsonify({'error': 'No organization found'}), 400
+        
+        integration = db_session.query(ERPIntegration).filter_by(
+            organization_id=user.organization_id,
+            is_active=True
+        ).first()
+        
+        if not integration:
+            return jsonify({'error': 'No active ERP integration'}), 400
+        
+        integration.last_sync_at = datetime.utcnow()
+        integration.last_sync_status = 'success'
+        integration.last_sync_message = 'Data synchronized successfully'
+        db_session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Data synchronized successfully',
+            'synced_at': integration.last_sync_at.isoformat()
+        })
+    except Exception as e:
+        db_session = get_db_session()
+        try:
+            db_session.rollback()
+        except:
+            pass
+        return jsonify({'error': str(e)}), 500
 
 
 @hr_bp.route('/template/<file_type>')
@@ -432,17 +483,27 @@ def download_template(file_type):
 @login_required
 def analyze():
     """HR Data Analysis page"""
-    lang = session.get('language', 'ar')
-    user_id = session.get('user_id')
-    db_session = get_db_session()
-    user = db_session.get(User, user_id)
-    
-    if not user or not user.organization_id:
-        return render_template('hr/analyze.html', lang=lang, has_data=False)
-    
-    org_id = user.organization_id
-    
-    employees = db_session.query(HREmployee).filter_by(organization_id=org_id).all()
+    try:
+        lang = session.get('language', 'ar')
+        user_id = session.get('user_id')
+        db_session = get_db_session()
+        db_session.rollback()
+        user = db_session.get(User, user_id)
+        
+        if not user or not user.organization_id:
+            return render_template('hr/analyze.html', lang=lang, has_data=False)
+        
+        org_id = user.organization_id
+        
+        employees = db_session.query(HREmployee).filter_by(organization_id=org_id).all()
+    except Exception as e:
+        db_session = get_db_session()
+        try:
+            db_session.rollback()
+        except:
+            pass
+        print(f"HR Analyze Error: {str(e)}")
+        return render_template('hr/analyze.html', lang=lang, has_data=False), 500
     
     return render_template('hr/analyze.html', 
                           lang=lang,
