@@ -23,6 +23,7 @@
     <!-- Chart Libraries: Plotly + Chart.js -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='js/chart-renderer.js') }}"></script>
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
     
@@ -974,9 +975,6 @@
             setInterval(loadUserNotifications, 30000);
         });
     </script>
-    
-    <!-- MCIDIA Chart Renderer -->
-    <script src="{{ url_for('static', filename='js/chart-renderer.js') }}"></script>
     
     {% block extra_js %}{% endblock %}
 </body>

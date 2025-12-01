@@ -3,6 +3,8 @@
  * Renders AI-generated charts using Chart.js and Plotly
  */
 
+// Prevent double declaration
+if (typeof MCIDIAChartRenderer === 'undefined') {
 class MCIDIAChartRenderer {
     constructor() {
         this.chartInstances = new Map();
@@ -470,9 +472,12 @@ class MCIDIAChartRenderer {
         messageElement.appendChild(chartsContainer);
     }
 }
+}
 
-// Global instance
-window.mcidiaChartRenderer = new MCIDIAChartRenderer();
+// Global instance - only create if not already created
+if (typeof window.mcidiaChartRenderer === 'undefined') {
+    window.mcidiaChartRenderer = new MCIDIAChartRenderer();
+}
 
 // Helper function to render charts
 function renderMCIDIAChart(containerId, config, library = 'chartjs') {
