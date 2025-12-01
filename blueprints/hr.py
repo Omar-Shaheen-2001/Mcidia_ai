@@ -177,6 +177,7 @@ def import_data():
     try:
         headers = []
         sample_rows = []
+        all_rows = []
         total_rows = 0
         
         if file.filename.endswith('.csv'):
@@ -186,9 +187,9 @@ def import_data():
             
             headers = reader.fieldnames
             for i, row in enumerate(reader):
-                if i >= 3:
-                    continue
-                sample_rows.append(row)
+                all_rows.append(row)
+                if i < 3:
+                    sample_rows.append(row)
             total_rows = len(lines) - 1
         else:
             from openpyxl import load_workbook
@@ -201,12 +202,14 @@ def import_data():
                 headers = [str(h) if h else f'Column_{i}' for i, h in enumerate(rows_list[0])]
                 total_rows = len(rows_list) - 1
                 
-                for row in rows_list[1:4]:
+                for idx, row in enumerate(rows_list[1:]):
                     row_dict = {}
                     for i, val in enumerate(row):
                         if i < len(headers):
                             row_dict[headers[i]] = str(val) if val is not None else ''
-                    sample_rows.append(row_dict)
+                    all_rows.append(row_dict)
+                    if idx < 3:
+                        sample_rows.append(row_dict)
             wb.close()
         
         import_record = HRDataImport(
@@ -224,7 +227,7 @@ def import_data():
         if 'file_imports' not in session:
             session['file_imports'] = {}
         session['file_imports'][str(import_record.id)] = {
-            'all_rows': sample_rows,
+            'all_rows': all_rows,
             'headers': list(headers) if headers else [],
             'file_type': file_type
         }
