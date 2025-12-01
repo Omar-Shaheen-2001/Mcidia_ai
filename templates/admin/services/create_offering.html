@@ -120,6 +120,14 @@
                         <label class="form-check-label">{{ 'نشط' if lang == 'ar' else 'Active' }}</label>
                     </div>
                     
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" name="enable_file_upload">
+                        <label class="form-check-label">
+                            <i class="fas fa-file-upload {{ 'ms-1' if lang == 'ar' else 'me-1' }}"></i>
+                            {{ 'تمكين رفع الملفات' if lang == 'ar' else 'Enable File Upload' }}
+                        </label>
+                    </div>
+                    
                     <hr class="my-4">
                     
                     <div class="d-grid gap-2">

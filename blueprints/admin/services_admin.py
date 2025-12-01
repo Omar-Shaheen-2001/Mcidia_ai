@@ -270,6 +270,7 @@ def create_offering(service_id):
             price=float(request.form.get('price', 0)) if request.form.get('price') else None,
             display_order=int(request.form.get('display_order', 0)),
             is_active=request.form.get('is_active') == 'on',
+            enable_file_upload=request.form.get('enable_file_upload') == 'on',
             ai_prompt_template=request.form.get('ai_prompt_template'),
             ai_model=request.form.get('ai_model', 'gpt-4'),
             ai_credits_cost=int(request.form.get('ai_credits_cost', 1)),
@@ -354,6 +355,7 @@ def edit_offering(service_id, offering_id):
         offering.price = float(request.form.get('price', 0)) if request.form.get('price') else None
         offering.display_order = int(request.form.get('display_order', 0))
         offering.is_active = request.form.get('is_active') == 'on'
+        offering.enable_file_upload = request.form.get('enable_file_upload') == 'on'
         offering.ai_prompt_template = request.form.get('ai_prompt_template')
         offering.ai_model = request.form.get('ai_model', 'gpt-4')
         offering.ai_credits_cost = int(request.form.get('ai_credits_cost', 1))

@@ -535,6 +535,9 @@ class ServiceOffering(db.Model):
     form_fields = db.Column(db.Text)  # JSON string of form configuration
     output_template = db.Column(db.Text)  # Template for output formatting
     
+    # File Upload Control
+    enable_file_upload = db.Column(db.Boolean, default=False)  # Enable/disable file uploads for this offering
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
