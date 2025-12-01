@@ -316,17 +316,22 @@ def process_import(import_id):
         headers = file_data.get('headers', [])
         
         # Process each row based on file type and mapping
-        for row_data in all_rows:
+        for idx, row_data in enumerate(all_rows):
             try:
                 if file_type == 'employees':
+                    # Get values from mapped columns or use raw data
+                    emp_num = row_data.get(mapping.get('employee_number', 'employee_number')) or row_data.get('employee_number') or f'EMP_{org_id}_{idx+1}'
+                    if not emp_num or emp_num == '':
+                        emp_num = f'EMP_{org_id}_{idx+1}'
+                    
                     emp = HREmployee(
                         organization_id=org_id,
-                        employee_number=row_data.get(mapping.get('employee_number', 'employee_number'), f'EMP{imported+1}'),
-                        full_name=row_data.get(mapping.get('full_name', 'full_name'), 'Employee'),
-                        department=row_data.get(mapping.get('department', 'department'), 'General'),
-                        job_title=row_data.get(mapping.get('job_title', 'job_title'), 'Staff'),
+                        employee_number=str(emp_num).strip(),
+                        full_name=row_data.get(mapping.get('full_name', 'full_name')) or row_data.get('full_name') or 'Employee',
+                        department=row_data.get(mapping.get('department', 'department')) or row_data.get('department') or 'General',
+                        job_title=row_data.get(mapping.get('job_title', 'job_title')) or row_data.get('job_title') or 'Staff',
                         hire_date=datetime.utcnow(),
-                        base_salary=float(row_data.get(mapping.get('base_salary', 'base_salary'), 0) or 0),
+                        base_salary=float(row_data.get(mapping.get('base_salary', 'base_salary')) or row_data.get('base_salary') or 0),
                         status='active'
                     )
                     db_session.add(emp)
