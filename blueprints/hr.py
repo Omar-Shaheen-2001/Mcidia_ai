@@ -26,15 +26,15 @@ def index():
     
     org_id = user.organization_id
     
-    employees_count = HREmployee.query.filter_by(organization_id=org_id).count()
-    attendance_count = HRAttendance.query.filter_by(organization_id=org_id).count()
-    performance_count = HRPerformance.query.filter_by(organization_id=org_id).count()
-    payroll_count = HRPayroll.query.filter_by(organization_id=org_id).count()
-    resignations_count = TerminationRecord.query.filter_by(organization_id=org_id).count()
+    employees_count = db_session.query(HREmployee).filter_by(organization_id=org_id).count()
+    attendance_count = db_session.query(HRAttendance).filter_by(organization_id=org_id).count()
+    performance_count = db_session.query(HRPerformance).filter_by(organization_id=org_id).count()
+    payroll_count = db_session.query(HRPayroll).filter_by(organization_id=org_id).count()
+    resignations_count = db_session.query(TerminationRecord).filter_by(organization_id=org_id).count()
     
-    erp_integration = ERPIntegration.query.filter_by(organization_id=org_id, is_active=True).first()
+    erp_integration = db_session.query(ERPIntegration).filter_by(organization_id=org_id, is_active=True).first()
     
-    last_imports = HRDataImport.query.filter_by(organization_id=org_id)\
+    last_imports = db_session.query(HRDataImport).filter_by(organization_id=org_id)\
         .order_by(HRDataImport.created_at.desc()).limit(5).all()
     
     import_dates = {}
@@ -100,11 +100,11 @@ def api_data_status():
     
     org_id = user.organization_id
     
-    employees_count = HREmployee.query.filter_by(organization_id=org_id).count()
-    attendance_count = HRAttendance.query.filter_by(organization_id=org_id).count()
-    performance_count = HRPerformance.query.filter_by(organization_id=org_id).count()
-    payroll_count = HRPayroll.query.filter_by(organization_id=org_id).count()
-    resignations_count = TerminationRecord.query.filter_by(organization_id=org_id).count()
+    employees_count = db_session.query(HREmployee).filter_by(organization_id=org_id).count()
+    attendance_count = db_session.query(HRAttendance).filter_by(organization_id=org_id).count()
+    performance_count = db_session.query(HRPerformance).filter_by(organization_id=org_id).count()
+    payroll_count = db_session.query(HRPayroll).filter_by(organization_id=org_id).count()
+    resignations_count = db_session.query(TerminationRecord).filter_by(organization_id=org_id).count()
     
     return jsonify({
         'employees': employees_count,
@@ -209,7 +209,7 @@ def map_columns(import_id):
     if not user or not user.organization_id:
         return jsonify({'error': 'No organization found'}), 400
     
-    import_record = HRDataImport.query.get(import_id)
+    import_record = db_session.query(HRDataImport).get(import_id)
     if not import_record or import_record.organization_id != user.organization_id:
         return jsonify({'error': 'Import record not found'}), 404
     
@@ -238,7 +238,7 @@ def process_import(import_id):
         return jsonify({'error': 'No organization found'}), 400
     
     org_id = user.organization_id
-    import_record = HRDataImport.query.get(import_id)
+    import_record = db_session.query(HRDataImport).get(import_id)
     
     if not import_record or import_record.organization_id != org_id:
         return jsonify({'error': 'Import record not found'}), 404
@@ -295,7 +295,7 @@ def connect_erp():
     if not erp_type or not api_url:
         return jsonify({'error': 'ERP type and API URL are required'}), 400
     
-    existing = ERPIntegration.query.filter_by(organization_id=org_id).first()
+    existing = db_session.query(ERPIntegration).filter_by(organization_id=org_id).first()
     
     if existing:
         existing.erp_type = erp_type
@@ -339,7 +339,7 @@ def disconnect_erp():
     if not user or not user.organization_id:
         return jsonify({'error': 'No organization found'}), 400
     
-    integration = ERPIntegration.query.filter_by(organization_id=user.organization_id).first()
+    integration = db_session.query(ERPIntegration).filter_by(organization_id=user.organization_id).first()
     
     if integration:
         integration.connection_status = 'disconnected'
@@ -360,7 +360,7 @@ def sync_erp():
     if not user or not user.organization_id:
         return jsonify({'error': 'No organization found'}), 400
     
-    integration = ERPIntegration.query.filter_by(
+    integration = db_session.query(ERPIntegration).filter_by(
         organization_id=user.organization_id,
         is_active=True
     ).first()
@@ -442,7 +442,7 @@ def analyze():
     
     org_id = user.organization_id
     
-    employees = HREmployee.query.filter_by(organization_id=org_id).all()
+    employees = db_session.query(HREmployee).filter_by(organization_id=org_id).all()
     
     return render_template('hr/analyze.html', 
                           lang=lang,
