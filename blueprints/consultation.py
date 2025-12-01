@@ -606,35 +606,94 @@ def export_session_pdf(session_id):
                 overflow-wrap: break-word;
             }}
             
+            .response-table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin: 15px 0;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 2px 8px rgba(10, 39, 86, 0.08);
+                page-break-inside: avoid;
+            }}
+            
+            .response-table thead {{
+                background: linear-gradient(135deg, #0A2756 0%, #2767B1 100%);
+                color: white;
+            }}
+            
+            .response-table thead th {{
+                padding: 14px 12px;
+                text-align: {'right' if lang == 'ar' else 'left'};
+                font-weight: 600;
+                font-size: 13px;
+                letter-spacing: 0.3px;
+                border: none;
+            }}
+            
+            .response-table tbody td {{
+                padding: 12px;
+                border-bottom: 1px solid #f0f0f0;
+                font-size: 13px;
+                color: #444;
+                text-align: {'right' if lang == 'ar' else 'left'};
+            }}
+            
+            .response-table tbody tr:last-child td {{
+                border-bottom: none;
+            }}
+            
+            .response-table tbody tr:nth-child(even) {{
+                background: #fafbfc;
+            }}
+            
+            .response-table tbody tr:nth-child(odd) {{
+                background: #ffffff;
+            }}
+            
             .message-content table {{
                 width: 100%;
                 border-collapse: collapse;
                 margin: 15px 0;
-                font-size: 12px;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 2px 8px rgba(10, 39, 86, 0.08);
                 page-break-inside: avoid;
             }}
             
-            .message-content table th {{
-                background: #0A2756;
+            .message-content table thead {{
+                background: linear-gradient(135deg, #0A2756 0%, #2767B1 100%);
                 color: white;
-                padding: 10px;
+            }}
+            
+            .message-content table th {{
+                padding: 14px 12px;
                 text-align: {'right' if lang == 'ar' else 'left'};
-                font-weight: 700;
-                border: 1px solid #0A2756;
+                font-weight: 600;
+                font-size: 13px;
+                letter-spacing: 0.3px;
+                border: none;
             }}
             
             .message-content table td {{
-                padding: 8px 10px;
-                border: 1px solid #ddd;
+                padding: 12px;
+                border-bottom: 1px solid #f0f0f0;
+                font-size: 13px;
+                color: #444;
                 text-align: {'right' if lang == 'ar' else 'left'};
             }}
             
+            .message-content table tr:last-child td {{
+                border-bottom: none;
+            }}
+            
             .message-content table tr:nth-child(even) {{
-                background: #f9f9f9;
+                background: #fafbfc;
             }}
             
             .message-content table tr:nth-child(odd) {{
-                background: #fff;
+                background: #ffffff;
             }}
             
             .chart-image {{
@@ -730,7 +789,16 @@ def export_session_pdf(session_id):
         # Don't escape HTML for assistant messages - they may contain tables
         if msg.get('role') == 'assistant':
             # For assistant messages, keep the HTML formatting
+            # Apply same table styling as in the web interface
             display_content = content
+            
+            # Add response-table class to tables that don't have it
+            import re
+            display_content = re.sub(r'<table(?!\s+class)', '<table class="response-table"', display_content)
+            # Also apply to tables with existing class
+            display_content = re.sub(r'<table\s+class="([^"]*)"', 
+                                    lambda m: f'<table class="response-table {m.group(1)}'.rstrip() + '"', 
+                                    display_content)
         else:
             # For user messages, escape HTML
             display_content = (content.replace('&', '&amp;')
