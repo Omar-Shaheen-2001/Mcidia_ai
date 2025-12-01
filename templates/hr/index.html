@@ -659,11 +659,21 @@ async function uploadFile(input, fileType) {
             
             showMappingModal(data.headers, data.sample_rows, fileType);
         } else {
-            alert(data.error || (lang === 'ar' ? 'حدث خطأ أثناء رفع الملف' : 'Error uploading file'));
+            Swal.fire({
+                icon: 'error',
+                title: lang === 'ar' ? 'خطأ' : 'Error',
+                text: data.error || (lang === 'ar' ? 'حدث خطأ أثناء رفع الملف' : 'Error uploading file'),
+                confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+            });
         }
     } catch (error) {
         console.error('Upload error:', error);
-        alert(lang === 'ar' ? 'حدث خطأ أثناء رفع الملف' : 'Error uploading file');
+        Swal.fire({
+            icon: 'error',
+            title: lang === 'ar' ? 'خطأ' : 'Error',
+            text: lang === 'ar' ? 'حدث خطأ أثناء رفع الملف' : 'Error uploading file',
+            confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+        });
     }
     
     input.value = '';
@@ -746,15 +756,29 @@ async function applyMapping() {
                 statusEl.innerHTML = `<span class="badge bg-success">${lang === 'ar' ? 'مرفوع' : 'Uploaded'}</span>`;
             }
             
-            alert(lang === 'ar' ? 'تم استيراد البيانات بنجاح!' : 'Data imported successfully!');
-            
-            setTimeout(() => location.reload(), 1000);
+            Swal.fire({
+                icon: 'success',
+                title: lang === 'ar' ? 'نجح!' : 'Success!',
+                text: lang === 'ar' ? 'تم استيراد البيانات بنجاح!' : 'Data imported successfully!',
+                confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK',
+                didClose: () => location.reload()
+            });
         } else {
-            alert(result.error || (lang === 'ar' ? 'حدث خطأ أثناء الاستيراد' : 'Import error'));
+            Swal.fire({
+                icon: 'error',
+                title: lang === 'ar' ? 'خطأ' : 'Error',
+                text: result.error || (lang === 'ar' ? 'حدث خطأ أثناء الاستيراد' : 'Import error'),
+                confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+            });
         }
     } catch (error) {
         console.error('Mapping error:', error);
-        alert(lang === 'ar' ? 'حدث خطأ أثناء الاستيراد' : 'Import error');
+        Swal.fire({
+            icon: 'error',
+            title: lang === 'ar' ? 'خطأ' : 'Error',
+            text: lang === 'ar' ? 'حدث خطأ أثناء الاستيراد' : 'Import error',
+            confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+        });
     }
 }
 
@@ -782,13 +806,29 @@ document.getElementById('erpConnectForm').addEventListener('submit', async funct
             document.getElementById('erpConnectionStatus').style.display = 'block';
             document.getElementById('erpConnectionMessage').textContent = data.message;
             
-            setTimeout(() => location.reload(), 2000);
+            Swal.fire({
+                icon: 'success',
+                title: lang === 'ar' ? 'متصل' : 'Connected!',
+                text: data.message,
+                confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK',
+                didClose: () => location.reload()
+            });
         } else {
-            alert(data.error || (lang === 'ar' ? 'فشل الاتصال' : 'Connection failed'));
+            Swal.fire({
+                icon: 'error',
+                title: lang === 'ar' ? 'فشل' : 'Failed',
+                text: data.error || (lang === 'ar' ? 'فشل الاتصال' : 'Connection failed'),
+                confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+            });
         }
     } catch (error) {
         console.error('ERP connect error:', error);
-        alert(lang === 'ar' ? 'حدث خطأ أثناء الاتصال' : 'Connection error');
+        Swal.fire({
+            icon: 'error',
+            title: lang === 'ar' ? 'خطأ' : 'Error',
+            text: lang === 'ar' ? 'حدث خطأ أثناء الاتصال' : 'Connection error',
+            confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+        });
     }
 });
 
