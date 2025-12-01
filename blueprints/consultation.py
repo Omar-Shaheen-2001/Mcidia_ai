@@ -405,13 +405,18 @@ def create_session():
         if not service:
             service = db.session.query(Service).filter_by(title_en=topic).first()
         
+        # Debug log
+        current_app.logger.info(f"Service search for topic: '{topic}' - Found: {service is not None}")
+        
         # If service found and has offerings, check if any offering has file upload enabled
         if service and service.offerings and len(service.offerings) > 0:
-            # If any offering has file upload enabled, show the button
+            # If ANY offering has file upload enabled, show the button
             enable_file_upload = any(o.enable_file_upload for o in service.offerings)
-            current_app.logger.info(f"Service '{topic}' found with {len(service.offerings)} offerings. File upload: {enable_file_upload}")
+            current_app.logger.info(f"Service '{topic}' has {len(service.offerings)} offerings. Any enabled: {enable_file_upload}")
+            current_app.logger.info(f"Offerings details: {[(o.title_ar, o.enable_file_upload) for o in service.offerings]}")
         else:
-            current_app.logger.info(f"Service '{topic}' not found or has no offerings. Using default: file upload enabled")
+            current_app.logger.info(f"Service '{topic}' not found or has no offerings. Default: file upload enabled")
+            enable_file_upload = True  # Default to True
     except Exception as e:
         current_app.logger.error(f"Error checking service file upload: {str(e)}")
         enable_file_upload = True  # Default to True on error
