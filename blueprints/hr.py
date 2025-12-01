@@ -42,7 +42,15 @@ def index():
         db_session = get_db_session()
         db_session.rollback()
         print(f"HR Index Error: {str(e)}")
-        return render_template('hr/index.html', lang=lang, data_status={}, has_org=False), 500
+        empty_data_status = {
+            'employees': {'count': 0, 'available': False, 'last_update': None, 'source': None},
+            'attendance': {'count': 0, 'available': False, 'last_update': None, 'source': None},
+            'performance': {'count': 0, 'available': False, 'last_update': None, 'source': None},
+            'payroll': {'count': 0, 'available': False, 'last_update': None, 'source': None},
+            'resignations': {'count': 0, 'available': False, 'last_update': None, 'source': None},
+            'erp_integration': {'connected': False, 'erp_type': None, 'last_sync': None}
+        }
+        return render_template('hr/index.html', lang=lang, data_status=empty_data_status, has_org=False)
     
     import_dates = {}
     for imp in last_imports:
