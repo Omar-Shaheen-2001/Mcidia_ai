@@ -16,25 +16,23 @@
                         {{ 'AI-powered HR analytics and management' if lang == 'en' else 'تحليلات وإدارة الموارد البشرية المدعومة بالذكاء الاصطناعي' }}
                     </p>
                 </div>
-                {% if has_org %}
-                <button class="btn btn-primary btn-lg" onclick="showImportModal()">
+                <button class="btn btn-primary btn-lg" onclick="showImportModal()" {% if not has_org %}disabled{% endif %}>
                     <i class="fas fa-file-import me-2"></i>
                     {{ 'Import HR Data' if lang == 'en' else 'استيراد بيانات الموارد البشرية' }}
                 </button>
-                {% endif %}
             </div>
         </div>
     </div>
 
     {% if not has_org %}
-    <div class="alert alert-warning d-flex align-items-center" role="alert">
-        <i class="fas fa-exclamation-triangle me-3 fa-2x"></i>
+    <div class="alert alert-info d-flex align-items-center" role="alert">
+        <i class="fas fa-info-circle me-3 fa-2x"></i>
         <div>
-            <h5 class="alert-heading mb-1">{{ 'No Organization Found' if lang == 'en' else 'لم يتم العثور على مؤسسة' }}</h5>
-            <p class="mb-0">{{ 'Please contact your administrator to link your account to an organization.' if lang == 'en' else 'يرجى التواصل مع مدير النظام لربط حسابك بمؤسسة.' }}</p>
+            <h5 class="alert-heading mb-1">{{ 'No Organization Linked' if lang == 'en' else 'لم يتم ربط مؤسسة' }}</h5>
+            <p class="mb-0">{{ 'You can view HR features when your account is linked to an organization. Contact your administrator to set this up.' if lang == 'en' else 'يمكنك عرض ميزات الموارد البشرية عندما يتم ربط حسابك بمؤسسة. اتصل بمسؤولك.' }}</p>
         </div>
     </div>
-    {% else %}
+    {% endif %}
     
     <div class="row mb-4">
         <div class="col-12">

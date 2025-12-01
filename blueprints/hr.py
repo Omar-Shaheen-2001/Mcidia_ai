@@ -23,8 +23,19 @@ def index():
         db_session = get_db_session()
         db_session.rollback()
         user = db_session.get(User, user_id)
+        
+        # Initialize empty data status
+        empty_data_status = {
+            'employees': {'count': 0, 'available': False, 'last_update': None, 'source': None},
+            'attendance': {'count': 0, 'available': False, 'last_update': None, 'source': None},
+            'performance': {'count': 0, 'available': False, 'last_update': None, 'source': None},
+            'payroll': {'count': 0, 'available': False, 'last_update': None, 'source': None},
+            'resignations': {'count': 0, 'available': False, 'last_update': None, 'source': None},
+            'erp_integration': {'connected': False, 'erp_type': None, 'last_sync': None}
+        }
+        
         if not user or not user.organization_id:
-            return render_template('hr/index.html', lang=lang, data_status={}, has_org=False)
+            return render_template('hr/index.html', lang=lang, data_status=empty_data_status, has_org=False)
         
         org_id = user.organization_id
         
@@ -95,10 +106,11 @@ def index():
         }
     }
     
+    # Always allow access to the page
     return render_template('hr/index.html', 
                           lang=lang, 
                           data_status=data_status,
-                          has_org=True,
+                          has_org=user.organization_id is not None if user else False,
                           erp_integration=erp_integration)
 
 
