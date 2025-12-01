@@ -16,7 +16,7 @@
                         {{ 'AI-powered HR analytics and management' if lang == 'en' else 'تحليلات وإدارة الموارد البشرية المدعومة بالذكاء الاصطناعي' }}
                     </p>
                 </div>
-                <button class="btn btn-primary btn-lg" onclick="showImportModal()" {% if not has_org %}disabled{% endif %}>
+                <button class="btn btn-primary btn-lg" onclick="showImportModal()">
                     <i class="fas fa-file-import me-2"></i>
                     {{ 'Import HR Data' if lang == 'en' else 'استيراد بيانات الموارد البشرية' }}
                 </button>
@@ -24,16 +24,6 @@
         </div>
     </div>
 
-    {% if not has_org %}
-    <div class="alert alert-info d-flex align-items-center" role="alert">
-        <i class="fas fa-info-circle me-3 fa-2x"></i>
-        <div>
-            <h5 class="alert-heading mb-1">{{ 'No Organization Linked' if lang == 'en' else 'لم يتم ربط مؤسسة' }}</h5>
-            <p class="mb-0">{{ 'You can view HR features when your account is linked to an organization. Contact your administrator to set this up.' if lang == 'en' else 'يمكنك عرض ميزات الموارد البشرية عندما يتم ربط حسابك بمؤسسة. اتصل بمسؤولك.' }}</p>
-        </div>
-    </div>
-    {% else %}
-    
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow-sm border-0">
@@ -283,14 +273,14 @@
 
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card shadow-sm border-0" id="analyzeCard" style="opacity: 0.6; pointer-events: none;">
+            <div class="card shadow-sm border-0" id="analyzeCard">
                 <div class="card-body text-center py-5">
                     <i class="fas fa-chart-pie fa-4x text-primary mb-4"></i>
                     <h4>{{ 'Analyze HR Data' if lang == 'en' else 'تحليل بيانات الموارد البشرية' }}</h4>
                     <p class="text-muted mb-4">
                         {{ 'Import your HR data first to unlock AI-powered analytics and insights' if lang == 'en' else 'قم باستيراد بيانات الموارد البشرية أولاً لتفعيل التحليلات والرؤى المدعومة بالذكاء الاصطناعي' }}
                     </p>
-                    <button class="btn btn-primary btn-lg" disabled>
+                    <button class="btn btn-primary btn-lg" onclick="analyzeHRData()">
                         <i class="fas fa-magic me-2"></i>
                         {{ 'Analyze HR Data' if lang == 'en' else 'تحليل البيانات' }}
                     </button>
@@ -298,8 +288,6 @@
             </div>
         </div>
     </div>
-
-    {% endif %}
 </div>
 
 <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">

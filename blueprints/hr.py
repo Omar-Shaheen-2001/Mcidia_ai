@@ -34,10 +34,11 @@ def index():
             'erp_integration': {'connected': False, 'erp_type': None, 'last_sync': None}
         }
         
-        if not user or not user.organization_id:
-            return render_template('hr/index.html', lang=lang, data_status=empty_data_status, has_org=False)
+        if not user:
+            return render_template('hr/index.html', lang=lang, data_status=empty_data_status, has_org=True)
         
-        org_id = user.organization_id
+        # Use user_id as organization_id if no organization is linked
+        org_id = user.organization_id if user.organization_id else user.id
         
         employees_count = db_session.query(HREmployee).filter_by(organization_id=org_id).count()
         attendance_count = db_session.query(HRAttendance).filter_by(organization_id=org_id).count()
@@ -110,7 +111,7 @@ def index():
     return render_template('hr/index.html', 
                           lang=lang, 
                           data_status=data_status,
-                          has_org=user.organization_id is not None if user else False,
+                          has_org=True,
                           erp_integration=erp_integration)
 
 
@@ -124,10 +125,10 @@ def api_data_status():
         db_session.rollback()
         user = db_session.get(User, user_id)
         
-        if not user or not user.organization_id:
-            return jsonify({'error': 'No organization found'}), 400
+        if not user:
+            return jsonify({'error': 'User not found'}), 400
         
-        org_id = user.organization_id
+        org_id = user.organization_id if user.organization_id else user.id
         
         employees_count = db_session.query(HREmployee).filter_by(organization_id=org_id).count()
         attendance_count = db_session.query(HRAttendance).filter_by(organization_id=org_id).count()
@@ -156,10 +157,10 @@ def import_data():
     db_session = get_db_session()
     user = db_session.get(User, user_id)
     
-    if not user or not user.organization_id:
-        return jsonify({'error': 'No organization found'}), 400
+    if not user:
+        return jsonify({'error': 'User not found'}), 400
     
-    org_id = user.organization_id
+    org_id = user.organization_id if user.organization_id else user.id
     
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
@@ -245,11 +246,12 @@ def map_columns(import_id):
         db_session.rollback()
         user = db_session.get(User, user_id)
         
-        if not user or not user.organization_id:
-            return jsonify({'error': 'No organization found'}), 400
+        if not user:
+            return jsonify({'error': 'User not found'}), 400
         
+        org_id = user.organization_id if user.organization_id else user.id
         import_record = db_session.query(HRDataImport).get(import_id)
-        if not import_record or import_record.organization_id != user.organization_id:
+        if not import_record or import_record.organization_id != org_id:
             return jsonify({'error': 'Import record not found'}), 404
         
         mapping = request.json.get('mapping', {})
@@ -279,10 +281,10 @@ def process_import(import_id):
         db_session.rollback()
         user = db_session.get(User, user_id)
         
-        if not user or not user.organization_id:
-            return jsonify({'error': 'No organization found'}), 400
+        if not user:
+            return jsonify({'error': 'User not found'}), 400
         
-        org_id = user.organization_id
+        org_id = user.organization_id if user.organization_id else user.id
         import_record = db_session.query(HRDataImport).get(import_id)
         
         if not import_record or import_record.organization_id != org_id:
@@ -326,10 +328,10 @@ def connect_erp():
         db_session.rollback()
         user = db_session.get(User, user_id)
         
-        if not user or not user.organization_id:
-            return jsonify({'error': 'No organization found'}), 400
+        if not user:
+            return jsonify({'error': 'User not found'}), 400
         
-        org_id = user.organization_id
+        org_id = user.organization_id if user.organization_id else user.id
         data = request.json
         
         erp_type = data.get('erp_type')
@@ -391,10 +393,11 @@ def disconnect_erp():
         db_session.rollback()
         user = db_session.get(User, user_id)
         
-        if not user or not user.organization_id:
-            return jsonify({'error': 'No organization found'}), 400
+        if not user:
+            return jsonify({'error': 'User not found'}), 400
         
-        integration = db_session.query(ERPIntegration).filter_by(organization_id=user.organization_id).first()
+        org_id = user.organization_id if user.organization_id else user.id
+        integration = db_session.query(ERPIntegration).filter_by(organization_id=org_id).first()
         
         if integration:
             integration.connection_status = 'disconnected'
@@ -421,11 +424,12 @@ def sync_erp():
         db_session.rollback()
         user = db_session.get(User, user_id)
         
-        if not user or not user.organization_id:
-            return jsonify({'error': 'No organization found'}), 400
+        if not user:
+            return jsonify({'error': 'User not found'}), 400
         
+        org_id = user.organization_id if user.organization_id else user.id
         integration = db_session.query(ERPIntegration).filter_by(
-            organization_id=user.organization_id,
+            organization_id=org_id,
             is_active=True
         ).first()
         
@@ -510,10 +514,10 @@ def analyze():
         db_session.rollback()
         user = db_session.get(User, user_id)
         
-        if not user or not user.organization_id:
+        if not user:
             return render_template('hr/analyze.html', lang=lang, has_data=False)
         
-        org_id = user.organization_id
+        org_id = user.organization_id if user.organization_id else user.id
         
         employees = db_session.query(HREmployee).filter_by(organization_id=org_id).all()
     except Exception as e:
