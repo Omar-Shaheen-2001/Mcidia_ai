@@ -1402,6 +1402,127 @@ class TerminationRecord(db.Model):
         }
 
 
+class HRPerformance(db.Model):
+    """HR Performance - تقييم الأداء"""
+    __tablename__ = 'hr_performance'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    employee_id = db.Column(db.Integer, db.ForeignKey('hr_employees.id'), nullable=False)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
+    
+    review_period = db.Column(db.String(50))  # Q1-2024, H1-2024, 2024
+    review_date = db.Column(db.Date, nullable=False)
+    reviewer_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    
+    overall_rating = db.Column(db.Float)  # 1-5 scale
+    productivity_rating = db.Column(db.Float)
+    quality_rating = db.Column(db.Float)
+    teamwork_rating = db.Column(db.Float)
+    punctuality_rating = db.Column(db.Float)
+    initiative_rating = db.Column(db.Float)
+    
+    strengths = db.Column(db.Text)
+    areas_for_improvement = db.Column(db.Text)
+    goals_next_period = db.Column(db.Text)
+    manager_comments = db.Column(db.Text)
+    employee_comments = db.Column(db.Text)
+    
+    status = db.Column(db.String(50), default='draft')  # draft, submitted, reviewed, finalized
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'employee_id': self.employee_id,
+            'review_period': self.review_period,
+            'review_date': self.review_date.isoformat() if self.review_date else None,
+            'overall_rating': self.overall_rating,
+            'status': self.status
+        }
+
+
+class HRDataImport(db.Model):
+    """HR Data Import Records - سجلات استيراد البيانات"""
+    __tablename__ = 'hr_data_imports'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
+    
+    file_type = db.Column(db.String(50), nullable=False)  # employees, attendance, performance, payroll, resignations
+    file_name = db.Column(db.String(255), nullable=False)
+    file_path = db.Column(db.String(500))
+    
+    records_total = db.Column(db.Integer, default=0)
+    records_imported = db.Column(db.Integer, default=0)
+    records_failed = db.Column(db.Integer, default=0)
+    
+    column_mapping = db.Column(db.Text)  # JSON mapping of CSV columns to DB fields
+    error_log = db.Column(db.Text)  # JSON array of errors
+    
+    status = db.Column(db.String(50), default='pending')  # pending, processing, completed, failed
+    imported_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_at = db.Column(db.DateTime)
+    
+    def to_dict(self):
+        import json
+        return {
+            'id': self.id,
+            'file_type': self.file_type,
+            'file_name': self.file_name,
+            'records_total': self.records_total,
+            'records_imported': self.records_imported,
+            'records_failed': self.records_failed,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+
+class ERPIntegration(db.Model):
+    """ERP Integration Configuration - تكامل ERP الخارجي"""
+    __tablename__ = 'erp_integrations'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=False)
+    
+    erp_type = db.Column(db.String(50), nullable=False)  # odoo, sap, zoho, oracle, dynamics, other
+    erp_name = db.Column(db.String(100))  # Custom name
+    
+    api_base_url = db.Column(db.String(500))
+    api_key = db.Column(db.String(500))  # Encrypted
+    company_id = db.Column(db.String(100))
+    client_id = db.Column(db.String(200))
+    
+    sync_employees = db.Column(db.Boolean, default=True)
+    sync_attendance = db.Column(db.Boolean, default=True)
+    sync_payroll = db.Column(db.Boolean, default=True)
+    sync_performance = db.Column(db.Boolean, default=False)
+    
+    last_sync_at = db.Column(db.DateTime)
+    last_sync_status = db.Column(db.String(50))  # success, failed, partial
+    last_sync_message = db.Column(db.Text)
+    
+    is_active = db.Column(db.Boolean, default=False)
+    connection_status = db.Column(db.String(50), default='disconnected')  # connected, disconnected, error
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'erp_type': self.erp_type,
+            'erp_name': self.erp_name,
+            'api_base_url': self.api_base_url,
+            'is_active': self.is_active,
+            'connection_status': self.connection_status,
+            'last_sync_at': self.last_sync_at.isoformat() if self.last_sync_at else None
+        }
+
+
 class SystemSettings(db.Model):
     """System Settings - إعدادات النظام"""
     __tablename__ = 'system_settings'

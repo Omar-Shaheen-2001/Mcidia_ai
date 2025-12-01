@@ -1,47 +1,864 @@
 {% extends "base.html" %}
 
-{% block title %}{{ 'الموارد البشرية' if lang == 'ar' else 'Human Resources' }} - Mcidia{% endblock %}
+{% block title %}{{ 'HR AI Engine' if lang == 'en' else 'محرك الموارد البشرية الذكي' }} - Mcidia{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row">
+<div class="container-fluid py-4">
+    <div class="row mb-4">
         <div class="col-12">
-            <h2 class="fw-bold mb-4">
-                <i class="fas fa-users text-success"></i>
-                {{ 'الموارد البشرية' if lang == 'ar' else 'Human Resources' }}
-            </h2>
-            <p class="text-secondary">
-                {{ 'وحدة الموارد البشرية لإدارة وتطوير الموظفين' if lang == 'ar' else 'HR module for managing and developing employees' }}
-            </p>
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1">
+                        <i class="fas fa-brain text-primary me-2"></i>
+                        {{ 'HR Intelligence' if lang == 'en' else 'ذكاء الموارد البشرية' }}
+                    </h2>
+                    <p class="text-muted mb-0">
+                        {{ 'AI-powered HR analytics and management' if lang == 'en' else 'تحليلات وإدارة الموارد البشرية المدعومة بالذكاء الاصطناعي' }}
+                    </p>
+                </div>
+                {% if has_org %}
+                <button class="btn btn-primary btn-lg" onclick="showImportModal()">
+                    <i class="fas fa-file-import me-2"></i>
+                    {{ 'Import HR Data' if lang == 'en' else 'استيراد بيانات الموارد البشرية' }}
+                </button>
+                {% endif %}
+            </div>
         </div>
     </div>
+
+    {% if not has_org %}
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+        <i class="fas fa-exclamation-triangle me-3 fa-2x"></i>
+        <div>
+            <h5 class="alert-heading mb-1">{{ 'No Organization Found' if lang == 'en' else 'لم يتم العثور على مؤسسة' }}</h5>
+            <p class="mb-0">{{ 'Please contact your administrator to link your account to an organization.' if lang == 'en' else 'يرجى التواصل مع مدير النظام لربط حسابك بمؤسسة.' }}</p>
+        </div>
+    </div>
+    {% else %}
     
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-file-alt"></i>
-                        {{ 'الوصف الوظيفي' if lang == 'ar' else 'Job Descriptions' }}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-gradient py-3" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-database me-2"></i>
+                        {{ 'HR Data Status' if lang == 'en' else 'حالة بيانات الموارد البشرية' }}
                     </h5>
-                    <p class="card-text">{{ 'إنشاء وإدارة الوصف الوظيفي' if lang == 'ar' else 'Create and manage job descriptions' }}</p>
-                    <button class="btn btn-success" disabled>{{ 'قريباً' if lang == 'ar' else 'Coming Soon' }}</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="px-4 py-3" style="width: 30%;">{{ 'Data Type' if lang == 'en' else 'نوع البيانات' }}</th>
+                                    <th class="px-4 py-3 text-center">{{ 'Status' if lang == 'en' else 'الحالة' }}</th>
+                                    <th class="px-4 py-3 text-center">{{ 'Records' if lang == 'en' else 'السجلات' }}</th>
+                                    <th class="px-4 py-3 text-center">{{ 'Last Update' if lang == 'en' else 'آخر تحديث' }}</th>
+                                    <th class="px-4 py-3 text-center">{{ 'Source' if lang == 'en' else 'المصدر' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <i class="fas fa-users text-primary me-2"></i>
+                                        <strong>{{ 'Employees' if lang == 'en' else 'الموظفون' }}</strong>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        {% if data_status.employees.available %}
+                                        <span class="badge bg-success-subtle text-success px-3 py-2">
+                                            <i class="fas fa-check-circle me-1"></i>{{ 'Available' if lang == 'en' else 'متوفر' }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-danger-subtle text-danger px-3 py-2">
+                                            <i class="fas fa-times-circle me-1"></i>{{ 'Not Available' if lang == 'en' else 'غير متوفر' }}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="fw-semibold">{{ data_status.employees.count or 0 }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center text-muted">
+                                        {% if data_status.employees.last_update %}
+                                        {{ data_status.employees.last_update.strftime('%Y-%m-%d') }}
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        {% if data_status.employees.source %}
+                                        <span class="badge bg-info-subtle text-info">{{ data_status.employees.source }}</span>
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <i class="fas fa-clock text-warning me-2"></i>
+                                        <strong>{{ 'Attendance' if lang == 'en' else 'الحضور والانصراف' }}</strong>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        {% if data_status.attendance.available %}
+                                        <span class="badge bg-success-subtle text-success px-3 py-2">
+                                            <i class="fas fa-check-circle me-1"></i>{{ 'Available' if lang == 'en' else 'متوفر' }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-danger-subtle text-danger px-3 py-2">
+                                            <i class="fas fa-times-circle me-1"></i>{{ 'Not Available' if lang == 'en' else 'غير متوفر' }}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="fw-semibold">{{ data_status.attendance.count or 0 }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center text-muted">
+                                        {% if data_status.attendance.last_update %}
+                                        {{ data_status.attendance.last_update.strftime('%Y-%m-%d') }}
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        {% if data_status.attendance.source %}
+                                        <span class="badge bg-info-subtle text-info">{{ data_status.attendance.source }}</span>
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <i class="fas fa-chart-line text-success me-2"></i>
+                                        <strong>{{ 'Performance' if lang == 'en' else 'الأداء' }}</strong>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        {% if data_status.performance.available %}
+                                        <span class="badge bg-success-subtle text-success px-3 py-2">
+                                            <i class="fas fa-check-circle me-1"></i>{{ 'Available' if lang == 'en' else 'متوفر' }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-danger-subtle text-danger px-3 py-2">
+                                            <i class="fas fa-times-circle me-1"></i>{{ 'Not Available' if lang == 'en' else 'غير متوفر' }}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="fw-semibold">{{ data_status.performance.count or 0 }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center text-muted">
+                                        {% if data_status.performance.last_update %}
+                                        {{ data_status.performance.last_update.strftime('%Y-%m-%d') }}
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        {% if data_status.performance.source %}
+                                        <span class="badge bg-info-subtle text-info">{{ data_status.performance.source }}</span>
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <i class="fas fa-money-bill-wave text-info me-2"></i>
+                                        <strong>{{ 'Payroll' if lang == 'en' else 'الرواتب' }}</strong>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        {% if data_status.payroll.available %}
+                                        <span class="badge bg-success-subtle text-success px-3 py-2">
+                                            <i class="fas fa-check-circle me-1"></i>{{ 'Available' if lang == 'en' else 'متوفر' }}
+                                        </span>
+                                        {% elif data_status.payroll.count > 0 %}
+                                        <span class="badge bg-warning-subtle text-warning px-3 py-2">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ 'Needs Update' if lang == 'en' else 'يحتاج تحديث' }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-danger-subtle text-danger px-3 py-2">
+                                            <i class="fas fa-times-circle me-1"></i>{{ 'Not Available' if lang == 'en' else 'غير متوفر' }}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="fw-semibold">{{ data_status.payroll.count or 0 }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center text-muted">
+                                        {% if data_status.payroll.last_update %}
+                                        {{ data_status.payroll.last_update.strftime('%Y-%m-%d') }}
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        {% if data_status.payroll.source %}
+                                        <span class="badge bg-info-subtle text-info">{{ data_status.payroll.source }}</span>
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <i class="fas fa-user-minus text-danger me-2"></i>
+                                        <strong>{{ 'Resignations' if lang == 'en' else 'الاستقالات' }}</strong>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        {% if data_status.resignations.available %}
+                                        <span class="badge bg-success-subtle text-success px-3 py-2">
+                                            <i class="fas fa-check-circle me-1"></i>{{ 'Available' if lang == 'en' else 'متوفر' }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-danger-subtle text-danger px-3 py-2">
+                                            <i class="fas fa-times-circle me-1"></i>{{ 'Not Available' if lang == 'en' else 'غير متوفر' }}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="fw-semibold">{{ data_status.resignations.count or 0 }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center text-muted">
+                                        {% if data_status.resignations.last_update %}
+                                        {{ data_status.resignations.last_update.strftime('%Y-%m-%d') }}
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        {% if data_status.resignations.source %}
+                                        <span class="badge bg-info-subtle text-info">{{ data_status.resignations.source }}</span>
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                
+                                <tr class="table-light">
+                                    <td class="px-4 py-3">
+                                        <i class="fas fa-plug text-secondary me-2"></i>
+                                        <strong>{{ 'ERP Integration' if lang == 'en' else 'تكامل ERP' }}</strong>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        {% if data_status.erp_integration.connected %}
+                                        <span class="badge bg-success-subtle text-success px-3 py-2">
+                                            <i class="fas fa-link me-1"></i>{{ 'Connected' if lang == 'en' else 'متصل' }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary px-3 py-2">
+                                            <i class="fas fa-unlink me-1"></i>{{ 'Not Connected' if lang == 'en' else 'غير متصل' }}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        {% if data_status.erp_integration.erp_type %}
+                                        <span class="text-uppercase fw-semibold">{{ data_status.erp_integration.erp_type }}</span>
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-center text-muted">
+                                        {% if data_status.erp_integration.last_sync %}
+                                        {{ data_status.erp_integration.last_sync.strftime('%Y-%m-%d %H:%M') }}
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        {% if data_status.erp_integration.connected %}
+                                        <span class="badge bg-primary-subtle text-primary">API / DB</span>
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-chart-bar"></i>
-                        {{ 'تقييم الأداء' if lang == 'ar' else 'Performance Evaluation' }}
-                    </h5>
-                    <p class="card-text">{{ 'تقييم ومتابعة أداء الموظفين' if lang == 'ar' else 'Evaluate and track employee performance' }}</p>
-                    <button class="btn btn-success" disabled>{{ 'قريباً' if lang == 'ar' else 'Coming Soon' }}</button>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0" id="analyzeCard" style="opacity: 0.6; pointer-events: none;">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-chart-pie fa-4x text-primary mb-4"></i>
+                    <h4>{{ 'Analyze HR Data' if lang == 'en' else 'تحليل بيانات الموارد البشرية' }}</h4>
+                    <p class="text-muted mb-4">
+                        {{ 'Import your HR data first to unlock AI-powered analytics and insights' if lang == 'en' else 'قم باستيراد بيانات الموارد البشرية أولاً لتفعيل التحليلات والرؤى المدعومة بالذكاء الاصطناعي' }}
+                    </p>
+                    <button class="btn btn-primary btn-lg" disabled>
+                        <i class="fas fa-magic me-2"></i>
+                        {{ 'Analyze HR Data' if lang == 'en' else 'تحليل البيانات' }}
+                    </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+</div>
+
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title" id="importModalLabel">
+                    <i class="fas fa-file-import text-primary me-2"></i>
+                    {{ 'Import HR Data' if lang == 'en' else 'استيراد بيانات الموارد البشرية' }}
+                </h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-pills nav-fill mb-4" id="importTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active py-3" id="csv-tab" data-bs-toggle="pill" data-bs-target="#csv-upload" type="button" role="tab">
+                            <i class="fas fa-file-csv fa-lg mb-2 d-block"></i>
+                            <span class="fw-semibold">{{ 'Upload CSV / Excel' if lang == 'en' else 'رفع ملفات CSV / Excel' }}</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link py-3" id="erp-tab" data-bs-toggle="pill" data-bs-target="#erp-connect" type="button" role="tab">
+                            <i class="fas fa-plug fa-lg mb-2 d-block"></i>
+                            <span class="fw-semibold">{{ 'Connect to ERP System' if lang == 'en' else 'الاتصال بنظام ERP' }}</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="importTabsContent">
+                    <div class="tab-pane fade show active" id="csv-upload" role="tabpanel">
+                        <div class="alert alert-info d-flex align-items-start mb-4">
+                            <i class="fas fa-info-circle me-3 mt-1"></i>
+                            <div>
+                                <strong>{{ 'Instructions:' if lang == 'en' else 'التعليمات:' }}</strong>
+                                {{ 'Download the template for each data type, fill it with your data, then upload. The system will automatically map columns.' if lang == 'en' else 'قم بتحميل القالب لكل نوع بيانات، املأه ببياناتك، ثم ارفعه. سيقوم النظام بمطابقة الأعمدة تلقائياً.' }}
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>{{ 'Required File' if lang == 'en' else 'الملف المطلوب' }}</th>
+                                        <th>{{ 'Description' if lang == 'en' else 'الوصف' }}</th>
+                                        <th class="text-center">{{ 'Template' if lang == 'en' else 'القالب' }}</th>
+                                        <th class="text-center">{{ 'Status' if lang == 'en' else 'الحالة' }}</th>
+                                        <th class="text-center">{{ 'Action' if lang == 'en' else 'إجراء' }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-users text-primary me-2"></i>
+                                            <strong>employees.csv</strong>
+                                        </td>
+                                        <td class="text-muted">{{ 'Employee list with basic info' if lang == 'en' else 'قائمة الموظفين مع المعلومات الأساسية' }}</td>
+                                        <td class="text-center">
+                                            <a href="{{ url_for('hr.download_template', file_type='employees') }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-download me-1"></i>{{ 'Download' if lang == 'en' else 'تحميل' }}
+                                            </a>
+                                        </td>
+                                        <td class="text-center" id="status-employees">
+                                            {% if data_status.employees.available %}
+                                            <span class="badge bg-success">{{ 'Uploaded' if lang == 'en' else 'مرفوع' }}</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">{{ 'Missing' if lang == 'en' else 'مفقود' }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <label class="btn btn-sm btn-primary">
+                                                <i class="fas fa-upload me-1"></i>{{ 'Upload' if lang == 'en' else 'رفع' }}
+                                                <input type="file" class="d-none" accept=".csv,.xlsx,.xls" onchange="uploadFile(this, 'employees')">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-clock text-warning me-2"></i>
+                                            <strong>attendance.csv</strong>
+                                        </td>
+                                        <td class="text-muted">{{ 'Check-in/out records' if lang == 'en' else 'سجلات الحضور والانصراف' }}</td>
+                                        <td class="text-center">
+                                            <a href="{{ url_for('hr.download_template', file_type='attendance') }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-download me-1"></i>{{ 'Download' if lang == 'en' else 'تحميل' }}
+                                            </a>
+                                        </td>
+                                        <td class="text-center" id="status-attendance">
+                                            {% if data_status.attendance.available %}
+                                            <span class="badge bg-success">{{ 'Uploaded' if lang == 'en' else 'مرفوع' }}</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">{{ 'Missing' if lang == 'en' else 'مفقود' }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <label class="btn btn-sm btn-primary">
+                                                <i class="fas fa-upload me-1"></i>{{ 'Upload' if lang == 'en' else 'رفع' }}
+                                                <input type="file" class="d-none" accept=".csv,.xlsx,.xls" onchange="uploadFile(this, 'attendance')">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-chart-line text-success me-2"></i>
+                                            <strong>performance.csv</strong>
+                                        </td>
+                                        <td class="text-muted">{{ 'Performance evaluations' if lang == 'en' else 'تقييمات الأداء' }}</td>
+                                        <td class="text-center">
+                                            <a href="{{ url_for('hr.download_template', file_type='performance') }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-download me-1"></i>{{ 'Download' if lang == 'en' else 'تحميل' }}
+                                            </a>
+                                        </td>
+                                        <td class="text-center" id="status-performance">
+                                            {% if data_status.performance.available %}
+                                            <span class="badge bg-success">{{ 'Uploaded' if lang == 'en' else 'مرفوع' }}</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">{{ 'Missing' if lang == 'en' else 'مفقود' }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <label class="btn btn-sm btn-primary">
+                                                <i class="fas fa-upload me-1"></i>{{ 'Upload' if lang == 'en' else 'رفع' }}
+                                                <input type="file" class="d-none" accept=".csv,.xlsx,.xls" onchange="uploadFile(this, 'performance')">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-money-bill-wave text-info me-2"></i>
+                                            <strong>payroll.csv</strong>
+                                        </td>
+                                        <td class="text-muted">{{ 'Salary and payroll data' if lang == 'en' else 'بيانات الرواتب' }}</td>
+                                        <td class="text-center">
+                                            <a href="{{ url_for('hr.download_template', file_type='payroll') }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-download me-1"></i>{{ 'Download' if lang == 'en' else 'تحميل' }}
+                                            </a>
+                                        </td>
+                                        <td class="text-center" id="status-payroll">
+                                            {% if data_status.payroll.available %}
+                                            <span class="badge bg-success">{{ 'Uploaded' if lang == 'en' else 'مرفوع' }}</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">{{ 'Missing' if lang == 'en' else 'مفقود' }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <label class="btn btn-sm btn-primary">
+                                                <i class="fas fa-upload me-1"></i>{{ 'Upload' if lang == 'en' else 'رفع' }}
+                                                <input type="file" class="d-none" accept=".csv,.xlsx,.xls" onchange="uploadFile(this, 'payroll')">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-user-minus text-danger me-2"></i>
+                                            <strong>resignations.csv</strong>
+                                        </td>
+                                        <td class="text-muted">{{ 'Employee resignations/terminations' if lang == 'en' else 'استقالات وإنهاء الخدمة' }}</td>
+                                        <td class="text-center">
+                                            <a href="{{ url_for('hr.download_template', file_type='resignations') }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-download me-1"></i>{{ 'Download' if lang == 'en' else 'تحميل' }}
+                                            </a>
+                                        </td>
+                                        <td class="text-center" id="status-resignations">
+                                            {% if data_status.resignations.available %}
+                                            <span class="badge bg-success">{{ 'Uploaded' if lang == 'en' else 'مرفوع' }}</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">{{ 'Missing' if lang == 'en' else 'مفقود' }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <label class="btn btn-sm btn-primary">
+                                                <i class="fas fa-upload me-1"></i>{{ 'Upload' if lang == 'en' else 'رفع' }}
+                                                <input type="file" class="d-none" accept=".csv,.xlsx,.xls" onchange="uploadFile(this, 'resignations')">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="erp-connect" role="tabpanel">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-gradient text-white py-3" style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%);">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-link me-2"></i>
+                                            {{ 'Connect to External ERP System' if lang == 'en' else 'الاتصال بنظام ERP خارجي' }}
+                                        </h5>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <form id="erpConnectForm">
+                                            <div class="mb-4">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="fas fa-building me-1"></i>
+                                                    {{ 'ERP System Type' if lang == 'en' else 'نوع نظام ERP' }}
+                                                </label>
+                                                <select class="form-select form-select-lg" id="erpType" name="erp_type" required>
+                                                    <option value="">{{ 'Select ERP System...' if lang == 'en' else 'اختر نظام ERP...' }}</option>
+                                                    <option value="odoo">Odoo</option>
+                                                    <option value="sap">SAP</option>
+                                                    <option value="zoho">Zoho People</option>
+                                                    <option value="oracle">Oracle HCM</option>
+                                                    <option value="dynamics">Microsoft Dynamics 365</option>
+                                                    <option value="other">{{ 'Other' if lang == 'en' else 'آخر' }}</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="mb-4">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="fas fa-globe me-1"></i>
+                                                    {{ 'API Base URL' if lang == 'en' else 'عنوان API' }}
+                                                </label>
+                                                <input type="url" class="form-control form-control-lg" id="apiUrl" name="api_url" 
+                                                       placeholder="https://your-erp-domain.com/api" required>
+                                            </div>
+
+                                            <div class="mb-4">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="fas fa-key me-1"></i>
+                                                    {{ 'API Key / Token' if lang == 'en' else 'مفتاح API' }}
+                                                </label>
+                                                <input type="password" class="form-control form-control-lg" id="apiKey" name="api_key" 
+                                                       placeholder="{{ 'Enter your API key or access token' if lang == 'en' else 'أدخل مفتاح API أو رمز الوصول' }}">
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-6 mb-4">
+                                                    <label class="form-label fw-semibold">
+                                                        <i class="fas fa-id-badge me-1"></i>
+                                                        {{ 'Company ID' if lang == 'en' else 'معرف الشركة' }}
+                                                    </label>
+                                                    <input type="text" class="form-control" id="companyId" name="company_id" 
+                                                           placeholder="{{ 'If applicable' if lang == 'en' else 'إن وجد' }}">
+                                                </div>
+                                                <div class="col-md-6 mb-4">
+                                                    <label class="form-label fw-semibold">
+                                                        <i class="fas fa-user me-1"></i>
+                                                        {{ 'Client ID / User' if lang == 'en' else 'معرف العميل' }}
+                                                    </label>
+                                                    <input type="text" class="form-control" id="clientId" name="client_id"
+                                                           placeholder="{{ 'If applicable' if lang == 'en' else 'إن وجد' }}">
+                                                </div>
+                                            </div>
+
+                                            <div class="d-grid gap-2">
+                                                <button type="submit" class="btn btn-primary btn-lg">
+                                                    <i class="fas fa-plug me-2"></i>
+                                                    {{ 'Connect Now' if lang == 'en' else 'اتصل الآن' }}
+                                                </button>
+                                            </div>
+                                        </form>
+
+                                        <div id="erpConnectionStatus" class="mt-4" style="display: none;">
+                                            <div class="alert alert-success d-flex align-items-center">
+                                                <i class="fas fa-check-circle fa-2x me-3"></i>
+                                                <div>
+                                                    <strong>{{ 'Connected Successfully!' if lang == 'en' else 'تم الاتصال بنجاح!' }}</strong>
+                                                    <p class="mb-0" id="erpConnectionMessage"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    {{ 'Close' if lang == 'en' else 'إغلاق' }}
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="mappingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-columns text-primary me-2"></i>
+                    {{ 'Column Mapping' if lang == 'en' else 'مطابقة الأعمدة' }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ 'Match your CSV columns to the required fields. Some columns may be auto-detected.' if lang == 'en' else 'قم بمطابقة أعمدة ملف CSV مع الحقول المطلوبة. قد يتم اكتشاف بعض الأعمدة تلقائياً.' }}
+                </div>
+                <div id="mappingForm">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'Cancel' if lang == 'en' else 'إلغاء' }}</button>
+                <button type="button" class="btn btn-primary" onclick="applyMapping()">
+                    <i class="fas fa-check me-2"></i>{{ 'Apply & Import' if lang == 'en' else 'تطبيق واستيراد' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentImportId = null;
+let currentFileType = null;
+let currentHeaders = [];
+
+const lang = '{{ lang }}';
+
+const requiredFields = {
+    'employees': ['employee_number', 'full_name', 'department', 'job_title', 'hire_date', 'base_salary'],
+    'attendance': ['employee_number', 'date', 'check_in', 'check_out', 'status'],
+    'performance': ['employee_number', 'review_period', 'review_date', 'overall_rating'],
+    'payroll': ['employee_number', 'month', 'year', 'base_salary', 'net_salary'],
+    'resignations': ['employee_number', 'employee_name', 'termination_type', 'termination_date']
+};
+
+const fieldLabels = {
+    'employee_number': lang === 'ar' ? 'رقم الموظف' : 'Employee Number',
+    'full_name': lang === 'ar' ? 'الاسم الكامل' : 'Full Name',
+    'department': lang === 'ar' ? 'القسم' : 'Department',
+    'job_title': lang === 'ar' ? 'المسمى الوظيفي' : 'Job Title',
+    'hire_date': lang === 'ar' ? 'تاريخ التعيين' : 'Hire Date',
+    'base_salary': lang === 'ar' ? 'الراتب الأساسي' : 'Base Salary',
+    'date': lang === 'ar' ? 'التاريخ' : 'Date',
+    'check_in': lang === 'ar' ? 'وقت الحضور' : 'Check In',
+    'check_out': lang === 'ar' ? 'وقت الانصراف' : 'Check Out',
+    'status': lang === 'ar' ? 'الحالة' : 'Status',
+    'review_period': lang === 'ar' ? 'فترة التقييم' : 'Review Period',
+    'review_date': lang === 'ar' ? 'تاريخ التقييم' : 'Review Date',
+    'overall_rating': lang === 'ar' ? 'التقييم العام' : 'Overall Rating',
+    'month': lang === 'ar' ? 'الشهر' : 'Month',
+    'year': lang === 'ar' ? 'السنة' : 'Year',
+    'net_salary': lang === 'ar' ? 'صافي الراتب' : 'Net Salary',
+    'employee_name': lang === 'ar' ? 'اسم الموظف' : 'Employee Name',
+    'termination_type': lang === 'ar' ? 'نوع إنهاء الخدمة' : 'Termination Type',
+    'termination_date': lang === 'ar' ? 'تاريخ إنهاء الخدمة' : 'Termination Date'
+};
+
+function showImportModal() {
+    const modal = new bootstrap.Modal(document.getElementById('importModal'));
+    modal.show();
+}
+
+async function uploadFile(input, fileType) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('file_type', fileType);
+
+    try {
+        const response = await fetch('/erp/hr/api/import', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            currentImportId = data.import_id;
+            currentFileType = fileType;
+            currentHeaders = data.headers;
+            
+            showMappingModal(data.headers, data.sample_rows, fileType);
+        } else {
+            alert(data.error || (lang === 'ar' ? 'حدث خطأ أثناء رفع الملف' : 'Error uploading file'));
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert(lang === 'ar' ? 'حدث خطأ أثناء رفع الملف' : 'Error uploading file');
+    }
+    
+    input.value = '';
+}
+
+function showMappingModal(headers, sampleRows, fileType) {
+    const fields = requiredFields[fileType] || [];
+    let html = '<div class="row">';
+    
+    fields.forEach(field => {
+        const matchingHeader = headers.find(h => 
+            h.toLowerCase().includes(field.replace('_', '')) ||
+            field.includes(h.toLowerCase().replace(' ', '_'))
+        );
+        
+        html += `
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">${fieldLabels[field] || field}</label>
+                <select class="form-select mapping-select" data-field="${field}">
+                    <option value="">-- ${lang === 'ar' ? 'اختر العمود' : 'Select Column'} --</option>
+                    ${headers.map(h => `<option value="${h}" ${h === matchingHeader ? 'selected' : ''}>${h}</option>`).join('')}
+                </select>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    
+    if (sampleRows && sampleRows.length > 0) {
+        html += `
+            <div class="mt-4">
+                <h6>${lang === 'ar' ? 'معاينة البيانات:' : 'Data Preview:'}</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody>
+                            ${sampleRows.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('mappingForm').innerHTML = html;
+    
+    const mappingModal = new bootstrap.Modal(document.getElementById('mappingModal'));
+    mappingModal.show();
+}
+
+async function applyMapping() {
+    const mapping = {};
+    document.querySelectorAll('.mapping-select').forEach(select => {
+        if (select.value) {
+            mapping[select.dataset.field] = select.value;
+        }
+    });
+    
+    try {
+        const mapResponse = await fetch(`/erp/hr/api/import/${currentImportId}/map`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ mapping: mapping })
+        });
+        
+        const processResponse = await fetch(`/erp/hr/api/import/${currentImportId}/process`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+        
+        const result = await processResponse.json();
+        
+        if (result.success) {
+            bootstrap.Modal.getInstance(document.getElementById('mappingModal')).hide();
+            
+            const statusEl = document.getElementById(`status-${currentFileType}`);
+            if (statusEl) {
+                statusEl.innerHTML = `<span class="badge bg-success">${lang === 'ar' ? 'مرفوع' : 'Uploaded'}</span>`;
+            }
+            
+            alert(lang === 'ar' ? 'تم استيراد البيانات بنجاح!' : 'Data imported successfully!');
+            
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            alert(result.error || (lang === 'ar' ? 'حدث خطأ أثناء الاستيراد' : 'Import error'));
+        }
+    } catch (error) {
+        console.error('Mapping error:', error);
+        alert(lang === 'ar' ? 'حدث خطأ أثناء الاستيراد' : 'Import error');
+    }
+}
+
+document.getElementById('erpConnectForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        erp_type: document.getElementById('erpType').value,
+        api_url: document.getElementById('apiUrl').value,
+        api_key: document.getElementById('apiKey').value,
+        company_id: document.getElementById('companyId').value,
+        client_id: document.getElementById('clientId').value
+    };
+    
+    try {
+        const response = await fetch('/erp/hr/api/erp/connect', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('erpConnectionStatus').style.display = 'block';
+            document.getElementById('erpConnectionMessage').textContent = data.message;
+            
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            alert(data.error || (lang === 'ar' ? 'فشل الاتصال' : 'Connection failed'));
+        }
+    } catch (error) {
+        console.error('ERP connect error:', error);
+        alert(lang === 'ar' ? 'حدث خطأ أثناء الاتصال' : 'Connection error');
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const hasData = {{ 'true' if data_status and (data_status.employees.available or data_status.attendance.available or data_status.performance.available or data_status.payroll.available) else 'false' }};
+    
+    if (hasData) {
+        const analyzeCard = document.getElementById('analyzeCard');
+        if (analyzeCard) {
+            analyzeCard.style.opacity = '1';
+            analyzeCard.style.pointerEvents = 'auto';
+            analyzeCard.querySelector('button').disabled = false;
+        }
+    }
+});
+</script>
+
+<style>
+.nav-pills .nav-link {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    margin: 0 5px;
+    transition: all 0.3s ease;
+}
+
+.nav-pills .nav-link:hover {
+    border-color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.nav-pills .nav-link.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.table th {
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge {
+    font-weight: 500;
+}
+
+.modal-xl {
+    max-width: 1100px;
+}
+
+#analyzeCard {
+    transition: opacity 0.3s ease;
+}
+
+.form-control-lg, .form-select-lg {
+    padding: 0.75rem 1rem;
+}
+</style>
 {% endblock %}
