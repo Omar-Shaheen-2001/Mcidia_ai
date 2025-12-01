@@ -678,8 +678,7 @@ def export_session_pdf(session_id):
             }}
             
             .response-table thead {{
-                background: linear-gradient(135deg, #0A2756 0%, #2767B1 100%);
-                color: white;
+                background: #0A2756 !important;
             }}
             
             .response-table thead th {{
@@ -689,6 +688,8 @@ def export_session_pdf(session_id):
                 font-size: 13px;
                 letter-spacing: 0.3px;
                 border: none;
+                color: #FFFFFF !important;
+                background: #0A2756 !important;
             }}
             
             .response-table tbody td {{
@@ -723,8 +724,7 @@ def export_session_pdf(session_id):
             }}
             
             .message-content table thead {{
-                background: linear-gradient(135deg, #0A2756 0%, #2767B1 100%);
-                color: white;
+                background: #0A2756 !important;
             }}
             
             .message-content table th {{
@@ -734,6 +734,8 @@ def export_session_pdf(session_id):
                 font-size: 13px;
                 letter-spacing: 0.3px;
                 border: none;
+                color: #FFFFFF !important;
+                background: #0A2756 !important;
             }}
             
             .message-content table td {{
