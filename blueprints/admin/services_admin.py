@@ -257,6 +257,11 @@ def create_offering(service_id):
             return redirect(url_for('admin.services_admin.create_offering', service_id=service_id))
         
         title_ar = request.form.get('title_ar', 'New Offering')
+        
+        # Handle checkbox values correctly
+        is_active = request.form.get('is_active') in ['on', 'true', '1', True]
+        enable_file_upload = request.form.get('enable_file_upload') in ['on', 'true', '1', True]
+        
         new_offering = ServiceOffering(
             service_id=service_id,
             name=title_ar,  # Use Arabic title as default name
@@ -269,13 +274,16 @@ def create_offering(service_id):
             icon=request.form.get('icon', 'fa-check-circle'),
             price=float(request.form.get('price', 0)) if request.form.get('price') else None,
             display_order=int(request.form.get('display_order', 0)),
-            is_active=request.form.get('is_active') == 'on',
-            enable_file_upload=request.form.get('enable_file_upload') == 'on',
+            is_active=is_active,
+            enable_file_upload=enable_file_upload,
             ai_prompt_template=request.form.get('ai_prompt_template'),
             ai_model=request.form.get('ai_model', 'gpt-4'),
             ai_credits_cost=int(request.form.get('ai_credits_cost', 1)),
             form_fields=form_fields_json
         )
+        
+        # Log for debugging
+        current_app.logger.info(f"Creating offering: {title_ar}, enable_file_upload={enable_file_upload}, is_active={is_active}")
         
         db.session.add(new_offering)
         db.session.commit()
@@ -344,6 +352,10 @@ def edit_offering(service_id, offering_id):
             flash('Invalid JSON format in form fields.' if lang == 'en' else 'صيغة JSON غير صحيحة في الحقول.', 'danger')
             return redirect(url_for('admin.services_admin.edit_offering', service_id=service_id, offering_id=offering_id))
         
+        # Handle checkbox values correctly
+        is_active = request.form.get('is_active') in ['on', 'true', '1', True]
+        enable_file_upload = request.form.get('enable_file_upload') in ['on', 'true', '1', True]
+        
         offering.name = request.form.get('title_ar', offering.name)  # Update name from title_ar
         offering.slug = request.form.get('slug')
         offering.title_ar = request.form.get('title_ar')
@@ -354,13 +366,16 @@ def edit_offering(service_id, offering_id):
         offering.icon = request.form.get('icon', 'fa-check-circle')
         offering.price = float(request.form.get('price', 0)) if request.form.get('price') else None
         offering.display_order = int(request.form.get('display_order', 0))
-        offering.is_active = request.form.get('is_active') == 'on'
-        offering.enable_file_upload = request.form.get('enable_file_upload') == 'on'
+        offering.is_active = is_active
+        offering.enable_file_upload = enable_file_upload
         offering.ai_prompt_template = request.form.get('ai_prompt_template')
         offering.ai_model = request.form.get('ai_model', 'gpt-4')
         offering.ai_credits_cost = int(request.form.get('ai_credits_cost', 1))
         offering.form_fields = form_fields_json
         offering.updated_at = datetime.utcnow()
+        
+        # Log for debugging
+        current_app.logger.info(f"Updating offering: {offering.title_ar}, enable_file_upload={enable_file_upload}, is_active={is_active}")
         
         db.session.commit()
         
