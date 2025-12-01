@@ -3,8 +3,9 @@
  * Renders AI-generated charts using Chart.js and Plotly
  */
 
-// Prevent double declaration
-if (typeof MCIDIAChartRenderer === 'undefined') {
+/**
+ * Main Chart Renderer Class
+ */
 class MCIDIAChartRenderer {
     constructor() {
         this.chartInstances = new Map();
@@ -472,10 +473,9 @@ class MCIDIAChartRenderer {
         messageElement.appendChild(chartsContainer);
     }
 }
-}
 
 // Global instance - only create if not already created
-if (typeof window.mcidiaChartRenderer === 'undefined') {
+if (!window.mcidiaChartRenderer) {
     window.mcidiaChartRenderer = new MCIDIAChartRenderer();
 }
 

@@ -266,6 +266,54 @@
         font-size: 13px;
     }
     
+    /* Professional Table Styles */
+    .response-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(10, 39, 86, 0.08);
+    }
+    
+    .response-table thead {
+        background: linear-gradient(135deg, #0A2756 0%, #2767B1 100%);
+        color: white;
+    }
+    
+    .response-table thead th {
+        padding: 14px 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        letter-spacing: 0.3px;
+    }
+    
+    .response-table tbody td {
+        padding: 12px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 13px;
+        color: #444;
+    }
+    
+    .response-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .response-table tbody tr:hover {
+        background: #f9f9f9;
+        transition: all 0.2s ease;
+    }
+    
+    .response-table tbody tr:nth-child(even) {
+        background: #fafbfc;
+    }
+    
+    .response-table tbody tr:nth-child(even):hover {
+        background: #f3f5f7;
+    }
+    
     .message-actions {
         display: flex;
         gap: 8px;
@@ -793,8 +841,38 @@
             para = para.trim();
             if (!para) return;
             
+            // Check if it's a table (HTML table)
+            if (para.includes('<table') || para.includes('<TR>') || para.includes('<tr')) {
+                html += para.replace(/<table/g, '<table class="response-table"');
+            }
+            // Check if it's a markdown-style table
+            else if (para.includes('|') && para.split('\n').length >= 2 && para.split('\n')[1].includes('-')) {
+                const lines = para.split('\n');
+                let tableHtml = '<table class="response-table"><thead><tr>';
+                
+                // Parse header
+                const headers = lines[0].split('|').map(h => h.trim()).filter(h => h);
+                headers.forEach(h => {
+                    tableHtml += `<th>${h}</th>`;
+                });
+                tableHtml += '</tr></thead><tbody>';
+                
+                // Parse rows (skip separator line)
+                for (let i = 2; i < lines.length; i++) {
+                    const cells = lines[i].split('|').map(c => c.trim()).filter(c => c);
+                    if (cells.length > 0) {
+                        tableHtml += '<tr>';
+                        cells.forEach(cell => {
+                            tableHtml += `<td>${cell}</td>`;
+                        });
+                        tableHtml += '</tr>';
+                    }
+                }
+                tableHtml += '</tbody></table>';
+                html += tableHtml;
+            }
             // Check if it's a numbered list
-            if (para.match(/^\d+\./)) {
+            else if (para.match(/^\d+\./)) {
                 html += '<div class="response-section">';
                 const items = para.split('\n').filter(l => l.trim());
                 items.forEach(item => {
