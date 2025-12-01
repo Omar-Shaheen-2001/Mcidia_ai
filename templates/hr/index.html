@@ -288,6 +288,36 @@
             </div>
         </div>
     </div>
+
+    <div class="row mb-4" id="employeesPreviewSection" style="display:none;">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-gradient py-3" style="background: linear-gradient(135deg, #198754 0%, #15654b 100%);">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-users me-2"></i>
+                        {{ 'Imported Employees Preview' if lang == 'en' else 'معاينة الموظفين المستوردين' }}
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="employeesTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="px-4 py-3">{{ 'Employee Number' if lang == 'en' else 'رقم الموظف' }}</th>
+                                    <th class="px-4 py-3">{{ 'Full Name' if lang == 'en' else 'الاسم الكامل' }}</th>
+                                    <th class="px-4 py-3">{{ 'Department' if lang == 'en' else 'القسم' }}</th>
+                                    <th class="px-4 py-3">{{ 'Job Title' if lang == 'en' else 'المسمى الوظيفي' }}</th>
+                                    <th class="px-4 py-3">{{ 'Status' if lang == 'en' else 'الحالة' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeesTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
@@ -832,6 +862,29 @@ document.getElementById('erpConnectForm').addEventListener('submit', async funct
     }
 });
 
+async function loadEmployeesPreview() {
+    try {
+        const response = await fetch('/erp/hr/api/employees');
+        const data = await response.json();
+        
+        if (data.success && data.employees.length > 0) {
+            document.getElementById('employeesPreviewSection').style.display = 'block';
+            const tbody = document.getElementById('employeesTableBody');
+            tbody.innerHTML = data.employees.map(emp => `
+                <tr>
+                    <td class="px-4 py-3"><strong>${emp.employee_number}</strong></td>
+                    <td class="px-4 py-3">${emp.full_name}</td>
+                    <td class="px-4 py-3">${emp.department}</td>
+                    <td class="px-4 py-3">${emp.job_title}</td>
+                    <td class="px-4 py-3"><span class="badge bg-success">${emp.status}</span></td>
+                </tr>
+            `).join('');
+        }
+    } catch (error) {
+        console.error('Error loading employees:', error);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const hasData = {{ 'true' if data_status and (data_status.employees.available or data_status.attendance.available or data_status.performance.available or data_status.payroll.available) else 'false' }};
     
@@ -842,6 +895,7 @@ document.addEventListener('DOMContentLoaded', function() {
             analyzeCard.style.pointerEvents = 'auto';
             analyzeCard.querySelector('button').disabled = false;
         }
+        loadEmployeesPreview();
     }
 });
 </script>
