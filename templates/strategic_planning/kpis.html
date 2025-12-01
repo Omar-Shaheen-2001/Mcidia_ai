@@ -90,6 +90,23 @@
         </div>
     </div>
 
+    <!-- KPIs Chart Visualization -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        {{ 'مخطط مؤشرات الأداء' if lang == 'ar' else 'KPIs Chart' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="kpisChart" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row mt-4">
         <div class="col-12">
             <div class="d-flex justify-content-between">
@@ -138,5 +155,49 @@ document.getElementById('generateKpisBtn')?.addEventListener('click', async func
         btn.innerHTML = originalText;
     }
 });
+
+// Render KPIs Chart if data exists
+{% if kpis %}
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.mcidiaChartRenderer) {
+        const kpiLabels = [];
+        const currentValues = [];
+        const targetValues = [];
+        
+        {% for kpi in kpis[:8] %}
+        kpiLabels.push('{{ kpi.name[:20] }}');
+        currentValues.push({{ kpi.current_value }});
+        targetValues.push({{ kpi.target_value }});
+        {% endfor %}
+        
+        const kpisChartConfig = {
+            type: 'bar',
+            title: '{{ "مؤشرات الأداء الرئيسية" if lang == "ar" else "Key Performance Indicators" }}',
+            labels: kpiLabels,
+            datasets: [
+                {
+                    label: '{{ "القيمة الحالية" if lang == "ar" else "Current Value" }}',
+                    data: currentValues,
+                    backgroundColor: '#2767B1'
+                },
+                {
+                    label: '{{ "القيمة المستهدفة" if lang == "ar" else "Target Value" }}',
+                    data: targetValues,
+                    backgroundColor: '#2C8C56'
+                }
+            ],
+            options: {
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+        window.mcidiaChartRenderer.render('kpisChart', kpisChartConfig);
+    }
+});
+{% endif %}
 </script>
 {% endblock %}
