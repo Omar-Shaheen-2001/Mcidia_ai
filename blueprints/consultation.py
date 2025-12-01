@@ -397,16 +397,24 @@ def create_session():
     topic = data.get('topic', 'General Consultation')
     
     # Check if service has file upload enabled
-    enable_file_upload = True  # Default to True
-    service = db.session.query(Service).filter_by(
-        title_ar=topic
-    ).first() or db.session.query(Service).filter_by(
-        title_en=topic
-    ).first()
+    enable_file_upload = True  # Default to True - allow file uploads by default
     
-    if service and service.offerings:
-        # Check if any offering in this service has file upload enabled
-        enable_file_upload = any(o.enable_file_upload for o in service.offerings)
+    try:
+        # Find service by title (try both Arabic and English)
+        service = db.session.query(Service).filter_by(title_ar=topic).first()
+        if not service:
+            service = db.session.query(Service).filter_by(title_en=topic).first()
+        
+        # If service found and has offerings, check if any offering has file upload enabled
+        if service and service.offerings and len(service.offerings) > 0:
+            # If any offering has file upload enabled, show the button
+            enable_file_upload = any(o.enable_file_upload for o in service.offerings)
+            current_app.logger.info(f"Service '{topic}' found with {len(service.offerings)} offerings. File upload: {enable_file_upload}")
+        else:
+            current_app.logger.info(f"Service '{topic}' not found or has no offerings. Using default: file upload enabled")
+    except Exception as e:
+        current_app.logger.error(f"Error checking service file upload: {str(e)}")
+        enable_file_upload = True  # Default to True on error
     
     # Create new session
     chat_session = ChatSession(
