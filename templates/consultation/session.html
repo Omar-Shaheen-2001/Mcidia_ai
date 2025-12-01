@@ -510,6 +510,12 @@
                             #{{ session.id }}
                         </div>
                         <div class="chat-header-buttons">
+                            <button class="btn-header" id="exportCsvBtn" title="{{ 'تصدير CSV' if lang == 'ar' else 'Export CSV' }}">
+                                <i class="fas fa-file-csv"></i>
+                            </button>
+                            <button class="btn-header" id="exportPdfBtn" title="{{ 'تصدير PDF' if lang == 'ar' else 'Export PDF' }}">
+                                <i class="fas fa-file-pdf"></i>
+                            </button>
                             <button class="btn-header" id="fullscreenBtn" title="{{ 'ملء الشاشة' if lang == 'ar' else 'Fullscreen' }}">
                                 <i class="fas fa-expand"></i>
                             </button>
@@ -905,6 +911,35 @@
         
         return html || text;
     }
+    
+    // Export functions
+    document.getElementById('exportCsvBtn').addEventListener('click', function() {
+        let csv = 'Role,Content,Cost\n';
+        messages.forEach(msg => {
+            const content = msg.content.replace(/"/g, '""').replace(/\n/g, ' ');
+            csv += `"${msg.role}","${content}",${msg.cost || 0}\n`;
+        });
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `consultation-${sessionId}-${new Date().getTime()}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    });
+    
+    document.getElementById('exportPdfBtn').addEventListener('click', function() {
+        const chatContent = document.getElementById('chatMessages');
+        const opt = {
+            margin: 10,
+            filename: `consultation-${sessionId}-${new Date().getTime()}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { orientation: 'p', unit: 'mm', format: 'a4' }
+        };
+        html2pdf().set(opt).from(chatContent).save();
+    });
     
     // Fullscreen functionality
     document.getElementById('fullscreenBtn').addEventListener('click', function() {
