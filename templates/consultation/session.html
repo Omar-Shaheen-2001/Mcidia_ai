@@ -545,10 +545,11 @@
         const messagesDiv = document.getElementById('chatMessages');
         messagesDiv.innerHTML = '';
         
-        messages.forEach(msg => {
+        messages.forEach((msg, msgIdx) => {
             const role = msg.role;
             const content = msg.content;
             const cost = msg.cost;
+            const charts = msg.charts || [];
             
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${role}`;
@@ -560,13 +561,42 @@
             const content_div = document.createElement('div');
             content_div.className = 'message-content';
             
-            // Render markdown for assistant messages
+            // Render content for assistant messages
             if (role === 'assistant') {
                 try {
-                    const htmlContent = marked.parse(content);
-                    content_div.innerHTML = DOMPurify.sanitize(htmlContent);
+                    content_div.innerHTML = formatResponse(content);
                 } catch (e) {
                     content_div.textContent = content;
+                }
+                
+                // Render saved charts if present
+                if (charts && charts.length > 0) {
+                    const chartsContainer = document.createElement('div');
+                    chartsContainer.className = 'message-charts';
+                    chartsContainer.style.marginTop = '20px';
+                    
+                    charts.forEach((chart, idx) => {
+                        const chartWrapper = document.createElement('div');
+                        chartWrapper.className = 'chart-wrapper';
+                        chartWrapper.style.cssText = 'background: #fff; border-radius: 12px; padding: 20px; margin: 15px 0; box-shadow: 0 2px 12px rgba(10, 39, 86, 0.08); border: 1px solid #e8ecf0;';
+                        
+                        const chartId = `saved-chart-${msgIdx}-${idx}`;
+                        const chartContainer = document.createElement('div');
+                        chartContainer.id = chartId;
+                        chartContainer.style.cssText = 'width: 100%; height: 300px; position: relative;';
+                        
+                        chartWrapper.appendChild(chartContainer);
+                        chartsContainer.appendChild(chartWrapper);
+                        
+                        // Render chart after DOM update
+                        setTimeout(() => {
+                            if (window.mcidiaChartRenderer) {
+                                window.mcidiaChartRenderer.render(chartId, chart);
+                            }
+                        }, 100 + (idx * 50));
+                    });
+                    
+                    content_div.appendChild(chartsContainer);
                 }
             } else {
                 content_div.textContent = content;
@@ -631,7 +661,7 @@
             if (data.error) {
                 addMessage('assistant', `{{ 'خطأ: ' if lang == 'ar' else 'Error: ' }}${data.error}`);
             } else {
-                addMessage('assistant', data.response, data.cost);
+                addMessage('assistant', data.response, data.cost, data.charts || []);
                 sessionCost += data.cost;
                 document.getElementById('sessionCost').textContent = `$${sessionCost.toFixed(4)}`;
             }
@@ -646,7 +676,7 @@
         });
     }
     
-    function addMessage(role, content, cost = null) {
+    function addMessage(role, content, cost = null, charts = []) {
         const messagesDiv = document.getElementById('chatMessages');
         
         const messageDiv = document.createElement('div');
@@ -662,6 +692,36 @@
         if (role === 'assistant') {
             // Format the response professionally
             content_div.innerHTML = formatResponse(content);
+            
+            // Render charts if present
+            if (charts && charts.length > 0) {
+                const chartsContainer = document.createElement('div');
+                chartsContainer.className = 'message-charts';
+                chartsContainer.style.marginTop = '20px';
+                
+                charts.forEach((chart, idx) => {
+                    const chartWrapper = document.createElement('div');
+                    chartWrapper.className = 'chart-wrapper';
+                    chartWrapper.style.cssText = 'background: #fff; border-radius: 12px; padding: 20px; margin: 15px 0; box-shadow: 0 2px 12px rgba(10, 39, 86, 0.08); border: 1px solid #e8ecf0;';
+                    
+                    const chartId = `chart-${Date.now()}-${idx}`;
+                    const chartContainer = document.createElement('div');
+                    chartContainer.id = chartId;
+                    chartContainer.style.cssText = 'width: 100%; height: 300px; position: relative;';
+                    
+                    chartWrapper.appendChild(chartContainer);
+                    chartsContainer.appendChild(chartWrapper);
+                    
+                    // Render chart after DOM update
+                    setTimeout(() => {
+                        if (window.mcidiaChartRenderer) {
+                            window.mcidiaChartRenderer.render(chartId, chart);
+                        }
+                    }, 100);
+                });
+                
+                content_div.appendChild(chartsContainer);
+            }
         } else {
             // Plain text for user messages
             content_div.textContent = content;

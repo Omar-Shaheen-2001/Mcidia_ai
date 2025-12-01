@@ -175,14 +175,32 @@ def send_message():
         # Call AI using AIManager (same as other consulting modules)
         ai = AIManager.for_use_case('consultation')
         
+        # Get chart generation instructions
+        try:
+            from utils.chart_generator import get_ai_chart_instructions
+            chart_instructions = get_ai_chart_instructions('ar' if any(ord(c) > 127 for c in message) else 'en')
+        except:
+            chart_instructions = ""
+        
         system_prompt = f"""أنت مستشار خبير متخصص في مجال {topic}.
 تقدّم استشارات عملية وقيّمة وقابلة للتطبيق.
 كن موجزاً وفعالاً في إجابتك.
-الرد بالعربية إذا كانت الأسئلة بالعربية، والإنجليزية إذا كانت بالإنجليزية."""
+الرد بالعربية إذا كانت الأسئلة بالعربية، والإنجليزية إذا كانت بالإنجليزية.
+
+{chart_instructions}"""
         
         augmented_message = f"{rag_context}\n\n**السؤال:** {message}" if rag_context else message
         ai_response = ai.chat(system_prompt, augmented_message)
         execution_time_ms = int((time.time() - start_time) * 1000)
+        
+        # Extract charts from AI response
+        charts = []
+        cleaned_response = ai_response
+        try:
+            from utils.chart_generator import process_ai_response_for_charts
+            cleaned_response, charts = process_ai_response_for_charts(ai_response)
+        except:
+            pass
         
         # Estimate tokens and cost (rough estimation)
         estimated_tokens = len(message.split()) + len(ai_response.split())
@@ -234,9 +252,10 @@ def send_message():
         })
         messages.append({
             'role': 'assistant',
-            'content': ai_response,
+            'content': cleaned_response,
             'timestamp': datetime.utcnow().isoformat(),
-            'cost': estimated_cost
+            'cost': estimated_cost,
+            'charts': charts if charts else None
         })
         
         chat_session.messages = json.dumps(messages)
@@ -248,7 +267,8 @@ def send_message():
         db.session.commit()
         
         return jsonify({
-            'response': ai_response,
+            'response': cleaned_response,
+            'charts': charts if charts else [],
             'session_id': chat_session.id,
             'cost': estimated_cost,
             'timestamp': datetime.utcnow().isoformat()
