@@ -10,8 +10,68 @@ from io import BytesIO
 import json
 import time
 import os
+import re
 
 consultation_bp = Blueprint('consultation', __name__)
+
+def format_response_html(text):
+    """Convert plain text response to professional HTML (Python equivalent of formatResponse JS)"""
+    html = ''
+    
+    # Split into paragraphs
+    paragraphs = [p.strip() for p in text.split('\n\n') if p.strip()]
+    
+    for idx, para in enumerate(paragraphs):
+        # Check if it's a table (HTML table)
+        if '<table' in para or '<TR>' in para or '<tr>' in para:
+            html += para.replace('<table', '<table class="response-table"')
+        # Check if it's a markdown-style table
+        elif '|' in para and len(para.split('\n')) >= 2 and '-' in para.split('\n')[1]:
+            lines = para.split('\n')
+            table_html = '<table class="response-table"><thead><tr>'
+            
+            # Parse header
+            headers = [h.strip() for h in lines[0].split('|') if h.strip()]
+            for h in headers:
+                table_html += f'<th>{h}</th>'
+            table_html += '</tr></thead><tbody>'
+            
+            # Parse rows (skip separator line)
+            for i in range(2, len(lines)):
+                cells = [c.strip() for c in lines[i].split('|') if c.strip()]
+                if cells:
+                    table_html += '<tr>'
+                    for cell in cells:
+                        table_html += f'<td>{cell}</td>'
+                    table_html += '</tr>'
+            table_html += '</tbody></table>'
+            html += table_html
+        # Check if it's a numbered list
+        elif re.match(r'^\d+\.', para):
+            html += '<div class="response-section">'
+            items = [l.strip() for l in para.split('\n') if l.strip()]
+            for item in items:
+                match = re.match(r'^\d+\.\s*(.+)', item)
+                if match:
+                    html += f'<div class="response-text"><strong>{match.group(1)}</strong></div>'
+            html += '</div>'
+        # Check if it's a bullet list
+        elif re.match(r'^[-•*]', para):
+            html += '<ul class="response-list">'
+            items = [l.strip() for l in para.split('\n') if l.strip()]
+            for item in items:
+                text_content = re.sub(r'^[-•*]\s*', '', item).strip()
+                if text_content:
+                    html += f'<li>{text_content}</li>'
+            html += '</ul>'
+        # Check if it's a title/header (first paragraph or short text)
+        elif idx == 0 or len(para) < 100:
+            html += f'<div class="response-title">{para}</div>'
+        # Regular paragraph
+        else:
+            html += f'<div class="response-text">{para}</div>'
+    
+    return html or text
 
 @consultation_bp.route('/')
 def index():
@@ -786,19 +846,10 @@ def export_session_pdf(session_id):
     for idx, msg in enumerate(messages):
         content = msg.get('content', '')
         
-        # Don't escape HTML for assistant messages - they may contain tables
+        # Format assistant messages with professional HTML styling
         if msg.get('role') == 'assistant':
-            # For assistant messages, keep the HTML formatting
-            # Apply same table styling as in the web interface
-            display_content = content
-            
-            # Add response-table class to tables that don't have it
-            import re
-            display_content = re.sub(r'<table(?!\s+class)', '<table class="response-table"', display_content)
-            # Also apply to tables with existing class
-            display_content = re.sub(r'<table\s+class="([^"]*)"', 
-                                    lambda m: f'<table class="response-table {m.group(1)}'.rstrip() + '"', 
-                                    display_content)
+            # Use format_response_html to convert to professional HTML
+            display_content = format_response_html(content)
         else:
             # For user messages, escape HTML
             display_content = (content.replace('&', '&amp;')
