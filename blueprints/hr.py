@@ -9,13 +9,18 @@ import os
 
 hr_bp = Blueprint('hr', __name__)
 
+def get_db_session():
+    """Get database session from current app"""
+    return current_app.extensions['sqlalchemy'].session
+
 @hr_bp.route('/')
 @login_required
 def index():
     lang = session.get('language', 'ar')
     user_id = session.get('user_id')
     
-    user = db.session.get(User, user_id)
+    db_session = get_db_session()
+    user = db_session.get(User, user_id)
     if not user or not user.organization_id:
         return render_template('hr/index.html', lang=lang, data_status={}, has_org=False)
     
@@ -87,7 +92,8 @@ def index():
 def api_data_status():
     """API endpoint to get current data status"""
     user_id = session.get('user_id')
-    user = db.session.get(User, user_id)
+    db_session = get_db_session()
+    user = db_session.get(User, user_id)
     
     if not user or not user.organization_id:
         return jsonify({'error': 'No organization found'}), 400
@@ -114,7 +120,8 @@ def api_data_status():
 def import_data():
     """Handle CSV/Excel file upload and import"""
     user_id = session.get('user_id')
-    user = db.session.get(User, user_id)
+    db_session = get_db_session()
+    user = db_session.get(User, user_id)
     
     if not user or not user.organization_id:
         return jsonify({'error': 'No organization found'}), 400
@@ -176,8 +183,8 @@ def import_data():
             imported_by=user_id,
             records_total=total_rows
         )
-        db.session.add(import_record)
-        db.session.commit()
+        db_session.add(import_record)
+        db_session.commit()
         
         return jsonify({
             'success': True,
@@ -196,7 +203,8 @@ def import_data():
 def map_columns(import_id):
     """Apply column mapping and process import"""
     user_id = session.get('user_id')
-    user = db.session.get(User, user_id)
+    db_session = get_db_session()
+    user = db_session.get(User, user_id)
     
     if not user or not user.organization_id:
         return jsonify({'error': 'No organization found'}), 400
@@ -209,7 +217,7 @@ def map_columns(import_id):
     
     import_record.column_mapping = json.dumps(mapping)
     import_record.status = 'processing'
-    db.session.commit()
+    db_session.commit()
     
     return jsonify({
         'success': True,
@@ -223,7 +231,8 @@ def map_columns(import_id):
 def process_import(import_id):
     """Process the mapped import data"""
     user_id = session.get('user_id')
-    user = db.session.get(User, user_id)
+    db_session = get_db_session()
+    user = db_session.get(User, user_id)
     
     if not user or not user.organization_id:
         return jsonify({'error': 'No organization found'}), 400
@@ -247,7 +256,7 @@ def process_import(import_id):
         import_record.records_failed = failed
         import_record.error_log = json.dumps(errors) if errors else None
         import_record.completed_at = datetime.utcnow()
-        db.session.commit()
+        db_session.commit()
         
         return jsonify({
             'success': True,
@@ -259,7 +268,7 @@ def process_import(import_id):
     except Exception as e:
         import_record.status = 'failed'
         import_record.error_log = str(e)
-        db.session.commit()
+        db_session.commit()
         return jsonify({'error': str(e)}), 500
 
 
@@ -268,7 +277,8 @@ def process_import(import_id):
 def connect_erp():
     """Connect to external ERP system"""
     user_id = session.get('user_id')
-    user = db.session.get(User, user_id)
+    db_session = get_db_session()
+    user = db_session.get(User, user_id)
     
     if not user or not user.organization_id:
         return jsonify({'error': 'No organization found'}), 400
@@ -307,9 +317,9 @@ def connect_erp():
             connection_status='connected',
             is_active=True
         )
-        db.session.add(integration)
+        db_session.add(integration)
     
-    db.session.commit()
+    db_session.commit()
     
     return jsonify({
         'success': True,
@@ -323,7 +333,8 @@ def connect_erp():
 def disconnect_erp():
     """Disconnect from external ERP system"""
     user_id = session.get('user_id')
-    user = db.session.get(User, user_id)
+    db_session = get_db_session()
+    user = db_session.get(User, user_id)
     
     if not user or not user.organization_id:
         return jsonify({'error': 'No organization found'}), 400
@@ -333,7 +344,7 @@ def disconnect_erp():
     if integration:
         integration.connection_status = 'disconnected'
         integration.is_active = False
-        db.session.commit()
+        db_session.commit()
     
     return jsonify({'success': True, 'message': 'ERP disconnected'})
 
@@ -343,7 +354,8 @@ def disconnect_erp():
 def sync_erp():
     """Trigger ERP data sync"""
     user_id = session.get('user_id')
-    user = db.session.get(User, user_id)
+    db_session = get_db_session()
+    user = db_session.get(User, user_id)
     
     if not user or not user.organization_id:
         return jsonify({'error': 'No organization found'}), 400
@@ -359,7 +371,7 @@ def sync_erp():
     integration.last_sync_at = datetime.utcnow()
     integration.last_sync_status = 'success'
     integration.last_sync_message = 'Data synchronized successfully'
-    db.session.commit()
+    db_session.commit()
     
     return jsonify({
         'success': True,
@@ -422,7 +434,8 @@ def analyze():
     """HR Data Analysis page"""
     lang = session.get('language', 'ar')
     user_id = session.get('user_id')
-    user = db.session.get(User, user_id)
+    db_session = get_db_session()
+    user = db_session.get(User, user_id)
     
     if not user or not user.organization_id:
         return render_template('hr/analyze.html', lang=lang, has_data=False)
