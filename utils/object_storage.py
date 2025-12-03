@@ -52,9 +52,17 @@ class ReplitStorageCredentials(Credentials):
     def token(self):
         return self._token
     
+    @token.setter
+    def token(self, value):
+        self._token = value
+    
     @property
     def expiry(self):
         return self._expiry
+    
+    @expiry.setter
+    def expiry(self, value):
+        self._expiry = value
     
     @property
     def expired(self):

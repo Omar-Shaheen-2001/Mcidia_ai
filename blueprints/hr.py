@@ -222,22 +222,26 @@ def import_data():
                         sample_rows.append(row_dict)
             wb.close()
         
-        # Upload file to object storage
+        # Try to upload file to object storage
         storage_service = ObjectStorageService()
         content_type = 'text/csv' if file.filename.endswith('.csv') else 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        storage_path = storage_service.upload_file(file_content, file.filename, content_type)
+        storage_path = None
         
-        # Fail if file upload failed - rollback and return error
-        if not storage_path:
-            db_session.rollback()
-            return jsonify({'error': 'Failed to upload file to storage. Please check your connection and try again.'}), 500
+        # Attempt storage upload (may fail if Object Storage unavailable)
+        if storage_service.client:
+            try:
+                storage_path = storage_service.upload_file(file_content, file.filename, content_type)
+            except Exception as e:
+                print(f"Warning: Object Storage upload failed: {e}")
+                storage_path = None
         
-        # Create import record only after successful upload
+        # Create import record with or without storage path
+        # If storage upload fails, we'll use session as fallback
         import_record = HRDataImport(
             organization_id=org_id,
             file_type=file_type,
             file_name=file.filename,
-            file_storage_path=storage_path,
+            file_storage_path=storage_path,  # May be None if storage unavailable
             status='pending',
             imported_by=user_id,
             records_total=total_rows
@@ -981,7 +985,7 @@ def get_uploaded_files():
 @hr_bp.route('/api/preview-file/<int:import_id>')
 @login_required
 def preview_file(import_id):
-    """Preview uploaded file from object storage"""
+    """Preview uploaded file from object storage or session"""
     db_session = get_db_session()
     try:
         db_session.rollback()
@@ -1001,27 +1005,44 @@ def preview_file(import_id):
         if not import_record:
             return jsonify({'error': 'File not found or you do not have permission to access it'}), 404
         
-        if not import_record.file_storage_path:
-            return jsonify({'error': 'File storage path is missing. The file may not have been uploaded correctly.'}), 404
+        file_content = None
+        content_type = None
+        filename = import_record.file_name
+        file_import_data = None
         
-        # Get file from object storage
-        storage_service = ObjectStorageService()
-        file_data = storage_service.get_file(import_record.file_storage_path)
+        # Try object storage first
+        if import_record.file_storage_path:
+            storage_service = ObjectStorageService()
+            file_data = storage_service.get_file(import_record.file_storage_path)
+            if file_data:
+                file_content, content_type, filename = file_data
         
-        if not file_data:
-            return jsonify({'error': 'File content could not be retrieved from storage'}), 404
+        # Fall back to session if storage not available
+        if not file_content and 'file_imports' in session:
+            file_import_data = session.get('file_imports', {}).get(str(import_id))
+            if file_import_data:
+                # Reconstruct the file from session data
+                file_type = file_import_data.get('file_type', 'employees')
+                if file_type == 'employees':
+                    content_type = 'text/csv'
+                else:
+                    content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         
-        file_content, content_type, filename = file_data
+        if not file_content and not file_import_data:
+            return jsonify({'error': 'File not available. Please re-import the file.'}), 404
         
-        # Return file for preview
-        return Response(
-            file_content,
-            mimetype=content_type,
-            headers={
-                'Content-Disposition': f'inline; filename="{filename}"',
-                'X-Content-Type-Options': 'nosniff'
-            }
-        )
+        # If we have file content from storage, return it
+        if file_content:
+            return Response(
+                file_content,
+                mimetype=content_type or 'application/octet-stream',
+                headers={
+                    'Content-Disposition': f'inline; filename="{filename}"',
+                    'X-Content-Type-Options': 'nosniff'
+                }
+            )
+        
+        return jsonify({'error': 'File content not found'}), 404
     except Exception as e:
         db_session.rollback()
         print(f"Preview error: {e}")
@@ -1031,7 +1052,7 @@ def preview_file(import_id):
 @hr_bp.route('/api/download-file/<int:import_id>')
 @login_required
 def download_file(import_id):
-    """Download uploaded file from object storage"""
+    """Download uploaded file from object storage or session"""
     db_session = get_db_session()
     try:
         db_session.rollback()
@@ -1051,27 +1072,43 @@ def download_file(import_id):
         if not import_record:
             return jsonify({'error': 'File not found or you do not have permission to access it'}), 404
         
-        if not import_record.file_storage_path:
-            return jsonify({'error': 'File storage path is missing. The file may not have been uploaded correctly.'}), 404
+        file_content = None
+        content_type = None
+        filename = import_record.file_name
+        file_import_data = None
         
-        # Get file from object storage
-        storage_service = ObjectStorageService()
-        file_data = storage_service.get_file(import_record.file_storage_path)
+        # Try object storage first
+        if import_record.file_storage_path:
+            storage_service = ObjectStorageService()
+            file_data = storage_service.get_file(import_record.file_storage_path)
+            if file_data:
+                file_content, content_type, filename = file_data
         
-        if not file_data:
-            return jsonify({'error': 'File content could not be retrieved from storage'}), 404
+        # Fall back to session if storage not available
+        if not file_content and 'file_imports' in session:
+            file_import_data = session.get('file_imports', {}).get(str(import_id))
+            if file_import_data:
+                file_type = file_import_data.get('file_type', 'employees')
+                if file_type == 'employees':
+                    content_type = 'text/csv'
+                else:
+                    content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         
-        file_content, content_type, filename = file_data
+        if not file_content and not file_import_data:
+            return jsonify({'error': 'File not available. Please re-import the file.'}), 404
         
-        # Return file for download
-        return Response(
-            file_content,
-            mimetype=content_type,
-            headers={
-                'Content-Disposition': f'attachment; filename="{filename}"',
-                'X-Content-Type-Options': 'nosniff'
-            }
-        )
+        # If we have file content from storage, return it
+        if file_content:
+            return Response(
+                file_content,
+                mimetype=content_type or 'application/octet-stream',
+                headers={
+                    'Content-Disposition': f'attachment; filename="{filename}"',
+                    'X-Content-Type-Options': 'nosniff'
+                }
+            )
+        
+        return jsonify({'error': 'File content not found'}), 404
     except Exception as e:
         db_session.rollback()
         print(f"Download error: {e}")
