@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, session, request, jsonify, current_app, send_file
+from flask import Blueprint, render_template, session, request, jsonify, current_app, send_file, Response
 from utils.decorators import login_required
 from models import db, HREmployee, HRAttendance, HRPayroll, HRPerformance, HRDataImport, ERPIntegration, TerminationRecord, Organization, User, HRAnalysisReport
 from datetime import datetime
@@ -13,6 +13,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
+from utils.object_storage import ObjectStorageService
 
 hr_bp = Blueprint('hr', __name__)
 
@@ -186,9 +187,11 @@ def import_data():
         sample_rows = []
         all_rows = []
         total_rows = 0
+        file_content = None
         
         if file.filename.endswith('.csv'):
-            content = file.read().decode('utf-8')
+            file_content = file.read()
+            content = file_content.decode('utf-8')
             lines = content.strip().split('\n')
             reader = csv.DictReader(lines)
             
@@ -200,8 +203,8 @@ def import_data():
             total_rows = len(lines) - 1
         else:
             from openpyxl import load_workbook
-            file.seek(0)
-            wb = load_workbook(filename=io.BytesIO(file.read()), read_only=True)
+            file_content = file.read()
+            wb = load_workbook(filename=io.BytesIO(file_content), read_only=True)
             ws = wb.active
             
             rows_list = list(ws.iter_rows(values_only=True))
@@ -219,10 +222,22 @@ def import_data():
                         sample_rows.append(row_dict)
             wb.close()
         
+        # Upload file to object storage
+        storage_service = ObjectStorageService()
+        content_type = 'text/csv' if file.filename.endswith('.csv') else 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        storage_path = storage_service.upload_file(file_content, file.filename, content_type)
+        
+        # Fail if file upload failed - rollback and return error
+        if not storage_path:
+            db_session.rollback()
+            return jsonify({'error': 'Failed to upload file to storage. Please check your connection and try again.'}), 500
+        
+        # Create import record only after successful upload
         import_record = HRDataImport(
             organization_id=org_id,
             file_type=file_type,
             file_name=file.filename,
+            file_storage_path=storage_path,
             status='pending',
             imported_by=user_id,
             records_total=total_rows
@@ -927,6 +942,140 @@ def export_analysis_excel(report_id):
         )
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@hr_bp.route('/api/uploaded-files')
+@login_required
+def get_uploaded_files():
+    """Get list of uploaded files for the organization"""
+    try:
+        user_id = session.get('user_id')
+        db_session = get_db_session()
+        db_session.rollback()
+        user = db_session.get(User, user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 400
+        
+        org_id = user.organization_id if user.organization_id else user.id
+        
+        # Get all successful imports
+        imports = db_session.query(HRDataImport).filter_by(
+            organization_id=org_id,
+            status='completed'
+        ).order_by(HRDataImport.completed_at.desc()).all()
+        
+        files_by_type = {}
+        for imp in imports:
+            if imp.file_type not in files_by_type:
+                files_by_type[imp.file_type] = imp.to_dict()
+        
+        return jsonify({
+            'success': True,
+            'files': files_by_type
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@hr_bp.route('/api/preview-file/<int:import_id>')
+@login_required
+def preview_file(import_id):
+    """Preview uploaded file from object storage"""
+    db_session = get_db_session()
+    try:
+        db_session.rollback()
+        user_id = session.get('user_id')
+        user = db_session.get(User, user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 401
+        
+        # Ensure user can only access their organization's files
+        org_id = user.organization_id if user.organization_id else user.id
+        import_record = db_session.query(HRDataImport).filter_by(
+            id=import_id,
+            organization_id=org_id
+        ).first()
+        
+        if not import_record:
+            return jsonify({'error': 'File not found or you do not have permission to access it'}), 404
+        
+        if not import_record.file_storage_path:
+            return jsonify({'error': 'File storage path is missing. The file may not have been uploaded correctly.'}), 404
+        
+        # Get file from object storage
+        storage_service = ObjectStorageService()
+        file_data = storage_service.get_file(import_record.file_storage_path)
+        
+        if not file_data:
+            return jsonify({'error': 'File content could not be retrieved from storage'}), 404
+        
+        file_content, content_type, filename = file_data
+        
+        # Return file for preview
+        return Response(
+            file_content,
+            mimetype=content_type,
+            headers={
+                'Content-Disposition': f'inline; filename="{filename}"',
+                'X-Content-Type-Options': 'nosniff'
+            }
+        )
+    except Exception as e:
+        db_session.rollback()
+        print(f"Preview error: {e}")
+        return jsonify({'error': 'Failed to preview file'}), 500
+
+
+@hr_bp.route('/api/download-file/<int:import_id>')
+@login_required
+def download_file(import_id):
+    """Download uploaded file from object storage"""
+    db_session = get_db_session()
+    try:
+        db_session.rollback()
+        user_id = session.get('user_id')
+        user = db_session.get(User, user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 401
+        
+        # Ensure user can only access their organization's files
+        org_id = user.organization_id if user.organization_id else user.id
+        import_record = db_session.query(HRDataImport).filter_by(
+            id=import_id,
+            organization_id=org_id
+        ).first()
+        
+        if not import_record:
+            return jsonify({'error': 'File not found or you do not have permission to access it'}), 404
+        
+        if not import_record.file_storage_path:
+            return jsonify({'error': 'File storage path is missing. The file may not have been uploaded correctly.'}), 404
+        
+        # Get file from object storage
+        storage_service = ObjectStorageService()
+        file_data = storage_service.get_file(import_record.file_storage_path)
+        
+        if not file_data:
+            return jsonify({'error': 'File content could not be retrieved from storage'}), 404
+        
+        file_content, content_type, filename = file_data
+        
+        # Return file for download
+        return Response(
+            file_content,
+            mimetype=content_type,
+            headers={
+                'Content-Disposition': f'attachment; filename="{filename}"',
+                'X-Content-Type-Options': 'nosniff'
+            }
+        )
+    except Exception as e:
+        db_session.rollback()
+        print(f"Download error: {e}")
+        return jsonify({'error': 'Failed to download file'}), 500
 
 
 @hr_bp.route('/analyze')

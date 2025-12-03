@@ -1453,6 +1453,7 @@ class HRDataImport(db.Model):
     file_type = db.Column(db.String(50), nullable=False)  # employees, attendance, performance, payroll, resignations
     file_name = db.Column(db.String(255), nullable=False)
     file_path = db.Column(db.String(500))
+    file_storage_path = db.Column(db.String(500))  # Object Storage path
     
     records_total = db.Column(db.Integer, default=0)
     records_imported = db.Column(db.Integer, default=0)
@@ -1473,11 +1474,13 @@ class HRDataImport(db.Model):
             'id': self.id,
             'file_type': self.file_type,
             'file_name': self.file_name,
+            'file_storage_path': self.file_storage_path,
             'records_total': self.records_total,
             'records_imported': self.records_imported,
             'records_failed': self.records_failed,
             'status': self.status,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None
         }
 
 
