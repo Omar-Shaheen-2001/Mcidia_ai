@@ -817,12 +817,20 @@ async function applyMapping() {
                 statusEl.innerHTML = `<span class="badge bg-success">${lang === 'ar' ? 'مرفوع' : 'Uploaded'}</span>`;
             }
             
+            // Update data status table and enable analysis
+            updateDataStatusFromImport(currentFileType, result.imported || 0);
+            
             Swal.fire({
                 icon: 'success',
                 title: lang === 'ar' ? 'نجح!' : 'Success!',
                 html: lang === 'ar' ? `تم استيراد ${result.imported || 0} سجل بنجاح!` : `Successfully imported ${result.imported || 0} records!`,
                 confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK',
-                didClose: () => location.reload()
+                didClose: () => {
+                    // Load employees preview
+                    if (currentFileType === 'employees') {
+                        loadEmployeesPreview();
+                    }
+                }
             });
         } else {
             Swal.fire({
@@ -892,6 +900,55 @@ document.getElementById('erpConnectForm').addEventListener('submit', async funct
         });
     }
 });
+
+async function updateDataStatusFromImport(fileType, count) {
+    // Find table rows and update them
+    const rows = document.querySelectorAll('table tbody tr');
+    const typeMap = {
+        'employees': 'الموظفون',
+        'attendance': 'الحضور والانصراف',
+        'performance': 'الأداء',
+        'payroll': 'الرواتب',
+        'resignations': 'الاستقالات'
+    };
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length > 0) {
+            const firstCell = cells[0].textContent.trim();
+            // Check if this is the row for the imported file type
+            if (firstCell.includes(typeMap[fileType]) || firstCell.includes(fileType)) {
+                // Update status badge
+                const statusCell = cells[1];
+                if (statusCell) {
+                    statusCell.innerHTML = `<span class="badge bg-success-subtle text-success px-3 py-2"><i class="fas fa-check-circle me-1"></i>${lang === 'ar' ? 'متوفر' : 'Available'}</span>`;
+                }
+                // Update count
+                if (cells[2]) {
+                    cells[2].innerHTML = `<span class="fw-semibold">${count}</span>`;
+                }
+                // Update date
+                if (cells[3]) {
+                    const today = new Date().toISOString().split('T')[0];
+                    cells[3].textContent = today;
+                }
+                // Update source
+                if (cells[4]) {
+                    cells[4].innerHTML = `<span class="badge bg-info-subtle text-info">CSV</span>`;
+                }
+            }
+        }
+    });
+    
+    // Enable analyze button
+    const analyzeCard = document.getElementById('analyzeCard');
+    if (analyzeCard && count > 0) {
+        analyzeCard.style.opacity = '1';
+        analyzeCard.style.pointerEvents = 'auto';
+        const btn = analyzeCard.querySelector('button');
+        if (btn) btn.disabled = false;
+    }
+}
 
 async function loadEmployeesPreview() {
     try {
