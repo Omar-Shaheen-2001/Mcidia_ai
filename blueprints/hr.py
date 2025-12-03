@@ -1,11 +1,18 @@
 from flask import Blueprint, render_template, session, request, jsonify, current_app, send_file
 from utils.decorators import login_required
-from models import db, HREmployee, HRAttendance, HRPayroll, HRPerformance, HRDataImport, ERPIntegration, TerminationRecord, Organization, User
+from models import db, HREmployee, HRAttendance, HRPayroll, HRPerformance, HRDataImport, ERPIntegration, TerminationRecord, Organization, User, HRAnalysisReport
 from datetime import datetime
 import json
 import csv
 import io
 import os
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
 
 hr_bp = Blueprint('hr', __name__)
 
@@ -694,6 +701,232 @@ def download_template(file_type):
         as_attachment=True,
         download_name=template['filename']
     )
+
+
+@hr_bp.route('/api/save-analysis', methods=['POST'])
+@login_required
+def save_analysis():
+    """Save HR analysis report"""
+    try:
+        user_id = session.get('user_id')
+        db_session = get_db_session()
+        db_session.rollback()
+        user = db_session.get(User, user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 400
+        
+        org_id = user.organization_id if user.organization_id else user.id
+        data = request.json
+        
+        report = HRAnalysisReport(
+            organization_id=org_id,
+            title=f"HR Analysis - {datetime.utcnow().strftime('%Y-%m-%d')}",
+            total_employees=data.get('total_employees', 0),
+            active_employees=data.get('active_employees', 0),
+            inactive_employees=data.get('inactive_employees', 0),
+            departments=json.dumps(data.get('departments', {})),
+            job_titles=json.dumps(data.get('job_titles', {})),
+            salary_stats=json.dumps(data.get('salary_stats', {})),
+            total_salary=float(data.get('salary_stats', {}).get('total', 0)),
+            avg_salary=float(data.get('salary_stats', {}).get('average', 0)),
+            max_salary=float(data.get('salary_stats', {}).get('max', 0)),
+            min_salary=float(data.get('salary_stats', {}).get('min', 0)),
+            employees_detail=json.dumps(data.get('employees_detail', []))
+        )
+        db_session.add(report)
+        db_session.commit()
+        
+        return jsonify({
+            'success': True,
+            'report_id': report.id,
+            'message': 'Analysis saved successfully'
+        })
+    except Exception as e:
+        db_session = get_db_session()
+        db_session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@hr_bp.route('/api/analysis-reports')
+@login_required
+def get_analysis_reports():
+    """Get all analysis reports"""
+    try:
+        user_id = session.get('user_id')
+        db_session = get_db_session()
+        db_session.rollback()
+        user = db_session.get(User, user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 400
+        
+        org_id = user.organization_id if user.organization_id else user.id
+        reports = db_session.query(HRAnalysisReport).filter_by(organization_id=org_id).order_by(HRAnalysisReport.created_at.desc()).all()
+        
+        return jsonify({
+            'success': True,
+            'reports': [r.to_dict() for r in reports]
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@hr_bp.route('/api/export-analysis/<int:report_id>/pdf')
+@login_required
+def export_analysis_pdf(report_id):
+    """Export analysis report as PDF"""
+    try:
+        user_id = session.get('user_id')
+        db_session = get_db_session()
+        db_session.rollback()
+        user = db_session.get(User, user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 400
+        
+        org_id = user.organization_id if user.organization_id else user.id
+        report = db_session.query(HRAnalysisReport).filter_by(id=report_id, organization_id=org_id).first()
+        
+        if not report:
+            return jsonify({'error': 'Report not found'}), 404
+        
+        # Create PDF
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        elements = []
+        styles = getSampleStyleSheet()
+        
+        # Title
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=colors.HexColor('#0d6efd'),
+            spaceAfter=30
+        )
+        elements.append(Paragraph('HR Analysis Report', title_style))
+        elements.append(Paragraph(f'Generated: {report.created_at.strftime("%Y-%m-%d %H:%M")}', styles['Normal']))
+        elements.append(Spacer(1, 0.3*inch))
+        
+        # Summary stats
+        summary_data = [
+            ['Metric', 'Value'],
+            ['Total Employees', str(report.total_employees)],
+            ['Active Employees', str(report.active_employees)],
+            ['Inactive Employees', str(report.inactive_employees)],
+            ['Average Salary', f"{report.avg_salary:,.2f}"],
+            ['Total Salary', f"{report.total_salary:,.2f}"]
+        ]
+        
+        summary_table = Table(summary_data, colWidths=[3*inch, 2*inch])
+        summary_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0d6efd')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(summary_table)
+        
+        doc.build(elements)
+        buffer.seek(0)
+        
+        return send_file(
+            buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'HR_Analysis_{report_id}.pdf'
+        )
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@hr_bp.route('/api/export-analysis/<int:report_id>/excel')
+@login_required
+def export_analysis_excel(report_id):
+    """Export analysis report as Excel"""
+    try:
+        user_id = session.get('user_id')
+        db_session = get_db_session()
+        db_session.rollback()
+        user = db_session.get(User, user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 400
+        
+        org_id = user.organization_id if user.organization_id else user.id
+        report = db_session.query(HRAnalysisReport).filter_by(id=report_id, organization_id=org_id).first()
+        
+        if not report:
+            return jsonify({'error': 'Report not found'}), 404
+        
+        wb = Workbook()
+        
+        # Summary sheet
+        ws = wb.active
+        ws.title = 'Summary'
+        header_fill = PatternFill(start_color='0d6efd', end_color='0d6efd', fill_type='solid')
+        header_font = Font(bold=True, color='FFFFFF')
+        
+        ws['A1'] = 'HR Analysis Report'
+        ws['A1'].font = Font(size=16, bold=True)
+        ws['A2'] = f'Generated: {report.created_at.strftime("%Y-%m-%d %H:%M")}'
+        
+        headers = ['Metric', 'Value']
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=4, column=col)
+            cell.value = header
+            cell.fill = header_fill
+            cell.font = header_font
+        
+        data = [
+            ['Total Employees', report.total_employees],
+            ['Active Employees', report.active_employees],
+            ['Inactive Employees', report.inactive_employees],
+            ['Average Salary', report.avg_salary],
+            ['Total Salary', report.total_salary]
+        ]
+        
+        for row_idx, row_data in enumerate(data, 5):
+            for col_idx, value in enumerate(row_data, 1):
+                ws.cell(row=row_idx, column=col_idx).value = value
+        
+        # Employees sheet
+        if report.employees_detail:
+            employees_data = json.loads(report.employees_detail)
+            ws_emp = wb.create_sheet('Employees')
+            
+            headers = ['Employee Number', 'Full Name', 'Department', 'Job Title', 'Salary', 'Status']
+            for col, header in enumerate(headers, 1):
+                cell = ws_emp.cell(row=1, column=col)
+                cell.value = header
+                cell.fill = header_fill
+                cell.font = header_font
+            
+            for row_idx, emp in enumerate(employees_data, 2):
+                ws_emp.cell(row=row_idx, column=1).value = emp.get('employee_number', '')
+                ws_emp.cell(row=row_idx, column=2).value = emp.get('full_name', '')
+                ws_emp.cell(row=row_idx, column=3).value = emp.get('department', '')
+                ws_emp.cell(row=row_idx, column=4).value = emp.get('job_title', '')
+                ws_emp.cell(row=row_idx, column=5).value = emp.get('base_salary', 0)
+                ws_emp.cell(row=row_idx, column=6).value = emp.get('status', '')
+        
+        buffer = io.BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        
+        return send_file(
+            buffer,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=f'HR_Analysis_{report_id}.xlsx'
+        )
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @hr_bp.route('/analyze')

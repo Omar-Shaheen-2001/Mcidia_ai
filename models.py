@@ -1616,3 +1616,36 @@ class BackupLog(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'scheduled': self.scheduled
         }
+
+
+class HRAnalysisReport(db.Model):
+    __tablename__ = 'hr_analysis_reports'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=True)
+    title = db.Column(db.String(255), nullable=False)
+    total_employees = db.Column(db.Integer, default=0)
+    active_employees = db.Column(db.Integer, default=0)
+    inactive_employees = db.Column(db.Integer, default=0)
+    departments = db.Column(db.Text)
+    job_titles = db.Column(db.Text)
+    salary_stats = db.Column(db.Text)
+    total_salary = db.Column(db.Float, default=0)
+    avg_salary = db.Column(db.Float, default=0)
+    max_salary = db.Column(db.Float, default=0)
+    min_salary = db.Column(db.Float, default=0)
+    employees_detail = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'total_employees': self.total_employees,
+            'active_employees': self.active_employees,
+            'inactive_employees': self.inactive_employees,
+            'departments': json.loads(self.departments) if self.departments else {},
+            'job_titles': json.loads(self.job_titles) if self.job_titles else {},
+            'salary_stats': json.loads(self.salary_stats) if self.salary_stats else {},
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }

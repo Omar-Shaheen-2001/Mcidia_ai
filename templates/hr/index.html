@@ -1110,11 +1110,34 @@ async function analyzeHRData() {
         // Load employees preview
         await loadEmployeesPreview();
 
+        // Save analysis report
+        await fetch('/erp/hr/api/save-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(stats)
+        });
+
+        // Show export buttons
+        const exportBtns = document.createElement('div');
+        exportBtns.className = 'mt-4 d-flex gap-2 justify-content-center';
+        exportBtns.innerHTML = `
+            <button class="btn btn-outline-primary" onclick="loadAnalysisReports()">
+                <i class="fas fa-history me-2"></i>${lang === 'ar' ? 'سجل التحليلات' : 'Reports'}
+            </button>
+            <button class="btn btn-outline-success" onclick="exportToPDF()">
+                <i class="fas fa-file-pdf me-2"></i>${lang === 'ar' ? 'تحميل PDF' : 'Export PDF'}
+            </button>
+            <button class="btn btn-outline-info" onclick="exportToExcel()">
+                <i class="fas fa-file-excel me-2"></i>${lang === 'ar' ? 'تحميل Excel' : 'Export Excel'}
+            </button>
+        `;
+        document.getElementById('analyticsSection').appendChild(exportBtns);
+
         Swal.close();
         Swal.fire({
             icon: 'success',
             title: lang === 'ar' ? 'تم التحليل بنجاح!' : 'Analysis Complete!',
-            text: lang === 'ar' ? 'تم تحليل بيانات الموارد البشرية بنجاح' : 'HR data analysis completed successfully',
+            text: lang === 'ar' ? 'تم تحليل بيانات الموارد البشرية بنجاح وحفظ النتائج' : 'HR analysis completed and report saved',
             confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
         });
     } catch (error) {
@@ -1127,6 +1150,64 @@ async function analyzeHRData() {
         });
     }
 }
+
+async function loadAnalysisReports() {
+    try {
+        const response = await fetch('/erp/hr/api/analysis-reports');
+        const data = await response.json();
+        
+        if (!data.success || !data.reports.length) {
+            Swal.fire('No reports', lang === 'ar' ? 'لا توجد تقارير' : '', 'info');
+            return;
+        }
+
+        let html = '<div class="table-responsive"><table class="table"><thead><tr><th>Date</th><th>Total</th><th>Active</th><th>Avg Salary</th><th>Actions</th></tr></thead><tbody>';
+        data.reports.forEach(r => {
+            html += `<tr>
+                <td>${new Date(r.created_at).toLocaleString()}</td>
+                <td>${r.total_employees}</td>
+                <td>${r.active_employees}</td>
+                <td>${Math.round(r.salary_stats.average).toLocaleString()}</td>
+                <td>
+                    <a href="/erp/hr/api/export-analysis/${r.id}/pdf" class="btn btn-sm btn-danger"><i class="fas fa-download"></i> PDF</a>
+                    <a href="/erp/hr/api/export-analysis/${r.id}/excel" class="btn btn-sm btn-success"><i class="fas fa-download"></i> Excel</a>
+                </td>
+            </tr>`;
+        });
+        html += '</tbody></table></div>';
+
+        Swal.fire({
+            title: lang === 'ar' ? 'سجل التحليلات' : 'Analysis Reports',
+            html: html,
+            width: '90%'
+        });
+    } catch (error) {
+        Swal.fire('Error', error.message, 'error');
+    }
+}
+
+function exportToPDF() {
+    if (currentReportId === null) {
+        // Get latest report
+        fetch('/erp/hr/api/analysis-reports').then(r => r.json()).then(d => {
+            if (d.reports.length) {
+                window.location = `/erp/hr/api/export-analysis/${d.reports[0].id}/pdf`;
+            }
+        });
+    }
+}
+
+function exportToExcel() {
+    if (currentReportId === null) {
+        fetch('/erp/hr/api/analysis-reports').then(r => r.json()).then(d => {
+            if (d.reports.length) {
+                window.location = `/erp/hr/api/export-analysis/${d.reports[0].id}/excel`;
+            }
+        });
+    }
+}
+
+let currentReportId = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     const hasData = {{ 'true' if data_status and (data_status.employees.available or data_status.attendance.available or data_status.performance.available or data_status.payroll.available) else 'false' }};
