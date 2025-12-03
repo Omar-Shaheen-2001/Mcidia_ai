@@ -127,34 +127,70 @@ def index():
 @login_required
 def api_data_status():
     """API endpoint to get current data status"""
+    db_session = get_db_session()
     try:
-        user_id = session.get('user_id')
-        db_session = get_db_session()
         db_session.rollback()
+        user_id = session.get('user_id')
         user = db_session.get(User, user_id)
         
         if not user:
-            return jsonify({'error': 'User not found'}), 400
+            return jsonify({'error': 'User not found'}), 401
         
         org_id = user.organization_id if user.organization_id else user.id
         
+        # Get counts
         employees_count = db_session.query(HREmployee).filter_by(organization_id=org_id).count()
         attendance_count = db_session.query(HRAttendance).filter_by(organization_id=org_id).count()
         performance_count = db_session.query(HRPerformance).filter_by(organization_id=org_id).count()
         payroll_count = db_session.query(HRPayroll).filter_by(organization_id=org_id).count()
         resignations_count = db_session.query(TerminationRecord).filter_by(organization_id=org_id).count()
+        
+        # Get last imports for dates
+        last_imports = db_session.query(HRDataImport).filter_by(
+            organization_id=org_id,
+            status='completed'
+        ).order_by(HRDataImport.completed_at.desc()).all()
+        
+        import_dates = {}
+        for imp in last_imports:
+            if imp.file_type not in import_dates:
+                import_dates[imp.file_type] = imp.completed_at.isoformat() if imp.completed_at else None
+        
+        return jsonify({
+            'success': True,
+            'employees': {
+                'count': employees_count,
+                'available': employees_count > 0,
+                'last_update': import_dates.get('employees')
+            },
+            'attendance': {
+                'count': attendance_count,
+                'available': attendance_count > 0,
+                'last_update': import_dates.get('attendance')
+            },
+            'performance': {
+                'count': performance_count,
+                'available': performance_count > 0,
+                'last_update': import_dates.get('performance')
+            },
+            'payroll': {
+                'count': payroll_count,
+                'available': payroll_count > 0,
+                'last_update': import_dates.get('payroll')
+            },
+            'resignations': {
+                'count': resignations_count,
+                'available': resignations_count > 0,
+                'last_update': import_dates.get('resignations')
+            }
+        })
     except Exception as e:
-        db_session = get_db_session()
-        db_session.rollback()
+        try:
+            db_session.rollback()
+        except:
+            pass
+        print(f"Error in api_data_status: {e}")
         return jsonify({'error': str(e)}), 500
-    
-    return jsonify({
-        'employees': employees_count,
-        'attendance': attendance_count,
-        'performance': performance_count,
-        'payroll': payroll_count,
-        'resignations': resignations_count
-    })
 
 
 @hr_bp.route('/api/import', methods=['POST'])

@@ -1334,17 +1334,81 @@ function toggleReportsHistory() {
     section.style.display = section.style.display === 'none' ? 'block' : 'none';
 }
 
+async function updateDataStatus() {
+    try {
+        const response = await fetch('/erp/hr/api/data-status');
+        const status = await response.json();
+        
+        if (status.success) {
+            // Update employees row
+            updateStatusRow('employees', status.employees);
+            updateStatusRow('attendance', status.attendance);
+            updateStatusRow('performance', status.performance);
+            updateStatusRow('payroll', status.payroll);
+            updateStatusRow('resignations', status.resignations);
+            
+            // Check if any data available
+            const hasData = status.employees.available || status.attendance.available || 
+                          status.performance.available || status.payroll.available;
+            
+            if (hasData) {
+                const analyzeCard = document.getElementById('analyzeCard');
+                if (analyzeCard) {
+                    analyzeCard.style.opacity = '1';
+                    analyzeCard.style.pointerEvents = 'auto';
+                    analyzeCard.querySelector('button').disabled = false;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error updating data status:', error);
+    }
+}
+
+function updateStatusRow(type, statusData) {
+    // Update count
+    const countCells = document.querySelectorAll(`table td:nth-child(3)`);
+    const typeCells = document.querySelectorAll(`table td:first-child`);
+    
+    for (let i = 0; i < typeCells.length; i++) {
+        if (typeCells[i].textContent.toLowerCase().includes(type.replace('_', ' '))) {
+            // Update status badge
+            const statusCell = typeCells[i].parentElement.querySelector('td:nth-child(2)');
+            if (statusCell) {
+                if (statusData.available) {
+                    statusCell.innerHTML = `<span class="badge bg-success-subtle text-success px-3 py-2">
+                        <i class="fas fa-check-circle me-1"></i>متوفر / Available
+                    </span>`;
+                }
+            }
+            // Update record count
+            const countCell = typeCells[i].parentElement.querySelector('td:nth-child(3)');
+            if (countCell) {
+                countCell.textContent = statusData.count;
+            }
+            // Update last update date
+            if (statusData.last_update) {
+                const dateCell = typeCells[i].parentElement.querySelector('td:nth-child(4)');
+                if (dateCell) {
+                    const date = new Date(statusData.last_update);
+                    dateCell.textContent = date.toISOString().split('T')[0];
+                }
+            }
+            break;
+        }
+    }
+}
+
 async function loadUploadedFiles() {
     try {
         const response = await fetch('/erp/hr/api/uploaded-files');
         const data = await response.json();
         
         if (data.success && data.files) {
-            // Update action buttons for each file type
             Object.keys(data.files).forEach(fileType => {
                 const file = data.files[fileType];
                 const actionsCell = document.getElementById(`actions-${fileType}`);
-                if (actionsCell && file.file_storage_path) {
+                if (actionsCell) {
                     actionsCell.innerHTML = `
                         <a href="/erp/hr/api/preview-file/${file.id}" target="_blank" class="btn btn-sm btn-outline-primary" title="${lang === 'ar' ? 'معاينة' : 'Preview'}">
                             <i class="fas fa-eye"></i>
@@ -1362,23 +1426,17 @@ async function loadUploadedFiles() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const hasData = {{ 'true' if data_status and (data_status.employees.available or data_status.attendance.available or data_status.performance.available or data_status.payroll.available) else 'false' }};
-    
-    if (hasData) {
-        const analyzeCard = document.getElementById('analyzeCard');
-        if (analyzeCard) {
-            analyzeCard.style.opacity = '1';
-            analyzeCard.style.pointerEvents = 'auto';
-            analyzeCard.querySelector('button').disabled = false;
-        }
-        loadEmployeesPreview();
-    }
+    // Update data status from server
+    updateDataStatus();
     
     // Load previous analysis reports on page load
     loadPreviousReports();
     
     // Load uploaded files to show preview/download buttons
     loadUploadedFiles();
+    
+    // Refresh status every 5 seconds
+    setInterval(updateDataStatus, 5000);
 });
 </script>
 
