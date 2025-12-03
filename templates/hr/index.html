@@ -318,6 +318,66 @@
             </div>
         </div>
     </div>
+
+    <div class="row mb-4" id="analyticsSection" style="display:none;">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-pie-chart text-primary me-2"></i>
+                        {{ 'Employees by Department' if lang == 'en' else 'الموظفون حسب القسم' }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="departmentChart" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-doughnut text-success me-2"></i>
+                        {{ 'Active vs Inactive' if lang == 'en' else 'نشطون مقابل غير نشطين' }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusChart" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="statsSection" style="display:none;">
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm border-0 text-center py-4">
+                <i class="fas fa-users fa-2x text-primary mb-3"></i>
+                <h6 class="text-muted">{{ 'Total Employees' if lang == 'en' else 'إجمالي الموظفين' }}</h6>
+                <h2 class="fw-bold" id="totalEmployees">0</h2>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm border-0 text-center py-4">
+                <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
+                <h6 class="text-muted">{{ 'Active' if lang == 'en' else 'نشطون' }}</h6>
+                <h2 class="fw-bold text-success" id="activeEmployees">0</h2>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm border-0 text-center py-4">
+                <i class="fas fa-ban fa-2x text-danger mb-3"></i>
+                <h6 class="text-muted">{{ 'Inactive' if lang == 'en' else 'غير نشطين' }}</h6>
+                <h2 class="fw-bold text-danger" id="inactiveEmployees">0</h2>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm border-0 text-center py-4">
+                <i class="fas fa-money-bill fa-2x text-info mb-3"></i>
+                <h6 class="text-muted">{{ 'Avg Salary' if lang == 'en' else 'متوسط الراتب' }}</h6>
+                <h2 class="fw-bold text-info" id="avgSalary">0</h2>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
@@ -970,6 +1030,101 @@ async function loadEmployeesPreview() {
         }
     } catch (error) {
         console.error('Error loading employees:', error);
+    }
+}
+
+let departmentChart = null;
+let statusChart = null;
+
+async function analyzeHRData() {
+    try {
+        Swal.fire({
+            title: lang === 'ar' ? 'جاري التحليل...' : 'Analyzing...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        const response = await fetch('/erp/hr/api/hr-stats');
+        const stats = await response.json();
+
+        if (!stats.success) throw new Error(stats.error);
+
+        // Show sections
+        document.getElementById('statsSection').style.display = 'grid';
+        document.getElementById('analyticsSection').style.display = 'grid';
+
+        // Update stats cards
+        document.getElementById('totalEmployees').textContent = stats.total_employees;
+        document.getElementById('activeEmployees').textContent = stats.active_employees;
+        document.getElementById('inactiveEmployees').textContent = stats.inactive_employees;
+        document.getElementById('avgSalary').textContent = Math.round(stats.salary_stats.average).toLocaleString();
+
+        // Destroy old charts if they exist
+        if (departmentChart) departmentChart.destroy();
+        if (statusChart) statusChart.destroy();
+
+        // Create department chart
+        const deptCtx = document.getElementById('departmentChart');
+        if (deptCtx) {
+            departmentChart = new Chart(deptCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(stats.departments),
+                    datasets: [{
+                        data: Object.values(stats.departments),
+                        backgroundColor: ['#0d6efd', '#198754', '#fd7e14', '#dc3545', '#6f42c1', '#20c997']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: lang === 'ar' ? 'right' : 'left' }
+                    }
+                }
+            });
+        }
+
+        // Create status chart
+        const statusCtx = document.getElementById('statusChart');
+        if (statusCtx) {
+            statusChart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [lang === 'ar' ? 'نشط' : 'Active', lang === 'ar' ? 'غير نشط' : 'Inactive'],
+                    datasets: [{
+                        data: [stats.active_employees, stats.inactive_employees],
+                        backgroundColor: ['#198754', '#dc3545']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: lang === 'ar' ? 'right' : 'left' }
+                    }
+                }
+            });
+        }
+
+        // Load employees preview
+        await loadEmployeesPreview();
+
+        Swal.close();
+        Swal.fire({
+            icon: 'success',
+            title: lang === 'ar' ? 'تم التحليل بنجاح!' : 'Analysis Complete!',
+            text: lang === 'ar' ? 'تم تحليل بيانات الموارد البشرية بنجاح' : 'HR data analysis completed successfully',
+            confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+        });
+    } catch (error) {
+        console.error('Analysis error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: lang === 'ar' ? 'خطأ' : 'Error',
+            text: error.message || (lang === 'ar' ? 'حدث خطأ أثناء التحليل' : 'Error during analysis'),
+            confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+        });
     }
 }
 

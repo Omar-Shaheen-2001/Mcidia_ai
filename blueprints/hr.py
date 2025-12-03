@@ -570,6 +570,84 @@ def get_employees_list():
         return jsonify({'error': str(e)}), 500
 
 
+@hr_bp.route('/api/hr-stats')
+@login_required
+def get_hr_stats():
+    """Get HR data statistics and analytics"""
+    try:
+        user_id = session.get('user_id')
+        db_session = get_db_session()
+        db_session.rollback()
+        user = db_session.get(User, user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 400
+        
+        org_id = user.organization_id if user.organization_id else user.id
+        
+        # Get employee stats
+        employees = db_session.query(HREmployee).filter_by(organization_id=org_id).all()
+        total_employees = len(employees)
+        
+        # Department breakdown
+        from sqlalchemy import func
+        dept_query = db_session.query(
+            HREmployee.department,
+            func.count(HREmployee.id).label('count')
+        ).filter_by(organization_id=org_id).group_by(HREmployee.department).all()
+        
+        departments = {d[0]: d[1] for d in dept_query}
+        
+        # Job title breakdown
+        job_query = db_session.query(
+            HREmployee.job_title,
+            func.count(HREmployee.id).label('count')
+        ).filter_by(organization_id=org_id).group_by(HREmployee.job_title).all()
+        
+        job_titles = {j[0]: j[1] for j in job_query}
+        
+        # Status breakdown
+        active_count = db_session.query(HREmployee).filter_by(organization_id=org_id, status='active').count()
+        inactive_count = db_session.query(HREmployee).filter_by(organization_id=org_id, status='inactive').count()
+        
+        # Salary stats
+        salary_query = db_session.query(
+            func.sum(HREmployee.base_salary),
+            func.avg(HREmployee.base_salary),
+            func.max(HREmployee.base_salary),
+            func.min(HREmployee.base_salary)
+        ).filter_by(organization_id=org_id).first()
+        
+        total_salary, avg_salary, max_salary, min_salary = salary_query
+        
+        return jsonify({
+            'success': True,
+            'total_employees': total_employees,
+            'active_employees': active_count,
+            'inactive_employees': inactive_count,
+            'departments': departments,
+            'job_titles': job_titles,
+            'salary_stats': {
+                'total': float(total_salary or 0),
+                'average': float(avg_salary or 0),
+                'max': float(max_salary or 0),
+                'min': float(min_salary or 0)
+            },
+            'employees_detail': [
+                {
+                    'employee_number': e.employee_number,
+                    'full_name': e.full_name,
+                    'department': e.department,
+                    'job_title': e.job_title,
+                    'base_salary': float(e.base_salary or 0),
+                    'status': e.status
+                } for e in employees
+            ]
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @hr_bp.route('/template/<file_type>')
 @login_required
 def download_template(file_type):
