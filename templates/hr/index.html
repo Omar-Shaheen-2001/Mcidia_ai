@@ -816,6 +816,20 @@ function showMappingModal(headers, sampleRows, fileType) {
     const fields = requiredFields[fileType] || [];
     let html = '<div class="row">';
     
+    // File information card
+    html += `
+        <div class="col-12 mb-3">
+            <div class="alert alert-info d-flex align-items-center">
+                <i class="fas fa-file fa-2x me-3"></i>
+                <div>
+                    <strong>${lang === 'ar' ? 'معلومات الملف' : 'File Information'}</strong><br>
+                    <small>${lang === 'ar' ? 'عدد الأعمدة' : 'Columns'}: ${headers.length} | ${lang === 'ar' ? 'عدد الصفوف' : 'Rows'}: ${sampleRows ? sampleRows.length : 0}</small>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    html += '<div class="row">';
     fields.forEach(field => {
         const matchingHeader = headers.find(h => 
             h.toLowerCase().includes(field.replace('_', '')) ||
@@ -838,14 +852,23 @@ function showMappingModal(headers, sampleRows, fileType) {
     if (sampleRows && sampleRows.length > 0) {
         html += `
             <div class="mt-4">
-                <h6>${lang === 'ar' ? 'معاينة البيانات:' : 'Data Preview:'}</h6>
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered">
-                        <thead class="table-light">
-                            <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
+                <div class="d-flex align-items-center mb-3">
+                    <h6 class="mb-0">
+                        <i class="fas fa-eye me-2"></i>
+                        ${lang === 'ar' ? 'معاينة البيانات:' : 'Data Preview:'}
+                    </h6>
+                </div>
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-sm table-bordered table-hover">
+                        <thead class="table-light sticky-top">
+                            <tr>${headers.map(h => `<th class="fw-bold">${h}</th>`).join('')}</tr>
                         </thead>
                         <tbody>
-                            ${sampleRows.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}
+                            ${sampleRows.map((row, idx) => `
+                                <tr>
+                                    ${headers.map(h => `<td class="small">${row[h] || '<span class="text-muted">—</span>'}</td>`).join('')}
+                                </tr>
+                            `).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -1147,11 +1170,16 @@ async function analyzeHRData() {
         await loadEmployeesPreview();
 
         // Save analysis report
-        await fetch('/erp/hr/api/save-analysis', {
+        const saveResp = await fetch('/erp/hr/api/save-analysis', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(stats)
         });
+        
+        if (saveResp.ok) {
+            // Auto-update reports history
+            await loadPreviousReports();
+        }
 
         // Show export buttons
         const exportBtns = document.createElement('div');
