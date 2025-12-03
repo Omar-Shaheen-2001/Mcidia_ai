@@ -1053,7 +1053,6 @@ def preview_file(import_id):
         if not user:
             return jsonify({'error': 'User not found'}), 401
         
-        # Ensure user can only access their organization's files
         org_id = user.organization_id if user.organization_id else user.id
         import_record = db_session.query(HRDataImport).filter_by(
             id=import_id,
@@ -1061,50 +1060,58 @@ def preview_file(import_id):
         ).first()
         
         if not import_record:
-            return jsonify({'error': 'File not found or you do not have permission to access it'}), 404
+            return jsonify({'error': 'File not found or access denied'}), 404
         
         file_content = None
         content_type = None
         filename = import_record.file_name
-        file_import_data = None
         
         # Try object storage first
         if import_record.file_storage_path:
             storage_service = ObjectStorageService()
-            file_data = storage_service.get_file(import_record.file_storage_path)
-            if file_data:
-                file_content, content_type, filename = file_data
+            try:
+                file_data = storage_service.get_file(import_record.file_storage_path)
+                if file_data:
+                    file_content, content_type, filename = file_data
+            except Exception as e:
+                print(f"Storage retrieval failed: {e}")
         
         # Fall back to session if storage not available
-        if not file_content and 'file_imports' in session:
+        if not file_content:
             file_import_data = session.get('file_imports', {}).get(str(import_id))
             if file_import_data:
-                # Reconstruct the file from session data
+                # Reconstruct the file from session
+                headers = file_import_data.get('headers', [])
+                all_rows = file_import_data.get('all_rows', [])
                 file_type = file_import_data.get('file_type', 'employees')
-                if file_type == 'employees':
-                    content_type = 'text/csv'
-                else:
-                    content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                
+                # Generate CSV content from session data
+                output = io.StringIO()
+                if headers:
+                    writer = csv.DictWriter(output, fieldnames=headers)
+                    writer.writeheader()
+                    writer.writerows(all_rows)
+                
+                file_content = output.getvalue().encode('utf-8')
+                content_type = 'text/csv'
+            else:
+                return jsonify({'error': 'File not available in session. Please re-import.'}), 404
         
-        if not file_content and not file_import_data:
-            return jsonify({'error': 'File not available. Please re-import the file.'}), 404
-        
-        # If we have file content from storage, return it
-        if file_content:
-            return Response(
-                file_content,
-                mimetype=content_type or 'application/octet-stream',
-                headers={
-                    'Content-Disposition': f'inline; filename="{filename}"',
-                    'X-Content-Type-Options': 'nosniff'
-                }
-            )
-        
-        return jsonify({'error': 'File content not found'}), 404
+        return Response(
+            file_content,
+            mimetype=content_type or 'text/csv',
+            headers={
+                'Content-Disposition': f'inline; filename="{filename}"',
+                'X-Content-Type-Options': 'nosniff'
+            }
+        )
     except Exception as e:
-        db_session.rollback()
+        try:
+            db_session.rollback()
+        except:
+            pass
         print(f"Preview error: {e}")
-        return jsonify({'error': 'Failed to preview file'}), 500
+        return jsonify({'error': f'Failed to preview file: {str(e)}'}), 500
 
 
 @hr_bp.route('/api/download-file/<int:import_id>')
@@ -1120,7 +1127,6 @@ def download_file(import_id):
         if not user:
             return jsonify({'error': 'User not found'}), 401
         
-        # Ensure user can only access their organization's files
         org_id = user.organization_id if user.organization_id else user.id
         import_record = db_session.query(HRDataImport).filter_by(
             id=import_id,
@@ -1128,49 +1134,58 @@ def download_file(import_id):
         ).first()
         
         if not import_record:
-            return jsonify({'error': 'File not found or you do not have permission to access it'}), 404
+            return jsonify({'error': 'File not found or access denied'}), 404
         
         file_content = None
         content_type = None
         filename = import_record.file_name
-        file_import_data = None
         
         # Try object storage first
         if import_record.file_storage_path:
             storage_service = ObjectStorageService()
-            file_data = storage_service.get_file(import_record.file_storage_path)
-            if file_data:
-                file_content, content_type, filename = file_data
+            try:
+                file_data = storage_service.get_file(import_record.file_storage_path)
+                if file_data:
+                    file_content, content_type, filename = file_data
+            except Exception as e:
+                print(f"Storage retrieval failed: {e}")
         
         # Fall back to session if storage not available
-        if not file_content and 'file_imports' in session:
+        if not file_content:
             file_import_data = session.get('file_imports', {}).get(str(import_id))
             if file_import_data:
+                # Reconstruct the file from session
+                headers = file_import_data.get('headers', [])
+                all_rows = file_import_data.get('all_rows', [])
                 file_type = file_import_data.get('file_type', 'employees')
-                if file_type == 'employees':
-                    content_type = 'text/csv'
-                else:
-                    content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                
+                # Generate CSV content from session data
+                output = io.StringIO()
+                if headers:
+                    writer = csv.DictWriter(output, fieldnames=headers)
+                    writer.writeheader()
+                    writer.writerows(all_rows)
+                
+                file_content = output.getvalue().encode('utf-8')
+                content_type = 'text/csv'
+            else:
+                return jsonify({'error': 'File not available in session. Please re-import.'}), 404
         
-        if not file_content and not file_import_data:
-            return jsonify({'error': 'File not available. Please re-import the file.'}), 404
-        
-        # If we have file content from storage, return it
-        if file_content:
-            return Response(
-                file_content,
-                mimetype=content_type or 'application/octet-stream',
-                headers={
-                    'Content-Disposition': f'attachment; filename="{filename}"',
-                    'X-Content-Type-Options': 'nosniff'
-                }
-            )
-        
-        return jsonify({'error': 'File content not found'}), 404
+        return Response(
+            file_content,
+            mimetype=content_type or 'text/csv',
+            headers={
+                'Content-Disposition': f'attachment; filename="{filename}"',
+                'X-Content-Type-Options': 'nosniff'
+            }
+        )
     except Exception as e:
-        db_session.rollback()
+        try:
+            db_session.rollback()
+        except:
+            pass
         print(f"Download error: {e}")
-        return jsonify({'error': 'Failed to download file'}), 500
+        return jsonify({'error': f'Failed to download file: {str(e)}'}), 500
 
 
 @hr_bp.route('/analyze')
