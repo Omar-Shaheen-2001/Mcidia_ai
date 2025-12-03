@@ -1040,6 +1040,50 @@ def get_uploaded_files():
         return jsonify({'error': str(e)}), 500
 
 
+@hr_bp.route('/api/clear-all-data', methods=['POST'])
+@login_required
+def clear_all_data():
+    """Clear all HR data for the organization"""
+    db_session = get_db_session()
+    try:
+        db_session.rollback()
+        user_id = session.get('user_id')
+        user = db_session.get(User, user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 401
+        
+        org_id = user.organization_id if user.organization_id else user.id
+        
+        # Delete from database
+        db_session.query(HRResignation).filter_by(organization_id=org_id).delete()
+        db_session.query(HRPayroll).filter_by(organization_id=org_id).delete()
+        db_session.query(HRPerformance).filter_by(organization_id=org_id).delete()
+        db_session.query(HRAttendance).filter_by(organization_id=org_id).delete()
+        db_session.query(HREmployee).filter_by(organization_id=org_id).delete()
+        db_session.query(HRDataImport).filter_by(organization_id=org_id).delete()
+        db_session.query(HRAnalysisReport).filter_by(organization_id=org_id).delete()
+        
+        db_session.commit()
+        
+        # Clear session data
+        if 'file_imports' in session:
+            session['file_imports'] = {}
+            session.modified = True
+        
+        return jsonify({
+            'success': True,
+            'message': 'تم حذف جميع البيانات بنجاح / All data cleared successfully'
+        })
+    except Exception as e:
+        try:
+            db_session.rollback()
+        except:
+            pass
+        print(f"Clear data error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @hr_bp.route('/api/preview-file/<int:import_id>')
 @login_required
 def preview_file(import_id):

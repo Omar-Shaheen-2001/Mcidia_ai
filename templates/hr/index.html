@@ -438,12 +438,17 @@
 <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
+            <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
                 <h4 class="modal-title" id="importModalLabel">
                     <i class="fas fa-file-import text-primary me-2"></i>
                     {{ 'Import HR Data' if lang == 'en' else 'استيراد بيانات الموارد البشرية' }}
                 </h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearAllData()" title="{{ 'Clear All Data' if lang == 'en' else 'تنظيف جميع البيانات' }}">
+                        <i class="fas fa-trash me-1"></i>{{ 'Clear All' if lang == 'en' else 'تنظيف الكل' }}
+                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
             </div>
             <div class="modal-body">
                 <ul class="nav nav-pills nav-fill mb-4" id="importTabs" role="tablist">
@@ -1396,6 +1401,37 @@ function updateStatusRow(type, statusData) {
             }
             break;
         }
+    }
+}
+
+async function clearAllData() {
+    const confirmClear = confirm(lang === 'ar' 
+        ? 'هل أنت متأكد من حذف جميع البيانات المحفوظة؟ هذا الإجراء لا يمكن التراجع عنه.'
+        : 'Are you sure you want to clear all data? This action cannot be undone.'
+    );
+    
+    if (!confirmClear) return;
+    
+    try {
+        const response = await fetch('/erp/hr/api/clear-all-data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            // Reload page to refresh UI
+            location.reload();
+        } else {
+            alert('خطأ: ' + (data.error || 'Failed to clear data'));
+        }
+    } catch (error) {
+        console.error('Error clearing data:', error);
+        alert('Failed to clear data');
     }
 }
 
