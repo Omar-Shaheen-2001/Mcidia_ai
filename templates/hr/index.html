@@ -687,7 +687,14 @@ async function uploadFile(input, fileType) {
             currentFileType = fileType;
             currentHeaders = data.headers;
             
-            showMappingModal(data.headers, data.sample_rows, fileType);
+            // Show success message
+            Swal.fire({
+                icon: 'success',
+                title: lang === 'ar' ? 'تم رفع الملف بنجاح!' : 'File uploaded successfully!',
+                text: lang === 'ar' ? `تم اكتشاف ${data.total_rows} صف. اختر الأعمدة المطابقة.` : `Found ${data.total_rows} rows. Select matching columns.`,
+                confirmButtonText: lang === 'ar' ? 'التالي' : 'Next',
+                didClose: () => showMappingModal(data.headers, data.sample_rows, fileType)
+            });
         } else {
             Swal.fire({
                 icon: 'error',
@@ -765,12 +772,36 @@ async function applyMapping() {
     });
     
     try {
+        // Show loading state
+        Swal.fire({
+            title: lang === 'ar' ? 'جاري الاستيراد...' : 'Importing...',
+            html: lang === 'ar' ? 'يتم استيراد البيانات، يرجى الانتظار' : 'Importing data, please wait...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        // First, send mapping
         const mapResponse = await fetch(`/erp/hr/api/import/${currentImportId}/map`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ mapping: mapping })
         });
         
+        const mapResult = await mapResponse.json();
+        
+        if (!mapResult.success) {
+            Swal.fire({
+                icon: 'error',
+                title: lang === 'ar' ? 'خطأ' : 'Error',
+                text: mapResult.error || (lang === 'ar' ? 'حدث خطأ أثناء حفظ التعيين' : 'Mapping error'),
+                confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+            });
+            return;
+        }
+        
+        // Then, process the import
         const processResponse = await fetch(`/erp/hr/api/import/${currentImportId}/process`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'}
@@ -789,7 +820,7 @@ async function applyMapping() {
             Swal.fire({
                 icon: 'success',
                 title: lang === 'ar' ? 'نجح!' : 'Success!',
-                text: lang === 'ar' ? 'تم استيراد البيانات بنجاح!' : 'Data imported successfully!',
+                html: lang === 'ar' ? `تم استيراد ${result.imported || 0} سجل بنجاح!` : `Successfully imported ${result.imported || 0} records!`,
                 confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK',
                 didClose: () => location.reload()
             });
@@ -806,7 +837,7 @@ async function applyMapping() {
         Swal.fire({
             icon: 'error',
             title: lang === 'ar' ? 'خطأ' : 'Error',
-            text: lang === 'ar' ? 'حدث خطأ أثناء الاستيراد' : 'Import error',
+            text: lang === 'ar' ? 'حدث خطأ أثناء الاستيراد: ' + error.message : 'Import error: ' + error.message,
             confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
         });
     }
