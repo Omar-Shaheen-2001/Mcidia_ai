@@ -2,6 +2,10 @@
 
 {% block title %}{{ 'HR AI Engine' if lang == 'en' else 'محرك الموارد البشرية الذكي' }} - Mcidia{% endblock %}
 
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
     <div class="row mb-4">
@@ -1405,12 +1409,20 @@ function updateStatusRow(type, statusData) {
 }
 
 async function clearAllData() {
-    const confirmClear = confirm(lang === 'ar' 
-        ? 'هل أنت متأكد من حذف جميع البيانات المحفوظة؟ هذا الإجراء لا يمكن التراجع عنه.'
-        : 'Are you sure you want to clear all data? This action cannot be undone.'
-    );
+    const result = await Swal.fire({
+        title: lang === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete',
+        text: lang === 'ar' 
+            ? 'هل أنت متأكد من حذف جميع البيانات المحفوظة؟ هذا الإجراء لا يمكن التراجع عنه.'
+            : 'Are you sure you want to clear all data? This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: lang === 'ar' ? 'نعم، احذف' : 'Yes, Delete',
+        cancelButtonText: lang === 'ar' ? 'إلغاء' : 'Cancel'
+    });
     
-    if (!confirmClear) return;
+    if (!result.isConfirmed) return;
     
     try {
         const response = await fetch('/erp/hr/api/clear-all-data', {
@@ -1423,15 +1435,29 @@ async function clearAllData() {
         const data = await response.json();
         
         if (data.success) {
-            alert(data.message);
-            // Reload page to refresh UI
+            await Swal.fire({
+                title: lang === 'ar' ? 'نجح' : 'Success',
+                text: data.message,
+                icon: 'success',
+                confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+            });
             location.reload();
         } else {
-            alert('خطأ: ' + (data.error || 'Failed to clear data'));
+            await Swal.fire({
+                title: lang === 'ar' ? 'خطأ' : 'Error',
+                text: data.error || 'Failed to clear data',
+                icon: 'error',
+                confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+            });
         }
     } catch (error) {
         console.error('Error clearing data:', error);
-        alert('Failed to clear data');
+        await Swal.fire({
+            title: lang === 'ar' ? 'خطأ' : 'Error',
+            text: lang === 'ar' ? 'حدث خطأ في تنظيف البيانات' : 'Failed to clear data',
+            icon: 'error',
+            confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+        });
     }
 }
 
@@ -1443,11 +1469,21 @@ async function previewFile(fileId) {
         if (data.success) {
             showFilePreview(data);
         } else {
-            alert('خطأ: ' + (data.error || 'Failed to load file'));
+            await Swal.fire({
+                title: lang === 'ar' ? 'خطأ' : 'Error',
+                text: data.error || 'Failed to load file',
+                icon: 'error',
+                confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+            });
         }
     } catch (error) {
         console.error('Error previewing file:', error);
-        alert('Failed to preview file');
+        await Swal.fire({
+            title: lang === 'ar' ? 'خطأ' : 'Error',
+            text: lang === 'ar' ? 'فشل في معاينة الملف' : 'Failed to preview file',
+            icon: 'error',
+            confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+        });
     }
 }
 
