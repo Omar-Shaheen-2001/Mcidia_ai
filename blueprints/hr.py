@@ -1043,7 +1043,7 @@ def get_uploaded_files():
 @hr_bp.route('/api/preview-file/<int:import_id>')
 @login_required
 def preview_file(import_id):
-    """Preview uploaded file from object storage or session"""
+    """Get file data for preview in table format"""
     db_session = get_db_session()
     try:
         db_session.rollback()
@@ -1062,49 +1062,22 @@ def preview_file(import_id):
         if not import_record:
             return jsonify({'error': 'File not found or access denied'}), 404
         
-        file_content = None
-        content_type = None
-        filename = import_record.file_name
+        # Get data from session
+        file_import_data = session.get('file_imports', {}).get(str(import_id))
+        if not file_import_data:
+            return jsonify({'error': 'File data not available. Please re-import.'}), 404
         
-        # Try object storage first
-        if import_record.file_storage_path:
-            storage_service = ObjectStorageService()
-            try:
-                file_data = storage_service.get_file(import_record.file_storage_path)
-                if file_data:
-                    file_content, content_type, filename = file_data
-            except Exception as e:
-                print(f"Storage retrieval failed: {e}")
+        headers = file_import_data.get('headers', [])
+        all_rows = file_import_data.get('all_rows', [])
         
-        # Fall back to session if storage not available
-        if not file_content:
-            file_import_data = session.get('file_imports', {}).get(str(import_id))
-            if file_import_data:
-                # Reconstruct the file from session
-                headers = file_import_data.get('headers', [])
-                all_rows = file_import_data.get('all_rows', [])
-                file_type = file_import_data.get('file_type', 'employees')
-                
-                # Generate CSV content from session data
-                output = io.StringIO()
-                if headers:
-                    writer = csv.DictWriter(output, fieldnames=headers)
-                    writer.writeheader()
-                    writer.writerows(all_rows)
-                
-                file_content = output.getvalue().encode('utf-8')
-                content_type = 'text/csv'
-            else:
-                return jsonify({'error': 'File not available in session. Please re-import.'}), 404
-        
-        return Response(
-            file_content,
-            mimetype=content_type or 'text/csv',
-            headers={
-                'Content-Disposition': f'inline; filename="{filename}"',
-                'X-Content-Type-Options': 'nosniff'
-            }
-        )
+        return jsonify({
+            'success': True,
+            'filename': import_record.file_name,
+            'file_type': import_record.file_type,
+            'headers': headers,
+            'rows': all_rows,
+            'total': len(all_rows)
+        })
     except Exception as e:
         try:
             db_session.rollback()
