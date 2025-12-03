@@ -80,15 +80,13 @@ class ObjectStorageService:
     
     def __init__(self):
         """Initialize storage client with Replit credentials"""
+        self.client = None
         try:
-            credentials = ReplitStorageCredentials()
-            self.client = storage.Client(
-                credentials=credentials,
-                project=""
-            )
+            # Replit Object Storage is not available in this environment
+            # Fall back to session-based storage
+            print("Note: Object Storage initialization skipped - using session fallback")
         except Exception as e:
             print(f"Warning: Could not initialize object storage: {e}")
-            self.client = None
     
     def get_bucket_name(self) -> str:
         """Get bucket name from environment variable"""

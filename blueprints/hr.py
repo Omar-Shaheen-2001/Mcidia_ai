@@ -726,32 +726,38 @@ def download_template(file_type):
 @login_required
 def save_analysis():
     """Save HR analysis report"""
+    db_session = get_db_session()
     try:
-        user_id = session.get('user_id')
-        db_session = get_db_session()
         db_session.rollback()
+        user_id = session.get('user_id')
         user = db_session.get(User, user_id)
         
         if not user:
-            return jsonify({'error': 'User not found'}), 400
+            return jsonify({'error': 'User not found'}), 401
         
         org_id = user.organization_id if user.organization_id else user.id
         data = request.json
         
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        salary_stats = data.get('salary_stats', {})
+        employees_detail = data.get('employees_detail', [])
+        
         report = HRAnalysisReport(
             organization_id=org_id,
-            title=f"HR Analysis - {datetime.utcnow().strftime('%Y-%m-%d')}",
-            total_employees=data.get('total_employees', 0),
-            active_employees=data.get('active_employees', 0),
-            inactive_employees=data.get('inactive_employees', 0),
+            title=f"HR Analysis - {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}",
+            total_employees=int(data.get('total_employees', 0)),
+            active_employees=int(data.get('active_employees', 0)),
+            inactive_employees=int(data.get('inactive_employees', 0)),
             departments=json.dumps(data.get('departments', {})),
             job_titles=json.dumps(data.get('job_titles', {})),
-            salary_stats=json.dumps(data.get('salary_stats', {})),
-            total_salary=float(data.get('salary_stats', {}).get('total', 0)),
-            avg_salary=float(data.get('salary_stats', {}).get('average', 0)),
-            max_salary=float(data.get('salary_stats', {}).get('max', 0)),
-            min_salary=float(data.get('salary_stats', {}).get('min', 0)),
-            employees_detail=json.dumps(data.get('employees_detail', []))
+            salary_stats=json.dumps(salary_stats),
+            total_salary=float(salary_stats.get('total', 0)) if salary_stats else 0,
+            avg_salary=float(salary_stats.get('average', 0)) if salary_stats else 0,
+            max_salary=float(salary_stats.get('max', 0)) if salary_stats else 0,
+            min_salary=float(salary_stats.get('min', 0)) if salary_stats else 0,
+            employees_detail=json.dumps(employees_detail)
         )
         db_session.add(report)
         db_session.commit()
@@ -762,33 +768,49 @@ def save_analysis():
             'message': 'Analysis saved successfully'
         })
     except Exception as e:
-        db_session = get_db_session()
-        db_session.rollback()
-        return jsonify({'error': str(e)}), 500
+        try:
+            db_session.rollback()
+        except:
+            pass
+        print(f"Error in save_analysis: {e}")
+        return jsonify({'error': f'Failed to save analysis: {str(e)}'}), 500
 
 
 @hr_bp.route('/api/analysis-reports')
 @login_required
 def get_analysis_reports():
     """Get all analysis reports"""
+    db_session = get_db_session()
     try:
-        user_id = session.get('user_id')
-        db_session = get_db_session()
         db_session.rollback()
+        user_id = session.get('user_id')
         user = db_session.get(User, user_id)
         
         if not user:
-            return jsonify({'error': 'User not found'}), 400
+            return jsonify({'error': 'User not found'}), 401
         
         org_id = user.organization_id if user.organization_id else user.id
         reports = db_session.query(HRAnalysisReport).filter_by(organization_id=org_id).order_by(HRAnalysisReport.created_at.desc()).all()
         
+        reports_data = []
+        for r in reports:
+            try:
+                reports_data.append(r.to_dict())
+            except Exception as e:
+                print(f"Error converting report {r.id} to dict: {e}")
+                continue
+        
         return jsonify({
             'success': True,
-            'reports': [r.to_dict() for r in reports]
+            'reports': reports_data
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        try:
+            db_session.rollback()
+        except:
+            pass
+        print(f"Error in get_analysis_reports: {e}")
+        return jsonify({'error': f'Failed to fetch reports: {str(e)}'}), 500
 
 
 @hr_bp.route('/api/export-analysis/<int:report_id>/pdf')
