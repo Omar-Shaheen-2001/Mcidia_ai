@@ -1056,7 +1056,7 @@ def clear_all_data():
         org_id = user.organization_id if user.organization_id else user.id
         
         # Delete from database
-        db_session.query(HRResignation).filter_by(organization_id=org_id).delete()
+        db_session.query(TerminationRecord).filter_by(organization_id=org_id).delete()
         db_session.query(HRPayroll).filter_by(organization_id=org_id).delete()
         db_session.query(HRPerformance).filter_by(organization_id=org_id).delete()
         db_session.query(HRAttendance).filter_by(organization_id=org_id).delete()
