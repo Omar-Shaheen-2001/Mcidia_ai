@@ -16,10 +16,16 @@
                         {{ 'AI-powered HR analytics and management' if lang == 'en' else 'تحليلات وإدارة الموارد البشرية المدعومة بالذكاء الاصطناعي' }}
                     </p>
                 </div>
-                <button class="btn btn-primary btn-lg" onclick="showImportModal()">
-                    <i class="fas fa-file-import me-2"></i>
-                    {{ 'Import HR Data' if lang == 'en' else 'استيراد بيانات الموارد البشرية' }}
-                </button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary btn-lg" onclick="showImportModal()">
+                        <i class="fas fa-file-import me-2"></i>
+                        {{ 'Import HR Data' if lang == 'en' else 'استيراد البيانات' }}
+                    </button>
+                    <button class="btn btn-outline-primary btn-lg" onclick="toggleReportsHistory()">
+                        <i class="fas fa-history me-2"></i>
+                        {{ 'Reports History' if lang == 'en' else 'سجل التحليلات' }}
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -289,7 +295,7 @@
         </div>
     </div>
 
-    <div class="row mb-4" id="reportsHistorySection" style="display:none;">
+    <div class="row mb-4" id="reportsHistorySection">
         <div class="col-12">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-gradient py-3" style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);">
@@ -1245,7 +1251,6 @@ async function loadPreviousReports() {
         const data = await response.json();
         
         if (data.success && data.reports && data.reports.length > 0) {
-            document.getElementById('reportsHistorySection').style.display = 'block';
             const tbody = document.getElementById('reportsTableBody');
             tbody.innerHTML = data.reports.map(r => `
                 <tr>
@@ -1263,10 +1268,23 @@ async function loadPreviousReports() {
                     </td>
                 </tr>
             `).join('');
+        } else {
+            document.getElementById('reportsTableBody').innerHTML = `
+                <tr>
+                    <td colspan="5" class="px-4 py-3 text-center text-muted">
+                        {{ 'No analysis reports yet' if lang == 'en' else 'لا توجد تقارير تحليل حتى الآن' }}
+                    </td>
+                </tr>
+            `;
         }
     } catch (error) {
         console.error('Error loading reports:', error);
     }
+}
+
+function toggleReportsHistory() {
+    const section = document.getElementById('reportsHistorySection');
+    section.style.display = section.style.display === 'none' ? 'block' : 'none';
 }
 
 document.addEventListener('DOMContentLoaded', function() {
