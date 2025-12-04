@@ -30,27 +30,94 @@
 /* Background: #ffffff (White), Surface: #f1f5f9 (Light Gray) */
 /* Text Primary: #1e293b, Text Secondary: #64748b, Text Tertiary: #94a3b8 */
 
-/* Sidebar - Clean & Modern Design */
+/* Sidebar - Modern & Smooth Design */
 .hr-sidebar {
     width: 280px;
-    background: #ffffff;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
     color: #1e293b;
     padding: 0;
     position: sticky;
     top: 70px;
     height: calc(100vh - 70px);
     overflow-y: auto;
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.08);
     border-right: 1px solid #e2e8f0;
     display: flex;
     flex-direction: column;
+    transition: all 0.35s cubic-bezier(0.4, 0.0, 0.2, 1);
+    z-index: 1000;
 }
 
-/* Sidebar Header - Clean & Simple */
+/* Sidebar Collapsed */
+.hr-sidebar.collapsed {
+    width: 80px;
+    overflow: hidden;
+}
+
+.hr-sidebar.collapsed .hr-sidebar-header h4 {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.hr-sidebar.collapsed .hr-sidebar-header small {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.hr-sidebar.collapsed .hr-nav-item-label {
+    display: none;
+}
+
+.hr-sidebar.collapsed .hr-nav-badge {
+    display: none;
+}
+
+.hr-sidebar.collapsed .hr-sidebar-stats {
+    display: none;
+}
+
+.hr-sidebar.collapsed .hr-sidebar-footer {
+    padding: 12px;
+}
+
+/* Sidebar Toggle Button */
+.hr-sidebar-toggle {
+    position: absolute;
+    top: 16px;
+    right: -40px;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    z-index: 10;
+}
+
+.hr-sidebar-toggle:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+    transform: scale(1.08);
+}
+
+.hr-sidebar-toggle:active {
+    transform: scale(0.96);
+}
+
+/* Sidebar Header - Modern & Premium */
 .hr-sidebar-header {
     padding: 24px;
     border-bottom: 1px solid #e2e8f0;
     flex-shrink: 0;
+    background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+    position: relative;
 }
 
 .hr-sidebar-header h4 {
@@ -59,6 +126,15 @@
     font-weight: 700;
     letter-spacing: -0.4px;
     color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.hr-sidebar-header h4 i {
+    color: #2563eb;
+    font-size: 20px;
 }
 
 .hr-sidebar-header small {
@@ -67,6 +143,7 @@
     letter-spacing: 0.5px;
     text-transform: uppercase;
     color: #94a3b8;
+    transition: all 0.3s ease;
 }
 
 /* Navigation Sections */
@@ -155,40 +232,47 @@
     flex-shrink: 0;
 }
 
-/* Hover State - Subtle & Clean */
+/* Hover State - Smooth & Modern */
 .hr-nav-item:hover {
-    background: #f1f5f9;
+    background: linear-gradient(90deg, #f1f5f9, #f8fafc);
     color: #1e293b;
+    padding-left: 20px;
+    box-shadow: inset 4px 0 12px rgba(37, 99, 235, 0.08);
 }
 
 .hr-nav-item:hover i {
     color: #2563eb;
+    transform: translateX(2px);
 }
 
-/* Active State - Clear & Distinct */
+/* Active State - Beautiful & Distinct */
 .hr-nav-item.active {
-    background: #eff6ff;
+    background: linear-gradient(90deg, #eff6ff, #dbeafe);
     color: #2563eb;
     font-weight: 600;
-    border-left: 2px solid #2563eb;
+    border-left: 3px solid #2563eb;
+    box-shadow: inset 4px 0 12px rgba(37, 99, 235, 0.15);
 }
 
 .hr-nav-item.active i {
     color: #2563eb;
+    transform: scale(1.05);
 }
 
 .hr-nav-item.active .hr-nav-badge {
     background: #dbeafe;
     color: #1e40af;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
 }
 
-/* Sidebar Footer - Stats */
+/* Sidebar Footer - Modern Stats */
 .hr-sidebar-footer {
     padding: 16px 24px;
     border-top: 1px solid #e2e8f0;
-    background: #f8fafc;
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
     flex-shrink: 0;
     margin-top: auto;
+    transition: all 0.3s ease;
 }
 
 .hr-sidebar-stats {
@@ -198,25 +282,37 @@
 }
 
 .hr-sidebar-stat {
-    background: #ffffff;
-    padding: 8px;
-    border-radius: 6px;
+    background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+    padding: 10px;
+    border-radius: 8px;
     text-align: center;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #dbeafe;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.hr-sidebar-stat:hover {
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
 }
 
 .hr-sidebar-stat-value {
     font-size: 16px;
-    font-weight: 700;
-    color: #2563eb;
+    font-weight: 800;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     line-height: 1.2;
 }
 
 .hr-sidebar-stat-label {
     font-size: 10px;
     color: #94a3b8;
-    margin-top: 2px;
-    font-weight: 500;
+    margin-top: 3px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
 }
 
 .hr-content {
@@ -250,9 +346,14 @@
 
 /* RTL Support */
 [dir="rtl"] .hr-sidebar {
-    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.06);
+    box-shadow: -2px 0 16px rgba(0, 0, 0, 0.08);
     border-right: none;
     border-left: 1px solid #e2e8f0;
+}
+
+[dir="rtl"] .hr-sidebar-toggle {
+    right: auto;
+    left: -40px;
 }
 
 [dir="rtl"] .hr-nav-item {
@@ -260,14 +361,25 @@
     border-right: 2px solid transparent;
 }
 
+[dir="rtl"] .hr-nav-item:hover {
+    border-left: none;
+    border-right: none;
+    padding-left: 16px;
+    padding-right: 20px;
+}
+
 [dir="rtl"] .hr-nav-item.active {
-    border-right: 2px solid #2563eb;
+    border-right: 3px solid #2563eb;
     border-left: none;
 }
 
 [dir="rtl"] .hr-nav-badge {
     margin-left: 0;
     margin-right: auto;
+}
+
+[dir="rtl"] .hr-sidebar-header h4 {
+    flex-direction: row-reverse;
 }
 
 /* KPI Cards - Premium Design */
@@ -630,10 +742,15 @@
 {% block content %}
 <div class="hr-wrapper">
     <!-- Sidebar Navigation - Redesigned -->
-    <div class="hr-sidebar">
+    <div class="hr-sidebar" id="hrSidebar">
+        <!-- Sidebar Toggle Button -->
+        <button class="hr-sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="{{ 'Toggle Sidebar' if lang == 'en' else 'تبديل الشريط الجانبي' }}">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+
         <!-- Sidebar Header -->
         <div class="hr-sidebar-header">
-            <h4><i class="fas fa-chart-network me-2"></i>Mcidia HR</h4>
+            <h4><i class="fas fa-chart-network"></i><span>Mcidia HR</span></h4>
             <small>{{ 'AI Engine' if lang == 'en' else 'محرك الذكاء' }}</small>
         </div>
 
@@ -1349,6 +1466,40 @@ function updateSidebarActive(element) {
     });
     element.classList.add('active');
 }
+
+// Toggle Sidebar
+function toggleSidebar() {
+    const sidebar = document.getElementById('hrSidebar');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    sidebar.classList.toggle('collapsed');
+    
+    // Update toggle button icon
+    const icon = toggleBtn.querySelector('i');
+    if (sidebar.classList.contains('collapsed')) {
+        icon.classList.remove('fa-chevron-left');
+        icon.classList.add('fa-chevron-right');
+    } else {
+        icon.classList.remove('fa-chevron-right');
+        icon.classList.add('fa-chevron-left');
+    }
+    
+    // Save preference to localStorage
+    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+}
+
+// Initialize sidebar state from localStorage
+document.addEventListener('DOMContentLoaded', function() {
+    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    const sidebar = document.getElementById('hrSidebar');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    
+    if (isCollapsed && sidebar) {
+        sidebar.classList.add('collapsed');
+        const icon = toggleBtn.querySelector('i');
+        icon.classList.remove('fa-chevron-left');
+        icon.classList.add('fa-chevron-right');
+    }
+});
 
 // Import Steps
 function selectImportType(type) {
