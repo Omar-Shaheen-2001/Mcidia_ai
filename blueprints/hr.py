@@ -617,14 +617,17 @@ def get_employees_list():
             return jsonify({'error': 'User not found'}), 400
         
         org_id = user.organization_id if user.organization_id else user.id
-        employees = db_session.query(HREmployee).filter_by(organization_id=org_id).limit(10).all()
+        employees = db_session.query(HREmployee).filter_by(organization_id=org_id).all()
         
         data = [{
-            'employee_number': e.employee_number,
+            'id': e.id,
+            'employee_id': e.employee_number,
             'full_name': e.full_name,
             'department': e.department,
             'job_title': e.job_title,
-            'status': e.status
+            'base_salary': float(e.base_salary) if e.base_salary else 0,
+            'hire_date': e.hire_date.isoformat() if e.hire_date else None,
+            'status': e.status or 'Active'
         } for e in employees]
         
         return jsonify({'success': True, 'employees': data, 'total': len(data)})
