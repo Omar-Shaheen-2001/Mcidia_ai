@@ -536,7 +536,7 @@
         <div id="section-import" class="hr-section">
             <div class="mb-4">
                 <button class="btn btn-outline-secondary btn-sm mb-3" onclick="showSection('home')">
-                    <i class="fas fa-arrow-{{ lang == 'ar' ? 'right' : 'left' }} me-2"></i>{{ 'Back' if lang == 'en' else 'رجوع' }}
+                    <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>{{ 'Back' if lang == 'en' else 'رجوع' }}
                 </button>
                 <h2 class="fw-bold mb-2">{{ 'Data Import Wizard' if lang == 'en' else 'معالج استيراد البيانات' }}</h2>
                 <p class="text-muted">{{ 'Import your HR data in 3 easy steps' if lang == 'en' else 'استورد بيانات الموارد البشرية في 3 خطوات بسيطة' }}</p>
@@ -676,10 +676,10 @@
                 </div>
                 <div class="d-flex justify-content-between mt-4">
                     <button class="btn btn-outline-secondary" onclick="goToImportStep(1)">
-                        <i class="fas fa-arrow-{{ lang == 'ar' ? 'right' : 'left' }} me-2"></i>{{ 'Previous' if lang == 'en' else 'السابق' }}
+                        <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>{{ 'Previous' if lang == 'en' else 'السابق' }}
                     </button>
                     <button class="btn btn-success" onclick="processAllFiles()">
-                        {{ 'Process & Analyze' if lang == 'en' else 'معالجة وتحليل' }}<i class="fas fa-arrow-{{ lang == 'ar' ? 'left' : 'right' }} ms-2"></i>
+                        {{ 'Process & Analyze' if lang == 'en' else 'معالجة وتحليل' }}<i class="fas fa-arrow-{{ 'left' if lang == 'ar' else 'right' }} ms-2"></i>
                     </button>
                 </div>
             </div>
