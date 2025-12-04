@@ -84,34 +84,44 @@ Implemented a complete password reset flow with enterprise-grade security and pr
 - **Development Tools**: `/auth/dev/reset-links` endpoint for testing reset links
 - **Admin Features**: Full password reset email template with branded design, support contact info, and security notifications
 
-### HR Module - Sidebar Design System (Dec 4, 2025)
-Implemented a modern, clean, and minimal design system for the HR sidebar with comprehensive design guidelines:
+### HR Module - Sidebar Design System v2.0 (Dec 4, 2025)
+Implemented a refined, clean, and minimal design system for the HR sidebar with zero gradients and maximum clarity:
+
+**Design Principles:**
+- **Minimal Design**: Removed all gradients, using solid colors only
+- **Subtle Shadows**: Light shadows (0.05 - 0.1 opacity) instead of heavy effects
+- **Clear Spacing**: Consistent 12px inner padding, 16px between items, 24px between sections
+- **Simple States**: No animations or transforms, simple color changes only
+- **Icon Focus**: 20px icons for better visibility and clarity
 
 **Design System Components:**
-- **Spacing System**: Base 8px unit with consistent scale (xs: 4px, sm: 8px, md: 12px, lg: 16px, xl: 24px)
-- **Typography Scale**: Primary 14px (500), Headers 18px (700), Labels 11px (600), Captions 10px (500)
-- **Icon Sizing**: 16px icons in 20×20px containers, no animation, color-only changes
+- **Spacing System**: Unified system (12px inner, 16px between items, 24px between sections)
+- **Typography Scale**: Section 11px/600, Items 14px/500, Badges 10px/600
+- **Icon Sizing**: 20px icons in 24×24px containers (increased from 16px)
 - **Color Palette**: 
   - Primary: #2563eb (Blue for actions)
   - Secondary: #64748b (Gray for secondary text)
   - Tertiary: #94a3b8 (Light gray for captions)
-  - Background: #ffffff (Clean white)
-  - Surface: #f1f5f9 (Light gray) and #f8fafc (Very light)
+  - Background: #ffffff (Pure white, no gradients)
+  - Hover: #f4f7fa (Soft light gray)
+  - Active: #eff6ff (Light blue)
   - Text: #1e293b (Primary), #64748b (Secondary), #94a3b8 (Tertiary)
   - Border: #e2e8f0
 
 **Active State Design:**
-- Background: #eff6ff (light blue)
+- Background: #eff6ff (light blue, solid)
 - Border-left: 2px solid #2563eb
 - Text color: #2563eb
 - Font-weight: 600 (semi-bold)
 - Icon color: #2563eb
+- No inset shadows or animations
 
 **Hover State Design:**
-- Background: #f1f5f9 (light gray)
+- Background: #f4f7fa (clean soft gray, solid)
 - Text color: #1e293b (darker)
 - Icon color: #2563eb (primary blue)
-- Transition: 0.2s ease (smooth)
+- Transition: 0.2s ease (smooth, no transforms)
+- No gradient, shadow, or padding changes
 
 **Sidebar Structure (5 Sections):**
 1. CORE - Home, Dashboard
@@ -120,14 +130,30 @@ Implemented a modern, clean, and minimal design system for the HR sidebar with c
 4. AI POWERED - Turnover AI, Insights
 5. SYSTEM - Settings
 
+**Collapsible Sidebar Features:**
+- Toggle button with chevron icon (solid blue #2563eb, minimal shadow)
+- Collapses from 280px to 80px width with smooth 0.35s animation
+- Icons remain visible when collapsed, labels hide
+- localStorage persistence (remembers collapsed state)
+- Dynamic tooltip updates on toggle (Collapse/Expand)
+- Hover effect with subtle scale (1.05x) and darker blue
+
+**Section Footer Stats:**
+- Live employee count + health indicator
+- Grid layout (2 columns) with 12px gap
+- Solid #f8f9fa background (no gradient)
+- Hover effect: light blue background + blue border + subtle shadow
+- Clean typography: 16px bold value, 10px gray label
+
 **Key Features:**
-- Sidebar footer with live stats (employee count, health indicator)
-- Responsive badges with employee counts
+- Zero gradients throughout (solid colors only)
+- Minimal shadow system (0.05 - 0.1 opacity)
+- Sections lazy-load on navigation (display:none until active)
 - Full RTL/LTR support for Arabic/English
 - Accessibility compliant (WCAG 4.5:1 contrast ratios)
-- Simple, clean, minimalist design
-- No unnecessary animations or gradients
-- Semantic HTML and proper spacing
+- Clean, clutter-free, professional appearance
+- Semantic HTML and consistent spacing
+- Responsive on mobile (collapse on small screens)
 
 **Documentation:**
 - `DESIGN_SYSTEM_SIDEBAR.md` - Complete design system specification
