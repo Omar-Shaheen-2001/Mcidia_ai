@@ -6,657 +6,589 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
 <style>
-* { box-sizing: border-box; }
-
-/* HR Wrapper */
-.hr-wrapper {
-    display: flex;
-    min-height: calc(100vh - 100px);
-    background: linear-gradient(135deg, #f8fafb 0%, #eef2f7 100%);
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
 }
 
-/* ==============================================
-   DESIGN SYSTEM - SIDEBAR
-   ============================================== */
+/* ===============================
+   DESIGN SYSTEM
+   =============================== */
 
-/* SPACING SYSTEM (Base: 8px) */
-/* xs: 4px, sm: 8px, md: 12px, lg: 16px, xl: 24px, 2xl: 32px */
+:root {
+    --hr-bg: #f4f6fb;
+    --hr-surface: #ffffff;
+    --hr-surface-soft: #f9fafb;
+    --hr-border: #e2e8f0;
+    --hr-border-soft: #edf2f7;
+    --hr-primary: #2563eb;
+    --hr-primary-soft: #eff6ff;
+    --hr-primary-strong: #1d4ed8;
+    --hr-text: #0f172a;
+    --hr-text-soft: #64748b;
+    --hr-text-muted: #94a3b8;
+    --hr-radius-lg: 18px;
+    --hr-radius-md: 12px;
+    --hr-radius-pill: 999px;
+    --hr-shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+    --hr-shadow-subtle: 0 4px 15px rgba(15, 23, 42, 0.05);
+    --hr-sidebar-width: 270px;
+    --hr-sidebar-width-collapsed: 80px;
+    --hr-transition: 0.25s ease;
+}
 
-/* TYPOGRAPHY SCALE */
-/* Primary: 14px (500), Headers: 18px (700), Labels: 11px (600), Captions: 10px (500) */
+/* Layout Wrapper */
+.hr-wrapper {
+    display: flex;
+    min-height: calc(100vh - 80px);
+    background: var(--hr-bg);
+}
 
-/* COLOR PALETTE */
-/* Primary: #2563eb (Blue), Secondary: #64748b (Gray), Success: #10b981 (Green) */
-/* Background: #ffffff (White), Surface: #f1f5f9 (Light Gray) */
-/* Text Primary: #1e293b, Text Secondary: #64748b, Text Tertiary: #94a3b8 */
+/* ===============================
+   SIDEBAR
+   =============================== */
 
-/* Sidebar - Clean & Minimal Design */
 .hr-sidebar {
-    width: 280px;
-    background: #ffffff;
-    color: #1e293b;
-    padding: 0;
+    width: var(--hr-sidebar-width);
+    background: var(--hr-surface);
+    color: var(--hr-text);
+    border-inline-end: 1px solid var(--hr-border);
+    box-shadow: var(--hr-shadow-subtle);
+    display: flex;
+    flex-direction: column;
     position: sticky;
     top: 70px;
     height: calc(100vh - 70px);
-    overflow-y: auto;
-    box-shadow: 1px 0 3px rgba(0, 0, 0, 0.05);
-    border-right: 1px solid #e2e8f0;
-    display: flex;
-    flex-direction: column;
-    transition: all 0.35s cubic-bezier(0.4, 0.0, 0.2, 1);
-    z-index: 1000;
+    z-index: 100;
+    transition: width var(--hr-transition);
 }
 
-/* Sidebar Collapsed */
+/* Collapsed */
 .hr-sidebar.collapsed {
-    width: 80px;
-    overflow: hidden;
+    width: var(--hr-sidebar-width-collapsed);
 }
 
-.hr-sidebar.collapsed .hr-sidebar-header h4 {
-    opacity: 0;
-    visibility: hidden;
-}
-
-.hr-sidebar.collapsed .hr-sidebar-header small {
-    opacity: 0;
-    visibility: hidden;
-}
-
-.hr-sidebar.collapsed .hr-nav-item-label {
-    display: none;
-}
-
-.hr-sidebar.collapsed .hr-nav-badge {
-    display: none;
-}
-
-.hr-sidebar.collapsed .hr-sidebar-stats {
-    display: none;
-}
-
+.hr-sidebar.collapsed .hr-sidebar-header-text,
+.hr-sidebar.collapsed .hr-nav-item-label,
+.hr-sidebar.collapsed .hr-nav-badge,
 .hr-sidebar.collapsed .hr-sidebar-footer {
-    padding: 12px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
-/* Sidebar Toggle Button */
+.hr-sidebar.collapsed .hr-sidebar-content {
+    padding-inline: 10px;
+}
+
+/* Toggle Button */
 .hr-sidebar-toggle {
     position: absolute;
-    top: 16px;
-    right: -40px;
-    width: 36px;
-    height: 36px;
-    background: #2563eb;
+    top: 18px;
+    inset-inline-end: -18px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
     border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
+    background: var(--hr-primary);
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
-    transition: all 0.25s ease;
-    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
-    z-index: 10;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+    cursor: pointer;
+    transition: transform var(--hr-transition), box-shadow var(--hr-transition), background var(--hr-transition);
+    font-size: 14px;
+    z-index: 1100;
 }
 
 .hr-sidebar-toggle:hover {
-    background: #1d4ed8;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-    transform: scale(1.05);
+    background: var(--hr-primary-strong);
+    transform: translateY(-1px) scale(1.05);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.55);
 }
 
-.hr-sidebar-toggle:active {
-    transform: scale(0.95);
-}
-
-/* Sidebar Header - Clean & Minimal */
+/* Header */
 .hr-sidebar-header {
-    padding: 24px;
-    border-bottom: 1px solid #e2e8f0;
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid var(--hr-border-soft);
+    display: flex;
+    align-items: center;
+    gap: 10px;
     flex-shrink: 0;
-    background: #ffffff;
-    position: relative;
 }
 
-.hr-sidebar-header h4 {
-    margin: 0 0 4px 0;
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: -0.4px;
-    color: #1e293b;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.hr-sidebar-header h4 i {
-    color: #2563eb;
-    font-size: 20px;
-}
-
-.hr-sidebar-header small {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    color: #94a3b8;
-}
-
-/* Navigation Sections */
-.hr-sidebar-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0;
-}
-
-.hr-nav-section {
-    padding: 0;
-    margin: 0;
-}
-
-.hr-nav-section + .hr-nav-section {
-    padding-top: 24px;
-    border-top: 1px solid #f1f5f9;
-}
-
-/* Section Titles - Labels */
-.hr-nav-section-title {
-    padding: 12px 24px;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
-    color: #94a3b8;
-    margin: 0;
-}
-
-.hr-nav-section-title::before {
-    content: '';
-    display: none;
-}
-
-/* Navigation Items - Clean State */
-.hr-nav-item {
-    padding: 12px 24px;
-    margin: 0;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    color: #64748b;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 14px;
-    position: relative;
-    border-radius: 0;
-    overflow: hidden;
-    border-left: 2px solid transparent;
-}
-
-/* Icon - Base Style */
-.hr-nav-item i {
-    width: 24px;
-    height: 24px;
+.hr-sidebar-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: var(--hr-primary-soft);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-    transition: all 0.2s ease;
-    color: #94a3b8;
+    color: var(--hr-primary);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.2);
+    font-size: 18px;
 }
 
-/* Label - Base Style */
-.hr-nav-item-label {
+.hr-sidebar-header-text h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+.hr-sidebar-header-text small {
+    font-size: 11px;
+    color: var(--hr-text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+/* Sidebar Content */
+.hr-sidebar-content {
     flex: 1;
+    overflow-y: auto;
+    padding: 10px 14px 12px;
+}
+
+.hr-nav-section + .hr-nav-section {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--hr-border-soft);
+}
+
+.hr-nav-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--hr-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 8px 6px;
+}
+
+/* Items */
+.hr-nav-item {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    padding: 8px 10px;
+    margin: 2px 0;
+    border-radius: 10px;
+    color: var(--hr-text-soft);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background var(--hr-transition), color var(--hr-transition), transform var(--hr-transition);
 }
 
-/* Badge - Base Style */
+.hr-nav-item-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--hr-text-muted);
+}
+
+.hr-nav-item-label {
+    flex: 1;
+    white-space: nowrap;
+}
+
 .hr-nav-badge {
-    background: #eff6ff;
-    color: #2563eb;
-    padding: 3px 10px;
-    border-radius: 4px;
     font-size: 10px;
+    padding: 2px 8px;
+    border-radius: var(--hr-radius-pill);
+    background: var(--hr-primary-soft);
+    color: var(--hr-primary-strong);
     font-weight: 600;
-    margin-left: auto;
-    flex-shrink: 0;
 }
 
-/* Hover State - Simple & Clean */
+/* Hover & Active */
 .hr-nav-item:hover {
-    background: #f4f7fa;
-    color: #1e293b;
+    background: #edf2ff;
+    color: var(--hr-text);
+    transform: translateY(-1px);
 }
 
-.hr-nav-item:hover i {
-    color: #2563eb;
+.hr-nav-item:hover .hr-nav-item-icon {
+    color: var(--hr-primary);
 }
 
-/* Active State - Clear & Distinct */
 .hr-nav-item.active {
-    background: #eff6ff;
-    color: #2563eb;
+    background: var(--hr-primary-soft);
+    color: var(--hr-primary-strong);
     font-weight: 600;
-    border-left: 2px solid #2563eb;
+    position: relative;
 }
 
-.hr-nav-item.active i {
-    color: #2563eb;
+.hr-nav-item.active::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 3px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    border-radius: 4px;
+    background: var(--hr-primary-strong);
 }
 
-.hr-nav-item.active .hr-nav-badge {
-    background: #dbeafe;
-    color: #1e40af;
+[dir="rtl"] .hr-nav-item.active::before {
+    inset-inline-start: auto;
+    inset-inline-end: 3px;
 }
 
-/* Sidebar Footer - Clean Stats */
+/* Footer Stats */
 .hr-sidebar-footer {
-    padding: 24px;
-    border-top: 1px solid #e2e8f0;
-    background: #ffffff;
+    padding: 12px 16px 14px;
+    border-top: 1px solid var(--hr-border-soft);
+    background: var(--hr-surface-soft);
     flex-shrink: 0;
-    margin-top: auto;
+    transition: opacity var(--hr-transition), visibility var(--hr-transition);
 }
 
 .hr-sidebar-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 8px;
 }
 
 .hr-sidebar-stat {
-    background: #f8f9fa;
-    padding: 12px;
-    border-radius: 6px;
-    text-align: center;
-    border: 1px solid #e2e8f0;
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.hr-sidebar-stat:hover {
-    border-color: #2563eb;
-    background: #eff6ff;
-    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.1);
+    border-radius: 10px;
+    border: 1px solid var(--hr-border-soft);
+    padding: 8px 10px;
+    background: #ffffff;
 }
 
 .hr-sidebar-stat-value {
-    font-size: 16px;
-    font-weight: 700;
-    color: #2563eb;
-    line-height: 1.2;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--hr-primary-strong);
 }
 
 .hr-sidebar-stat-label {
     font-size: 10px;
-    color: #94a3b8;
-    margin-top: 4px;
+    color: var(--hr-text-muted);
     font-weight: 600;
+    text-transform: uppercase;
 }
+
+/* RTL */
+[dir="rtl"] .hr-sidebar {
+    border-inline-start: 1px solid var(--hr-border);
+    border-inline-end: none;
+}
+
+[dir="rtl"] .hr-sidebar-toggle {
+    inset-inline-start: -18px;
+    inset-inline-end: auto;
+}
+
+/* ===============================
+   CONTENT
+   =============================== */
 
 .hr-content {
     flex: 1;
-    padding: 40px;
-    background: linear-gradient(135deg, #f8fafb 0%, #eef2f7 100%);
+    padding: 30px;
     overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0,0,0,0.1) transparent;
 }
 
+/* Sections */
 .hr-section {
     display: none;
-    animation: slideInUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: hr-slide-in 0.3s ease-out;
 }
 
 .hr-section.active {
     display: block;
 }
 
-@keyframes slideInUp {
-    from { 
-        opacity: 0; 
-        transform: translateY(20px);
+@keyframes hr-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
     }
-    to { 
-        opacity: 1; 
+    to {
+        opacity: 1;
         transform: translateY(0);
     }
 }
 
-/* RTL Support */
-[dir="rtl"] .hr-sidebar {
-    box-shadow: -1px 0 3px rgba(0, 0, 0, 0.05);
-    border-right: none;
-    border-left: 1px solid #e2e8f0;
+/* Page Title */
+.hr-page-header {
+    margin-bottom: 20px;
 }
 
-[dir="rtl"] .hr-sidebar-toggle {
-    right: auto;
-    left: -40px;
+.hr-page-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    margin-bottom: 4px;
 }
 
-[dir="rtl"] .hr-nav-item {
-    border-left: none;
-    border-right: 2px solid transparent;
+.hr-page-subtitle {
+    font-size: 13px;
+    color: var(--hr-text-soft);
 }
 
-[dir="rtl"] .hr-nav-item:hover {
-    border-left: none;
-    border-right: none;
-    padding-left: 16px;
-    padding-right: 20px;
+/* Cards */
+.hr-card {
+    background: var(--hr-surface);
+    border-radius: var(--hr-radius-lg);
+    border: 1px solid var(--hr-border-soft);
+    box-shadow: var(--hr-shadow-soft);
+    padding: 20px 20px 18px;
+    height: 100%;
 }
 
-[dir="rtl"] .hr-nav-item.active {
-    border-right: 3px solid #2563eb;
-    border-left: none;
+.hr-card-header {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--hr-text);
 }
 
-[dir="rtl"] .hr-nav-badge {
-    margin-left: 0;
-    margin-right: auto;
+.hr-card-header i {
+    color: var(--hr-primary);
 }
 
-[dir="rtl"] .hr-sidebar-header h4 {
-    flex-direction: row-reverse;
+/* Welcome cards */
+.hr-welcome-card {
+    background: var(--hr-surface);
+    border-radius: var(--hr-radius-lg);
+    border: 1px solid var(--hr-border-soft);
+    padding: 20px;
+    box-shadow: var(--hr-shadow-subtle);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-/* KPI Cards - Premium Design */
-.kpi-card {
-    background: linear-gradient(135deg, white 0%, #fafbfc 100%);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    border: 1px solid rgba(0,0,0,0.05);
-    border-left: 4px solid;
-    position: relative;
-    overflow: hidden;
-}
-
-.kpi-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 100px;
-    height: 100px;
-    background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 70%);
-    transition: all 0.35s;
-}
-
-.kpi-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 16px 48px rgba(0,0,0,0.12);
-    border-color: inherit;
-}
-
-.kpi-card:hover::before {
-    top: -20%;
-    right: -20%;
-}
-
-.kpi-icon {
-    width: 56px;
-    height: 56px;
+.hr-welcome-icon {
+    width: 46px;
+    height: 46px;
     border-radius: 14px;
+    background: var(--hr-primary-soft);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 26px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
-    position: relative;
-    z-index: 1;
+    color: var(--hr-primary-strong);
+    font-size: 20px;
 }
 
-.kpi-value {
-    font-size: 32px;
-    font-weight: 800;
-    margin: 12px 0 6px 0;
-    letter-spacing: -0.5px;
-    position: relative;
-    z-index: 1;
-}
-
-.kpi-label {
-    font-size: 13px;
-    color: #6c757d;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    position: relative;
-    z-index: 1;
-}
-
-.kpi-change {
+/* Progress */
+.hr-progress-label {
+    display: flex;
+    justify-content: space-between;
     font-size: 11px;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-weight: 700;
-    margin-top: 8px;
-    display: inline-block;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    position: relative;
-    z-index: 1;
+    color: var(--hr-text-soft);
+    margin-bottom: 4px;
 }
 
-/* Welcome Cards */
-.welcome-card {
-    background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
-    border-radius: 20px;
-    padding: 32px;
-    box-shadow: 0 10px 32px rgba(0,0,0,0.08);
-    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    border: 1.5px solid rgba(0,0,0,0.04);
-    height: 100%;
-    position: relative;
-    overflow: hidden;
+/* Processing Screen */
+.processing-animation {
+    text-align: center;
+    background: var(--hr-surface);
+    border-radius: var(--hr-radius-lg);
+    padding: 40px 20px;
+    border: 1px solid var(--hr-border-soft);
+    box-shadow: var(--hr-shadow-soft);
 }
 
-.welcome-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 150px;
-    height: 150px;
-    background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%);
-    border-radius: 50%;
-}
-
-.welcome-card:hover {
-    border-color: #3b82f6;
-    box-shadow: 0 20px 48px rgba(59,130,246,0.15);
-    transform: translateY(-8px);
-}
-
-.welcome-card-icon {
+.processing-spinner {
     width: 80px;
     height: 80px;
-    border-radius: 18px;
+    border-radius: 50%;
+    border: 5px solid #e2e8f0;
+    border-top-color: var(--hr-primary);
+    margin: 0 auto 24px;
+    animation: hr-spin 0.9s linear infinite;
+}
+
+@keyframes hr-spin {
+    to { transform: rotate(360deg); }
+}
+
+.processing-steps {
+    max-width: 480px;
+    margin: 0 auto;
+    text-align: start;
+}
+
+.processing-step {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 36px;
-    margin-bottom: 20px;
-    position: relative;
-    z-index: 1;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-}
-
-/* Data Table */
-.data-table {
-    background: white;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 10px 32px rgba(0,0,0,0.08);
-    border: 1px solid rgba(0,0,0,0.05);
-}
-
-.data-table thead {
-    background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
-    color: white;
-    position: relative;
-}
-
-.data-table thead th {
-    padding: 18px 20px;
-    font-weight: 700;
-    border: none;
+    gap: 10px;
     font-size: 13px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+    padding: 6px 0;
+    color: var(--hr-text-soft);
+    opacity: 0.6;
 }
 
-.data-table tbody td {
-    padding: 16px 20px;
-    vertical-align: middle;
-    font-weight: 500;
+.processing-step i {
+    font-size: 15px;
+    color: #10b981;
 }
 
-.data-table tbody tr {
-    border-bottom: 1px solid #f0f1f3;
-    transition: all 0.25s;
+.processing-step.active {
+    opacity: 1;
+    color: var(--hr-text);
+    font-weight: 600;
 }
 
-.data-table tbody tr:hover {
-    background: linear-gradient(90deg, rgba(59,130,246,0.05), transparent);
-}
-
-/* Progress Steps */
+/* Progress Steps Wizard */
 .progress-steps {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin: 40px 0;
+    margin-bottom: 20px;
     position: relative;
 }
 
 .progress-steps::before {
     content: '';
     position: absolute;
-    top: 25px;
-    left: 0;
-    right: 0;
+    top: 20px;
+    inset-inline: 8px;
     height: 2px;
-    background: linear-gradient(90deg, #e5e7eb 0%, #d1d5db 50%, #e5e7eb 100%);
-    z-index: 0;
+    background: #e5e7eb;
 }
 
 .progress-step {
-    text-align: center;
     position: relative;
     z-index: 1;
+    text-align: center;
     flex: 1;
 }
 
 .progress-step-circle {
-    width: 56px;
-    height: 56px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: white;
-    border: 3px solid #e5e7eb;
+    background: var(--hr-surface);
+    border: 2px solid #e5e7eb;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    margin-bottom: 12px;
-    transition: all 0.35s;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    font-size: 18px;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: var(--hr-text-soft);
 }
 
 .progress-step.active .progress-step-circle {
-    background: linear-gradient(135deg, #0f3460, #16213e);
-    border-color: transparent;
-    color: white;
-    box-shadow: 0 8px 24px rgba(15,52,96,0.3);
-    transform: scale(1.1);
+    border-color: var(--hr-primary);
+    color: var(--hr-primary-strong);
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
 }
 
 .progress-step.completed .progress-step-circle {
-    background: linear-gradient(135deg, #10b981, #059669);
-    border-color: transparent;
-    color: white;
-    box-shadow: 0 8px 24px rgba(16,185,129,0.3);
+    background: #10b981;
+    border-color: #10b981;
+    color: #fff;
 }
 
-.progress-step small {
-    font-weight: 600;
-    font-size: 12px;
-    color: #4b5563;
+/* Tables */
+.data-table {
+    border-radius: var(--hr-radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--hr-border-soft);
+    box-shadow: var(--hr-shadow-soft);
 }
 
-/* Avatar Circle */
+.data-table thead {
+    background: #0f172a;
+    color: #fff;
+}
+
+.data-table thead th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 16px;
+    border-bottom: none;
+}
+
+.data-table tbody td {
+    padding: 12px 16px;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.data-table tbody tr:nth-child(even) {
+    background: #f9fafb;
+}
+
+.data-table tbody tr:hover {
+    background: #eef2ff;
+}
+
+/* Avatar */
 .avatar-circle {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
+    background: var(--hr-primary-soft);
+    color: var(--hr-primary-strong);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
     font-weight: 700;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-inline-end: 10px;
 }
 
-/* Processing Animation */
-.processing-animation {
-    text-align: center;
-    padding: 80px 20px;
-    background: linear-gradient(135deg, rgba(15,52,96,0.02) 0%, rgba(255,255,255,0.5) 100%);
-    border-radius: 20px;
+/* KPI Cards */
+.kpi-card {
+    background: var(--hr-surface);
+    border-radius: var(--hr-radius-lg);
+    border: 1px solid var(--hr-border-soft);
+    padding: 18px 18px 16px;
+    box-shadow: var(--hr-shadow-subtle);
 }
 
-.processing-spinner {
-    width: 100px;
-    height: 100px;
-    border: 6px solid rgba(0,0,0,0.08);
-    border-top-color: #0f3460;
-    border-radius: 50%;
-    animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-    margin: 0 auto 30px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+.kpi-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--hr-text-muted);
+    font-weight: 600;
+    margin-bottom: 6px;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
+.kpi-value {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    margin-bottom: 4px;
 }
 
-.processing-steps {
-    max-width: 500px;
-    margin: 0 auto;
-    text-align: left;
+.kpi-change {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: var(--hr-radius-pill);
 }
 
-.processing-step {
-    padding: 14px 0;
-    opacity: 0.4;
-    transition: all 0.35s;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+/* Scrollbars */
+.hr-sidebar-content::-webkit-scrollbar,
+.hr-content::-webkit-scrollbar,
+.table-responsive::-webkit-scrollbar {
+    width: 6px;
 }
 
-.processing-step.active {
-    opacity: 1;
-    font-weight: 700;
-    color: #0f3460;
-}
-
-.processing-step i {
-    color: #10b981;
-    font-size: 18px;
+.hr-sidebar-content::-webkit-scrollbar-thumb,
+.hr-content::-webkit-scrollbar-thumb,
+.table-responsive::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.6);
+    border-radius: 3px;
 }
 
 /* Responsive */
@@ -664,181 +596,115 @@
     .hr-wrapper {
         flex-direction: column;
     }
-    
     .hr-sidebar {
-        width: 100%;
         position: relative;
-        height: auto;
         top: 0;
+        height: auto;
+        width: 100%;
     }
-    
+    .hr-sidebar.collapsed {
+        width: 100%;
+    }
+    .hr-sidebar-toggle {
+        display: none;
+    }
     .hr-content {
-        padding: 24px;
+        padding: 18px;
     }
-}
-
-/* Card Styles */
-.card {
-    border: 1px solid rgba(0,0,0,0.05) !important;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.06) !important;
-    border-radius: 16px !important;
-}
-
-.card-header {
-    background: linear-gradient(135deg, #f8fafb 0%, #eef2f7 100%) !important;
-    border-bottom: 1px solid rgba(0,0,0,0.05) !important;
-    border-radius: 16px 16px 0 0 !important;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #0f3460 0%, #16213e 100%) !important;
-    border: none !important;
-    box-shadow: 0 4px 12px rgba(15,52,96,0.3) !important;
-    transition: all 0.25s !important;
-}
-
-.btn-primary:hover {
-    box-shadow: 0 8px 24px rgba(15,52,96,0.4) !important;
-    transform: translateY(-2px) !important;
-}
-
-/* Scrollbar */
-.hr-content::-webkit-scrollbar,
-.table-responsive::-webkit-scrollbar {
-    width: 8px;
-}
-
-.hr-content::-webkit-scrollbar-track,
-.table-responsive::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.hr-content::-webkit-scrollbar-thumb,
-.table-responsive::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.1);
-    border-radius: 4px;
-}
-
-.hr-content::-webkit-scrollbar-thumb:hover,
-.table-responsive::-webkit-scrollbar-thumb:hover {
-    background: rgba(0,0,0,0.2);
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="hr-wrapper">
-    <!-- Sidebar Navigation - Redesigned -->
-    <div class="hr-sidebar" id="hrSidebar">
-        <!-- Sidebar Toggle Button -->
-        <button class="hr-sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" 
-            data-tooltip="{{ 'Collapse' if lang == 'en' else 'تقليص' }}"
-            title="{{ 'Collapse Sidebar' if lang == 'en' else 'تقليص الشريط الجانبي' }}">
+    <!-- SIDEBAR -->
+    <aside class="hr-sidebar" id="hrSidebar">
+        <button class="hr-sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="{{ 'Toggle sidebar' if lang == 'en' else 'تبديل الشريط الجانبي' }}">
             <i class="fas fa-chevron-left"></i>
         </button>
 
-        <!-- Sidebar Header -->
         <div class="hr-sidebar-header">
-            <h4><i class="fas fa-chart-network"></i><span>Mcidia HR</span></h4>
-            <small>{{ 'AI Engine' if lang == 'en' else 'محرك الذكاء' }}</small>
+            <div class="hr-sidebar-logo">
+                <i class="fas fa-user-gear"></i>
+            </div>
+            <div class="hr-sidebar-header-text">
+                <h4>Mcidia HR</h4>
+                <small>{{ 'AI Engine' if lang == 'en' else 'محرك الذكاء' }}</small>
+            </div>
         </div>
 
-        <!-- Sidebar Content -->
         <div class="hr-sidebar-content">
-            <!-- Section 1: Core Features -->
+            <!-- CORE -->
             <div class="hr-nav-section">
-                <div class="hr-nav-section-title">{{ 'CORE' if lang == 'en' else 'الأساسي' }}</div>
+                <div class="hr-nav-section-title">{{ 'Core' if lang == 'en' else 'الأساسي' }}</div>
                 <a class="hr-nav-item active" onclick="showSection('home'); updateSidebarActive(this)">
-                    <i class="fas fa-home"></i>
-                    <div class="hr-nav-item-label">
-                        <span>{{ 'Home' if lang == 'en' else 'الرئيسية' }}</span>
-                    </div>
+                    <div class="hr-nav-item-icon"><i class="fas fa-house"></i></div>
+                    <div class="hr-nav-item-label">{{ 'Home' if lang == 'en' else 'الرئيسية' }}</div>
                 </a>
                 <a class="hr-nav-item" onclick="showSection('dashboard'); updateSidebarActive(this)">
-                    <i class="fas fa-tv"></i>
-                    <div class="hr-nav-item-label">
-                        <span>{{ 'Dashboard' if lang == 'en' else 'لوحة القيادة' }}</span>
-                    </div>
+                    <div class="hr-nav-item-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="hr-nav-item-label">{{ 'Dashboard' if lang == 'en' else 'لوحة القيادة' }}</div>
                 </a>
             </div>
 
-            <!-- Section 2: Data Management -->
+            <!-- DATA -->
             <div class="hr-nav-section">
-                <div class="hr-nav-section-title">{{ 'MANAGE DATA' if lang == 'en' else 'إدارة البيانات' }}</div>
+                <div class="hr-nav-section-title">{{ 'Data' if lang == 'en' else 'البيانات' }}</div>
                 <a class="hr-nav-item" onclick="showSection('import'); updateSidebarActive(this)">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <div class="hr-nav-item-label">
-                        <span>{{ 'Import' if lang == 'en' else 'استيراد' }}</span>
-                    </div>
+                    <div class="hr-nav-item-icon"><i class="fas fa-file-import"></i></div>
+                    <div class="hr-nav-item-label">{{ 'Import' if lang == 'en' else 'استيراد' }}</div>
                 </a>
                 <a class="hr-nav-item" onclick="showSection('employees'); updateSidebarActive(this)">
-                    <i class="fas fa-people-group"></i>
-                    <div class="hr-nav-item-label">
-                        <span>{{ 'Employees' if lang == 'en' else 'الموظفون' }}</span>
-                    </div>
+                    <div class="hr-nav-item-icon"><i class="fas fa-users"></i></div>
+                    <div class="hr-nav-item-label">{{ 'Employees' if lang == 'en' else 'الموظفون' }}</div>
                     <span class="hr-nav-badge" id="employees-count">0</span>
                 </a>
             </div>
 
-            <!-- Section 3: Analytics Suite -->
+            <!-- ANALYTICS -->
             <div class="hr-nav-section">
-                <div class="hr-nav-section-title">{{ 'ANALYTICS' if lang == 'en' else 'التحليلات' }}</div>
+                <div class="hr-nav-section-title">{{ 'Analytics' if lang == 'en' else 'التحليلات' }}</div>
                 <a class="hr-nav-item" onclick="showSection('performance'); updateSidebarActive(this)">
-                    <i class="fas fa-chart-bar"></i>
-                    <div class="hr-nav-item-label">
-                        <span>{{ 'Performance' if lang == 'en' else 'الأداء' }}</span>
-                    </div>
+                    <div class="hr-nav-item-icon"><i class="fas fa-star-half-stroke"></i></div>
+                    <div class="hr-nav-item-label">{{ 'Performance' if lang == 'en' else 'الأداء' }}</div>
                 </a>
                 <a class="hr-nav-item" onclick="showSection('attendance'); updateSidebarActive(this)">
-                    <i class="fas fa-calendar-alt"></i>
-                    <div class="hr-nav-item-label">
-                        <span>{{ 'Attendance' if lang == 'en' else 'الحضور' }}</span>
-                    </div>
+                    <div class="hr-nav-item-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="hr-nav-item-label">{{ 'Attendance' if lang == 'en' else 'الحضور' }}</div>
                 </a>
                 <a class="hr-nav-item" onclick="showSection('payroll'); updateSidebarActive(this)">
-                    <i class="fas fa-money-check-alt"></i>
-                    <div class="hr-nav-item-label">
-                        <span>{{ 'Payroll' if lang == 'en' else 'الرواتب' }}</span>
-                    </div>
+                    <div class="hr-nav-item-icon"><i class="fas fa-sack-dollar"></i></div>
+                    <div class="hr-nav-item-label">{{ 'Payroll' if lang == 'en' else 'الرواتب' }}</div>
                 </a>
                 <a class="hr-nav-item" onclick="showSection('resignations'); updateSidebarActive(this)">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <div class="hr-nav-item-label">
-                        <span>{{ 'Resignations' if lang == 'en' else 'الاستقالات' }}</span>
-                    </div>
+                    <div class="hr-nav-item-icon"><i class="fas fa-arrow-right-from-bracket"></i></div>
+                    <div class="hr-nav-item-label">{{ 'Resignations' if lang == 'en' else 'الاستقالات' }}</div>
                 </a>
             </div>
 
-            <!-- Section 4: AI Intelligence -->
+            <!-- AI -->
             <div class="hr-nav-section">
-                <div class="hr-nav-section-title">{{ 'AI POWERED' if lang == 'en' else 'الذكاء' }}</div>
+                <div class="hr-nav-section-title">{{ 'AI Engine' if lang == 'en' else 'الذكاء الاصطناعي' }}</div>
                 <a class="hr-nav-item" onclick="showSection('turnover'); updateSidebarActive(this)">
-                    <i class="fas fa-brain"></i>
-                    <div class="hr-nav-item-label">
-                        <span>{{ 'Turnover AI' if lang == 'en' else 'توقع الاستقالات' }}</span>
-                    </div>
+                    <div class="hr-nav-item-icon"><i class="fas fa-brain"></i></div>
+                    <div class="hr-nav-item-label">{{ 'Turnover AI' if lang == 'en' else 'توقع الاستقالات' }}</div>
                 </a>
                 <a class="hr-nav-item" onclick="showSection('recommendations'); updateSidebarActive(this)">
-                    <i class="fas fa-wand-magic-sparkles"></i>
-                    <div class="hr-nav-item-label">
-                        <span>{{ 'Insights' if lang == 'en' else 'التوصيات' }}</span>
-                    </div>
+                    <div class="hr-nav-item-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+                    <div class="hr-nav-item-label">{{ 'Insights' if lang == 'en' else 'التوصيات' }}</div>
                 </a>
             </div>
 
-            <!-- Section 5: System -->
+            <!-- SYSTEM -->
             <div class="hr-nav-section">
-                <div class="hr-nav-section-title">{{ 'SYSTEM' if lang == 'en' else 'النظام' }}</div>
+                <div class="hr-nav-section-title">{{ 'System' if lang == 'en' else 'النظام' }}</div>
                 <a class="hr-nav-item" onclick="showSection('settings'); updateSidebarActive(this)">
-                    <i class="fas fa-sliders-h"></i>
-                    <div class="hr-nav-item-label">
-                        <span>{{ 'Settings' if lang == 'en' else 'الإعدادات' }}</span>
-                    </div>
+                    <div class="hr-nav-item-icon"><i class="fas fa-sliders"></i></div>
+                    <div class="hr-nav-item-label">{{ 'Settings' if lang == 'en' else 'الإعدادات' }}</div>
                 </a>
             </div>
         </div>
 
-        <!-- Sidebar Footer -->
         <div class="hr-sidebar-footer">
             <div class="hr-sidebar-stats">
                 <div class="hr-sidebar-stat">
@@ -851,80 +717,108 @@
                 </div>
             </div>
         </div>
-    </div>
+    </aside>
 
-    <!-- Main Content Area -->
-    <div class="hr-content">
-        <!-- Section 1: Home -->
-        <div id="section-home" class="hr-section active">
-            <div class="mb-4">
-                <h2 class="fw-bold mb-2">
+    <!-- CONTENT -->
+    <main class="hr-content">
+
+        <!-- HOME -->
+        <section id="section-home" class="hr-section active">
+            <div class="hr-page-header">
+                <h2 class="hr-page-title">
                     {{ 'Welcome to HR Intelligence' if lang == 'en' else 'مرحباً بك في ذكاء الموارد البشرية' }}
                 </h2>
-                <p class="text-muted">
-                    {{ 'AI-powered analytics for better HR decisions' if lang == 'en' else 'التحليلات الذكية لقرارات أفضل في الموارد البشرية' }}
+                <p class="hr-page-subtitle">
+                    {{ 'AI-powered analytics for better HR decisions' if lang == 'en' else 'تحليلات ذكية لقرارات أفضل في الموارد البشرية' }}
                 </p>
             </div>
 
-            <div class="row g-4 mb-4">
-                <!-- Card 1: HR Data Overview -->
+            <div class="row g-3 mb-3">
+                <!-- HR Data Overview -->
                 <div class="col-md-4">
-                    <div class="welcome-card">
-                        <div class="welcome-card-icon bg-primary-subtle">
-                            <i class="fas fa-database text-primary"></i>
+                    <div class="hr-welcome-card">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="hr-welcome-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">
+                                    {{ 'HR Data Overview' if lang == 'en' else 'نظرة عامة على البيانات' }}
+                                </div>
+                                <small class="text-muted">
+                                    {{ 'Check status & import new files' if lang == 'en' else 'تابع حالة البيانات واستيراد ملفات جديدة' }}
+                                </small>
+                            </div>
                         </div>
-                        <h5 class="fw-bold mb-3">{{ 'HR Data Overview' if lang == 'en' else 'نظرة عامة على البيانات' }}</h5>
-                        <p class="text-muted mb-3" style="font-size: 14px;">
-                            {{ 'View your current data status and import new files' if lang == 'en' else 'عرض حالة بياناتك الحالية واستيراد ملفات جديدة' }}
-                        </p>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <small class="text-muted">{{ 'Files Uploaded' if lang == 'en' else 'الملفات المرفوعة' }}</small>
-                                <span class="badge bg-success" id="home-files-count">0/5</span>
+
+                        <div class="mt-3">
+                            <div class="hr-progress-label">
+                                <span>{{ 'Files uploaded' if lang == 'en' else 'الملفات المرفوعة' }}</span>
+                                <span class="badge bg-success-subtle text-success" id="home-files-count">0/5</span>
                             </div>
                             <div class="progress" style="height: 6px;">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: 0%" id="home-files-progress"></div>
+                                <div class="progress-bar bg-success" id="home-files-progress" style="width: 0%"></div>
                             </div>
                         </div>
-                        <button class="btn btn-primary w-100" onclick="showSection('import')">
-                            <i class="fas fa-upload me-2"></i>
-                            {{ 'Import Data Now' if lang == 'en' else 'استيراد البيانات الآن' }}
+
+                        <button class="btn btn-primary btn-sm mt-auto" onclick="showSection('import')">
+                            <i class="fas fa-file-import me-1"></i>
+                            {{ 'Import data' if lang == 'en' else 'استيراد البيانات' }}
                         </button>
                     </div>
                 </div>
 
-                <!-- Card 2: AI Insights Summary -->
+                <!-- AI Insights -->
                 <div class="col-md-4">
-                    <div class="welcome-card">
-                        <div class="welcome-card-icon bg-success-subtle">
-                            <i class="fas fa-brain text-success"></i>
+                    <div class="hr-welcome-card">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="hr-welcome-icon" style="background:#dcfce7;color:#15803d;">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">
+                                    {{ 'AI Insights' if lang == 'en' else 'ملخص الذكاء الاصطناعي' }}
+                                </div>
+                                <small class="text-muted">
+                                    {{ 'Generate smart signals from your HR data' if lang == 'en' else 'توليد مؤشرات ذكية من بيانات الموارد البشرية' }}
+                                </small>
+                            </div>
                         </div>
-                        <h5 class="fw-bold mb-3">{{ 'AI Insights Summary' if lang == 'en' else 'ملخص الذكاء الاصطناعي' }}</h5>
-                        <div id="ai-insights-content">
+                        <div class="mt-3" id="ai-insights-content">
                             <div class="alert alert-info mb-0">
                                 <i class="fas fa-info-circle me-2"></i>
-                                <small>{{ 'Upload employee data to start AI analysis' if lang == 'en' else 'قم برفع بيانات الموظفين لبدء التحليل الذكي' }}</small>
+                                <small>{{ 'Upload data to start AI analysis' if lang == 'en' else 'قم برفع بيانات الموظفين لبدء التحليل الذكي' }}</small>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Card 3: Quick Actions -->
+                <!-- Quick Actions -->
                 <div class="col-md-4">
-                    <div class="welcome-card">
-                        <div class="welcome-card-icon bg-warning-subtle">
-                            <i class="fas fa-bolt text-warning"></i>
+                    <div class="hr-welcome-card">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="hr-welcome-icon" style="background:#fef3c7;color:#d97706;">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">
+                                    {{ 'Quick Actions' if lang == 'en' else 'إجراءات سريعة' }}
+                                </div>
+                                <small class="text-muted">
+                                    {{ 'Jump directly to key workflows' if lang == 'en' else 'انتقل مباشرة لأهم المهام' }}
+                                </small>
+                            </div>
                         </div>
-                        <h5 class="fw-bold mb-3">{{ 'Quick Actions' if lang == 'en' else 'إجراءات سريعة' }}</h5>
-                        <div class="d-grid gap-2">
+
+                        <div class="d-grid gap-2 mt-3">
                             <button class="btn btn-outline-primary btn-sm" onclick="showSection('import')">
-                                <i class="fas fa-file-csv me-2"></i>{{ 'Import CSV' if lang == 'en' else 'استيراد CSV' }}
+                                <i class="fas fa-file-csv me-1"></i>{{ 'Import CSV' if lang == 'en' else 'استيراد CSV' }}
                             </button>
                             <button class="btn btn-outline-primary btn-sm" onclick="alert('Coming soon!')">
-                                <i class="fas fa-plug me-2"></i>{{ 'Connect ERP' if lang == 'en' else 'ربط ERP' }}
+                                <i class="fas fa-plug me-1"></i>{{ 'Connect ERP' if lang == 'en' else 'ربط ERP' }}
                             </button>
                             <button class="btn btn-outline-primary btn-sm" onclick="downloadTemplate()">
-                                <i class="fas fa-download me-2"></i>{{ 'Download Template' if lang == 'en' else 'تحميل القالب' }}
+                                <i class="fas fa-download me-1"></i>{{ 'Download template' if lang == 'en' else 'تحميل القالب' }}
                             </button>
                         </div>
                     </div>
@@ -932,33 +826,34 @@
             </div>
 
             <!-- Recent Activity -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-clock me-2 text-primary"></i>{{ 'Recent Activity' if lang == 'en' else 'النشاطات الأخيرة' }}</h6>
+            <div class="hr-card mt-3">
+                <div class="hr-card-header">
+                    <i class="fas fa-clock"></i>
+                    <span>{{ 'Recent activity' if lang == 'en' else 'النشاطات الأخيرة' }}</span>
                 </div>
-                <div class="card-body">
-                    <div id="recent-activity-list">
-                        <p class="text-muted text-center py-4">
-                            <i class="fas fa-inbox fa-2x mb-3 d-block text-muted opacity-25"></i>
-                            {{ 'No recent activity' if lang == 'en' else 'لا توجد نشاطات حديثة' }}
-                        </p>
-                    </div>
+                <div id="recent-activity-list">
+                    <p class="text-muted text-center py-3 mb-0">
+                        <i class="fas fa-inbox fa-2x mb-2 d-block opacity-25"></i>
+                        {{ 'No recent activity' if lang == 'en' else 'لا توجد نشاطات حديثة' }}
+                    </p>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Section 2: Data Import Wizard -->
-        <div id="section-import" class="hr-section">
-            <div class="mb-4">
-                <button class="btn btn-outline-secondary btn-sm mb-3" onclick="showSection('home')">
-                    <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>{{ 'Back' if lang == 'en' else 'رجوع' }}
+        <!-- IMPORT WIZARD -->
+        <section id="section-import" class="hr-section">
+            <div class="hr-page-header">
+                <button class="btn btn-outline-secondary btn-sm mb-2" onclick="showSection('home')">
+                    <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-1"></i>
+                    {{ 'Back' if lang == 'en' else 'رجوع' }}
                 </button>
-                <h2 class="fw-bold mb-2">{{ 'Data Import Wizard' if lang == 'en' else 'معالج استيراد البيانات' }}</h2>
-                <p class="text-muted">{{ 'Import your HR data in 3 easy steps' if lang == 'en' else 'استورد بيانات الموارد البشرية في 3 خطوات بسيطة' }}</p>
+                <h2 class="hr-page-title">{{ 'Data Import Wizard' if lang == 'en' else 'معالج استيراد البيانات' }}</h2>
+                <p class="hr-page-subtitle">
+                    {{ 'Import your HR data in 3 simple steps' if lang == 'en' else 'استورد بيانات الموارد البشرية في 3 خطوات بسيطة' }}
+                </p>
             </div>
 
-            <!-- Progress Steps -->
-            <div class="progress-steps mb-4">
+            <div class="progress-steps">
                 <div class="progress-step active" id="step-indicator-1">
                     <div class="progress-step-circle">1</div>
                     <div class="small fw-semibold">{{ 'Import Type' if lang == 'en' else 'نوع الاستيراد' }}</div>
@@ -973,48 +868,54 @@
                 </div>
             </div>
 
-            <!-- Step 1: Import Type Selection -->
+            <!-- Step 1 -->
             <div id="import-step-1" class="import-step">
-                <h5 class="fw-bold mb-4">{{ 'Select Import Method' if lang == 'en' else 'اختر طريقة الاستيراد' }}</h5>
-                <div class="row g-4">
+                <h5 class="fw-bold mb-3">{{ 'Select import method' if lang == 'en' else 'اختر طريقة الاستيراد' }}</h5>
+                <div class="row g-3">
                     <div class="col-md-4">
-                        <div class="welcome-card text-center" onclick="selectImportType('csv')" style="cursor: pointer;">
-                            <div class="welcome-card-icon bg-primary-subtle mx-auto">
-                                <i class="fas fa-file-csv text-primary"></i>
+                        <div class="hr-welcome-card text-center" style="cursor:pointer" onclick="selectImportType('csv')">
+                            <div class="hr-welcome-icon mx-auto">
+                                <i class="fas fa-file-csv"></i>
                             </div>
-                            <h6 class="fw-bold">{{ 'CSV / Excel Files' if lang == 'en' else 'ملفات CSV / Excel' }}</h6>
-                            <small class="text-muted">{{ 'Upload files from your computer' if lang == 'en' else 'رفع الملفات من جهازك' }}</small>
+                            <div class="fw-bold mt-2">{{ 'CSV / Excel files' if lang == 'en' else 'ملفات CSV / Excel' }}</div>
+                            <small class="text-muted d-block">
+                                {{ 'Upload files from your computer' if lang == 'en' else 'رفع الملفات من جهازك' }}
+                            </small>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="welcome-card text-center" onclick="alert('Coming soon!')" style="cursor: pointer; opacity: 0.6;">
-                            <div class="welcome-card-icon bg-success-subtle mx-auto">
-                                <i class="fas fa-plug text-success"></i>
+                        <div class="hr-welcome-card text-center" style="opacity:.6;cursor:not-allowed;">
+                            <div class="hr-welcome-icon mx-auto" style="background:#dcfce7;color:#16a34a;">
+                                <i class="fas fa-plug"></i>
                             </div>
-                            <h6 class="fw-bold">{{ 'ERP API Connection' if lang == 'en' else 'ربط نظام ERP' }}</h6>
-                            <small class="text-muted">{{ 'Connect via API integration' if lang == 'en' else 'الربط عبر API' }}</small>
+                            <div class="fw-bold mt-2">{{ 'ERP API' if lang == 'en' else 'ربط نظام ERP' }}</div>
+                            <small class="text-muted d-block">
+                                {{ 'API integration (coming soon)' if lang == 'en' else 'الربط عبر API (قريباً)' }}
+                            </small>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="welcome-card text-center" onclick="alert('Coming soon!')" style="cursor: pointer; opacity: 0.6;">
-                            <div class="welcome-card-icon bg-warning-subtle mx-auto">
-                                <i class="fas fa-database text-warning"></i>
+                        <div class="hr-welcome-card text-center" style="opacity:.6;cursor:not-allowed;">
+                            <div class="hr-welcome-icon mx-auto" style="background:#fee2e2;color:#b91c1c;">
+                                <i class="fas fa-database"></i>
                             </div>
-                            <h6 class="fw-bold">{{ 'External Database' if lang == 'en' else 'قاعدة بيانات خارجية' }}</h6>
-                            <small class="text-muted">{{ 'Connect to external database' if lang == 'en' else 'الربط بقاعدة بيانات' }}</small>
+                            <div class="fw-bold mt-2">{{ 'External database' if lang == 'en' else 'قاعدة بيانات خارجية' }}</div>
+                            <small class="text-muted d-block">
+                                {{ 'Direct DB connection (coming soon)' if lang == 'en' else 'الربط بقاعدة بيانات (قريباً)' }}
+                            </small>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Step 2: File Upload -->
-            <div id="import-step-2" class="import-step" style="display: none;">
-                <h5 class="fw-bold mb-4">{{ 'Upload HR Files' if lang == 'en' else 'رفع ملفات الموارد البشرية' }}</h5>
+            <!-- Step 2: upload -->
+            <div id="import-step-2" class="import-step" style="display:none;">
+                <h5 class="fw-bold mb-3">{{ 'Upload HR files' if lang == 'en' else 'رفع ملفات الموارد البشرية' }}</h5>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>{{ 'File Type' if lang == 'en' else 'نوع الملف' }}</th>
+                                <th>{{ 'File' if lang == 'en' else 'الملف' }}</th>
                                 <th>{{ 'Description' if lang == 'en' else 'الوصف' }}</th>
                                 <th class="text-center">{{ 'Status' if lang == 'en' else 'الحالة' }}</th>
                                 <th class="text-center">{{ 'Action' if lang == 'en' else 'الإجراء' }}</th>
@@ -1022,65 +923,65 @@
                         </thead>
                         <tbody>
                             <tr id="file-row-employees">
-                                <td><i class="fas fa-users text-primary me-2"></i><strong>employees.csv</strong></td>
+                                <td><i class="fas fa-users text-primary me-1"></i><strong>employees.csv</strong></td>
                                 <td><small class="text-muted">{{ 'Employee master data' if lang == 'en' else 'بيانات الموظفين الأساسية' }}</small></td>
                                 <td class="text-center">
-                                    <span class="badge bg-secondary file-status">{{ 'Not Uploaded' if lang == 'en' else 'غير مرفوع' }}</span>
+                                    <span class="badge bg-secondary file-status">{{ 'Not uploaded' if lang == 'en' else 'غير مرفوع' }}</span>
                                 </td>
                                 <td class="text-center">
-                                    <input type="file" id="file-employees" accept=".csv,.xlsx" style="display:none" onchange="handleFileUpload(this, 'employees')">
+                                    <input type="file" id="file-employees" accept=".csv,.xlsx" style="display:none" onchange="handleFileUpload(this,'employees')">
                                     <button class="btn btn-sm btn-primary" onclick="document.getElementById('file-employees').click()">
                                         <i class="fas fa-upload me-1"></i>{{ 'Upload' if lang == 'en' else 'رفع' }}
                                     </button>
                                 </td>
                             </tr>
                             <tr id="file-row-attendance">
-                                <td><i class="fas fa-calendar-check text-success me-2"></i><strong>attendance.csv</strong></td>
+                                <td><i class="fas fa-calendar-check text-success me-1"></i><strong>attendance.csv</strong></td>
                                 <td><small class="text-muted">{{ 'Attendance records' if lang == 'en' else 'سجلات الحضور' }}</small></td>
                                 <td class="text-center">
-                                    <span class="badge bg-secondary file-status">{{ 'Not Uploaded' if lang == 'en' else 'غير مرفوع' }}</span>
+                                    <span class="badge bg-secondary file-status">{{ 'Not uploaded' if lang == 'en' else 'غير مرفوع' }}</span>
                                 </td>
                                 <td class="text-center">
-                                    <input type="file" id="file-attendance" accept=".csv,.xlsx" style="display:none" onchange="handleFileUpload(this, 'attendance')">
+                                    <input type="file" id="file-attendance" accept=".csv,.xlsx" style="display:none" onchange="handleFileUpload(this,'attendance')">
                                     <button class="btn btn-sm btn-primary" onclick="document.getElementById('file-attendance').click()">
                                         <i class="fas fa-upload me-1"></i>{{ 'Upload' if lang == 'en' else 'رفع' }}
                                     </button>
                                 </td>
                             </tr>
                             <tr id="file-row-performance">
-                                <td><i class="fas fa-star text-warning me-2"></i><strong>performance.csv</strong></td>
+                                <td><i class="fas fa-star text-warning me-1"></i><strong>performance.csv</strong></td>
                                 <td><small class="text-muted">{{ 'Performance reviews' if lang == 'en' else 'تقييمات الأداء' }}</small></td>
                                 <td class="text-center">
-                                    <span class="badge bg-secondary file-status">{{ 'Not Uploaded' if lang == 'en' else 'غير مرفوع' }}</span>
+                                    <span class="badge bg-secondary file-status">{{ 'Not uploaded' if lang == 'en' else 'غير مرفوع' }}</span>
                                 </td>
                                 <td class="text-center">
-                                    <input type="file" id="file-performance" accept=".csv,.xlsx" style="display:none" onchange="handleFileUpload(this, 'performance')">
+                                    <input type="file" id="file-performance" accept=".csv,.xlsx" style="display:none" onchange="handleFileUpload(this,'performance')">
                                     <button class="btn btn-sm btn-primary" onclick="document.getElementById('file-performance').click()">
                                         <i class="fas fa-upload me-1"></i>{{ 'Upload' if lang == 'en' else 'رفع' }}
                                     </button>
                                 </td>
                             </tr>
                             <tr id="file-row-payroll">
-                                <td><i class="fas fa-money-bill-wave text-info me-2"></i><strong>payroll.csv</strong></td>
+                                <td><i class="fas fa-money-bill-wave text-info me-1"></i><strong>payroll.csv</strong></td>
                                 <td><small class="text-muted">{{ 'Payroll data' if lang == 'en' else 'بيانات الرواتب' }}</small></td>
                                 <td class="text-center">
-                                    <span class="badge bg-secondary file-status">{{ 'Not Uploaded' if lang == 'en' else 'غير مرفوع' }}</span>
+                                    <span class="badge bg-secondary file-status">{{ 'Not uploaded' if lang == 'en' else 'غير مرفوع' }}</span>
                                 </td>
                                 <td class="text-center">
-                                    <input type="file" id="file-payroll" accept=".csv,.xlsx" style="display:none" onchange="handleFileUpload(this, 'payroll')">
+                                    <input type="file" id="file-payroll" accept=".csv,.xlsx" style="display:none" onchange="handleFileUpload(this,'payroll')">
                                     <button class="btn btn-sm btn-primary" onclick="document.getElementById('file-payroll').click()">
                                         <i class="fas fa-upload me-1"></i>{{ 'Upload' if lang == 'en' else 'رفع' }}
                                     </button>
                                 </td>
                             </tr>
                             <tr id="file-row-resignations">
-                                <td><i class="fas fa-user-minus text-danger me-2"></i><strong>resignations.csv</strong></td>
+                                <td><i class="fas fa-user-minus text-danger me-1"></i><strong>resignations.csv</strong></td>
                                 <td><small class="text-muted">{{ 'Resignation records' if lang == 'en' else 'سجلات الاستقالات' }}</small></td>
                                 <td class="text-center">
-                                    <span class="badge bg-secondary file-status">{{ 'Not Uploaded' if lang == 'en' else 'غير مرفوع' }}</span>
+                                    <span class="badge bg-secondary file-status">{{ 'Not uploaded' if lang == 'en' else 'غير مرفوع' }}</span>
                                 </td>
                                 <td class="text-center">
-                                    <input type="file" id="file-resignations" accept=".csv,.xlsx" style="display:none" onchange="handleFileUpload(this, 'resignations')">
+                                    <input type="file" id="file-resignations" accept=".csv,.xlsx" style="display:none" onchange="handleFileUpload(this,'resignations')">
                                     <button class="btn btn-sm btn-primary" onclick="document.getElementById('file-resignations').click()">
                                         <i class="fas fa-upload me-1"></i>{{ 'Upload' if lang == 'en' else 'رفع' }}
                                     </button>
@@ -1089,27 +990,26 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="d-flex justify-content-between mt-4">
+
+                <div class="d-flex justify-content-between mt-3">
                     <button class="btn btn-outline-secondary" onclick="goToImportStep(1)">
-                        <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-2"></i>{{ 'Previous' if lang == 'en' else 'السابق' }}
+                        <i class="fas fa-arrow-{{ 'right' if lang == 'ar' else 'left' }} me-1"></i>{{ 'Previous' if lang == 'en' else 'السابق' }}
                     </button>
                     <button class="btn btn-success" onclick="processAllFiles()">
-                        {{ 'Process & Analyze' if lang == 'en' else 'معالجة وتحليل' }}<i class="fas fa-arrow-{{ 'left' if lang == 'ar' else 'right' }} ms-2"></i>
+                        {{ 'Process & analyze' if lang == 'en' else 'معالجة وتحليل' }}
+                        <i class="fas fa-arrow-{{ 'left' if lang == 'ar' else 'right' }} ms-1"></i>
                     </button>
                 </div>
             </div>
+        </section>
 
-            <!-- Step 3: Column Mapping (will be shown in modal) -->
-            <div id="import-step-3" class="import-step" style="display: none;">
-                <!-- This will be handled by modal -->
-            </div>
-        </div>
-
-        <!-- Section 3: Processing Screen -->
-        <div id="section-processing" class="hr-section">
+        <!-- PROCESSING -->
+        <section id="section-processing" class="hr-section">
             <div class="processing-animation">
                 <div class="processing-spinner"></div>
-                <h4 class="fw-bold mb-4">{{ 'Processing Your Data...' if lang == 'en' else 'جاري معالجة البيانات...' }}</h4>
+                <h5 class="fw-bold mb-3">
+                    {{ 'Processing your data...' if lang == 'en' else 'جاري معالجة البيانات...' }}
+                </h5>
                 <div class="processing-steps">
                     <div class="processing-step active">
                         <i class="fas fa-check-circle"></i>
@@ -1133,68 +1033,69 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Section 4: Dashboard -->
-        <div id="section-dashboard" class="hr-section">
-            <div class="mb-4">
-                <h2 class="fw-bold mb-2">{{ 'HR Dashboard' if lang == 'en' else 'لوحة القيادة' }}</h2>
-                <p class="text-muted">{{ 'Complete overview of your HR metrics' if lang == 'en' else 'نظرة شاملة على مؤشرات الموارد البشرية' }}</p>
+        <!-- DASHBOARD -->
+        <section id="section-dashboard" class="hr-section">
+            <div class="hr-page-header">
+                <h2 class="hr-page-title">{{ 'HR Dashboard' if lang == 'en' else 'لوحة القيادة' }}</h2>
+                <p class="hr-page-subtitle">
+                    {{ 'Full overview of your HR metrics' if lang == 'en' else 'نظرة شاملة على مؤشرات الموارد البشرية' }}
+                </p>
             </div>
 
-            <!-- KPIs -->
-            <div class="row g-3 mb-4">
+            <div class="row g-3 mb-3">
                 <div class="col-md-3">
-                    <div class="kpi-card" style="border-left-color: #3b82f6;">
+                    <div class="kpi-card">
                         <div class="d-flex align-items-center justify-content-between">
-                            <div class="flex-grow-1">
-                                <div class="kpi-label">{{ 'Total Employees' if lang == 'en' else 'إجمالي الموظفين' }}</div>
+                            <div>
+                                <div class="kpi-label">{{ 'Total employees' if lang == 'en' else 'إجمالي الموظفين' }}</div>
                                 <div class="kpi-value" id="kpi-total-employees">0</div>
                                 <span class="kpi-change bg-success-subtle text-success">+5% {{ 'this month' if lang == 'en' else 'هذا الشهر' }}</span>
                             </div>
-                            <div class="kpi-icon bg-primary-subtle text-primary">
+                            <div class="hr-welcome-icon" style="width:42px;height:42px;">
                                 <i class="fas fa-users"></i>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="kpi-card" style="border-left-color: #10b981;">
+                    <div class="kpi-card">
                         <div class="d-flex align-items-center justify-content-between">
-                            <div class="flex-grow-1">
-                                <div class="kpi-label">{{ 'Avg Performance' if lang == 'en' else 'متوسط الأداء' }}</div>
+                            <div>
+                                <div class="kpi-label">{{ 'Avg performance' if lang == 'en' else 'متوسط الأداء' }}</div>
                                 <div class="kpi-value" id="kpi-avg-performance">0%</div>
                                 <span class="kpi-change bg-success-subtle text-success">+2.5%</span>
                             </div>
-                            <div class="kpi-icon bg-success-subtle text-success">
+                            <div class="hr-welcome-icon" style="background:#dcfce7;color:#16a34a;width:42px;height:42px;">
                                 <i class="fas fa-star"></i>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="kpi-card" style="border-left-color: #f59e0b;">
+                    <div class="kpi-card">
                         <div class="d-flex align-items-center justify-content-between">
-                            <div class="flex-grow-1">
-                                <div class="kpi-label">{{ 'Turnover Rate' if lang == 'en' else 'معدل الاستقالات' }}</div>
+                            <div>
+                                <div class="kpi-label">{{ 'Turnover rate' if lang == 'en' else 'معدل الاستقالات' }}</div>
                                 <div class="kpi-value" id="kpi-turnover">0%</div>
                                 <span class="kpi-change bg-danger-subtle text-danger">-1.2%</span>
                             </div>
-                            <div class="kpi-icon bg-warning-subtle text-warning">
-                                <i class="fas fa-exclamation-triangle"></i>
+                            <div class="hr-welcome-icon" style="background:#fee2e2;color:#b91c1c;width:42px;height:42px;">
+                                <i class="fas fa-arrow-right-from-bracket"></i>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="kpi-card" style="border-left-color: #ef4444;">
+                    <div class="kpi-card">
                         <div class="d-flex align-items-center justify-content-between">
-                            <div class="flex-grow-1">
-                                <div class="kpi-label">{{ 'High Risk' if lang == 'en' else 'مخاطر عالية' }}</div>
+                            <div>
+                                <div class="kpi-label">{{ 'High risk' if lang == 'en' else 'مخاطر عالية' }}</div>
                                 <div class="kpi-value" id="kpi-high-risk">0</div>
                                 <span class="kpi-change bg-danger-subtle text-danger">{{ 'employees' if lang == 'en' else 'موظف' }}</span>
                             </div>
-                            <div class="kpi-icon bg-danger-subtle text-danger">
+                            <div class="hr-welcome-icon" style="background:#fee2e2;color:#b91c1c;width:42px;height:42px;">
                                 <i class="fas fa-user-shield"></i>
                             </div>
                         </div>
@@ -1202,216 +1103,230 @@
                 </div>
             </div>
 
-            <!-- Charts Row -->
-            <div class="row g-4 mb-4">
+            <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white border-bottom">
-                            <h6 class="mb-0 fw-bold">{{ 'Turnover Prediction' if lang == 'en' else 'توقع الاستقالات' }}</h6>
+                    <div class="hr-card">
+                        <div class="hr-card-header">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>{{ 'Turnover prediction' if lang == 'en' else 'توقع الاستقالات' }}</span>
                         </div>
-                        <div class="card-body">
-                            <canvas id="turnoverChart" height="250"></canvas>
+                        <div style="height:250px;">
+                            <canvas id="turnoverChart"></canvas>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white border-bottom">
-                            <h6 class="mb-0 fw-bold">{{ 'Performance Distribution' if lang == 'en' else 'توزيع الأداء' }}</h6>
+                    <div class="hr-card">
+                        <div class="hr-card-header">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>{{ 'Performance distribution' if lang == 'en' else 'توزيع الأداء' }}</span>
                         </div>
-                        <div class="card-body">
-                            <canvas id="performanceChart" height="250"></canvas>
+                        <div style="height:250px;">
+                            <canvas id="performanceChart"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Quick Links -->
-            <div class="row g-3">
+            <div class="row g-2">
                 <div class="col-md-3">
                     <button class="btn btn-outline-primary w-100" onclick="showSection('employees')">
-                        <i class="fas fa-users me-2"></i>{{ 'View Employees' if lang == 'en' else 'عرض الموظفين' }}
+                        <i class="fas fa-users me-1"></i>{{ 'Employees' if lang == 'en' else 'الموظفون' }}
                     </button>
                 </div>
                 <div class="col-md-3">
                     <button class="btn btn-outline-success w-100" onclick="showSection('performance')">
-                        <i class="fas fa-star me-2"></i>{{ 'Performance' if lang == 'en' else 'الأداء' }}
+                        <i class="fas fa-star me-1"></i>{{ 'Performance' if lang == 'en' else 'الأداء' }}
                     </button>
                 </div>
                 <div class="col-md-3">
                     <button class="btn btn-outline-warning w-100" onclick="showSection('turnover')">
-                        <i class="fas fa-exclamation-triangle me-2"></i>{{ 'Turnover' if lang == 'en' else 'الاستقالات' }}
+                        <i class="fas fa-brain me-1"></i>{{ 'Turnover AI' if lang == 'en' else 'توقع الاستقالات' }}
                     </button>
                 </div>
                 <div class="col-md-3">
                     <button class="btn btn-outline-info w-100" onclick="showSection('recommendations')">
-                        <i class="fas fa-lightbulb me-2"></i>{{ 'AI Insights' if lang == 'en' else 'التوصيات' }}
+                        <i class="fas fa-lightbulb me-1"></i>{{ 'AI insights' if lang == 'en' else 'التوصيات الذكية' }}
                     </button>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Other Sections (Placeholders for now) -->
-        <div id="section-employees" class="hr-section">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- EMPLOYEES -->
+        <section id="section-employees" class="hr-section">
+            <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                    <h2 class="fw-bold mb-2">{{ 'Employees Management' if lang == 'en' else 'إدارة الموظفين' }}</h2>
-                    <p class="text-muted mb-0">{{ 'Complete employee database with AI insights' if lang == 'en' else 'قاعدة بيانات الموظفين مع التحليلات الذكية' }}</p>
+                    <h2 class="hr-page-title">{{ 'Employees Management' if lang == 'en' else 'إدارة الموظفين' }}</h2>
+                    <p class="hr-page-subtitle">
+                        {{ 'Complete employee database with AI signals' if lang == 'en' else 'قاعدة بيانات الموظفين مع مؤشرات ذكية' }}
+                    </p>
                 </div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-primary" onclick="alert('Coming soon!')">
-                        <i class="fas fa-plus me-2"></i>{{ 'Add Employee' if lang == 'en' else 'إضافة موظف' }}
+                    <button class="btn btn-primary btn-sm" onclick="alert('Coming soon')">
+                        <i class="fas fa-plus me-1"></i>{{ 'Add employee' if lang == 'en' else 'إضافة موظف' }}
                     </button>
-                    <button class="btn btn-outline-primary" onclick="showSection('import')">
-                        <i class="fas fa-file-import me-2"></i>{{ 'Import CSV' if lang == 'en' else 'استيراد CSV' }}
+                    <button class="btn btn-outline-primary btn-sm" onclick="showSection('import')">
+                        <i class="fas fa-file-import me-1"></i>{{ 'Import CSV' if lang == 'en' else 'استيراد CSV' }}
                     </button>
                 </div>
             </div>
 
             <!-- Filters -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label small text-muted">{{ 'Search' if lang == 'en' else 'بحث' }}</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
-                                <input type="text" class="form-control" placeholder="{{ 'Search by name, ID...' if lang == 'en' else 'البحث بالاسم، الرقم...' }}" id="employee-search">
-                            </div>
+            <div class="hr-card mb-3">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">{{ 'Search' if lang == 'en' else 'بحث' }}</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" class="form-control" id="employee-search"
+                                   placeholder="{{ 'Search by name, ID...' if lang == 'en' else 'البحث بالاسم أو الرقم...' }}">
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label small text-muted">{{ 'Department' if lang == 'en' else 'القسم' }}</label>
-                            <select class="form-select" id="filter-department">
-                                <option value="">{{ 'All' if lang == 'en' else 'الكل' }}</option>
-                                <option value="IT">IT</option>
-                                <option value="HR">HR</option>
-                                <option value="Sales">Sales</option>
-                                <option value="Finance">Finance</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label small text-muted">{{ 'Performance' if lang == 'en' else 'الأداء' }}</label>
-                            <select class="form-select" id="filter-performance">
-                                <option value="">{{ 'All' if lang == 'en' else 'الكل' }}</option>
-                                <option value="excellent">{{ 'Excellent' if lang == 'en' else 'ممتاز' }}</option>
-                                <option value="good">{{ 'Good' if lang == 'en' else 'جيد' }}</option>
-                                <option value="average">{{ 'Average' if lang == 'en' else 'متوسط' }}</option>
-                                <option value="poor">{{ 'Poor' if lang == 'en' else 'ضعيف' }}</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label small text-muted">{{ 'Risk Level' if lang == 'en' else 'مستوى المخاطر' }}</label>
-                            <select class="form-select" id="filter-risk">
-                                <option value="">{{ 'All' if lang == 'en' else 'الكل' }}</option>
-                                <option value="high">{{ 'High' if lang == 'en' else 'مرتفع' }}</option>
-                                <option value="medium">{{ 'Medium' if lang == 'en' else 'متوسط' }}</option>
-                                <option value="low">{{ 'Low' if lang == 'en' else 'منخفض' }}</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 d-flex align-items-end">
-                            <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
-                                <i class="fas fa-undo me-2"></i>{{ 'Clear Filters' if lang == 'en' else 'مسح الفلاتر' }}
-                            </button>
-                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">{{ 'Department' if lang == 'en' else 'القسم' }}</label>
+                        <select class="form-select form-select-sm" id="filter-department">
+                            <option value="">{{ 'All' if lang == 'en' else 'الكل' }}</option>
+                            <option value="IT">IT</option>
+                            <option value="HR">HR</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Finance">Finance</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">{{ 'Performance' if lang == 'en' else 'الأداء' }}</label>
+                        <select class="form-select form-select-sm" id="filter-performance">
+                            <option value="">{{ 'All' if lang == 'en' else 'الكل' }}</option>
+                            <option value="excellent">{{ 'Excellent' if lang == 'en' else 'ممتاز' }}</option>
+                            <option value="good">{{ 'Good' if lang == 'en' else 'جيد' }}</option>
+                            <option value="average">{{ 'Average' if lang == 'en' else 'متوسط' }}</option>
+                            <option value="poor">{{ 'Poor' if lang == 'en' else 'ضعيف' }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">{{ 'Risk level' if lang == 'en' else 'مستوى المخاطر' }}</label>
+                        <select class="form-select form-select-sm" id="filter-risk">
+                            <option value="">{{ 'All' if lang == 'en' else 'الكل' }}</option>
+                            <option value="high">{{ 'High' if lang == 'en' else 'مرتفع' }}</option>
+                            <option value="medium">{{ 'Medium' if lang == 'en' else 'متوسط' }}</option>
+                            <option value="low">{{ 'Low' if lang == 'en' else 'منخفض' }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button class="btn btn-outline-secondary btn-sm w-100" onclick="clearFilters()">
+                            <i class="fas fa-rotate-left me-1"></i>{{ 'Clear filters' if lang == 'en' else 'مسح الفلاتر' }}
+                        </button>
                     </div>
                 </div>
             </div>
 
             <!-- Employees Table -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+            <div class="hr-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="mb-0 fw-bold">
-                        <i class="fas fa-users me-2 text-primary"></i>
-                        {{ 'Employee List' if lang == 'en' else 'قائمة الموظفين' }}
-                        <span class="badge bg-primary ms-2" id="employee-total-badge">0</span>
+                        <i class="fas fa-users me-1 text-primary"></i>
+                        {{ 'Employee list' if lang == 'en' else 'قائمة الموظفين' }}
+                        <span class="badge bg-primary ms-1" id="employee-total-badge">0</span>
                     </h6>
-                    <button class="btn btn-sm btn-outline-primary" onclick="exportEmployees()">
+                    <button class="btn btn-outline-primary btn-sm" onclick="exportEmployees()">
                         <i class="fas fa-download me-1"></i>{{ 'Export' if lang == 'en' else 'تصدير' }}
                     </button>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0 align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="px-4 py-3">{{ 'Employee' if lang == 'en' else 'الموظف' }}</th>
-                                    <th class="px-4 py-3">{{ 'Department' if lang == 'en' else 'القسم' }}</th>
-                                    <th class="px-4 py-3">{{ 'Position' if lang == 'en' else 'المنصب' }}</th>
-                                    <th class="px-4 py-3 text-center">{{ 'Performance' if lang == 'en' else 'الأداء' }}</th>
-                                    <th class="px-4 py-3 text-center">{{ 'Attendance' if lang == 'en' else 'الانضباط' }}</th>
-                                    <th class="px-4 py-3 text-center">{{ 'Risk' if lang == 'en' else 'المخاطر' }}</th>
-                                    <th class="px-4 py-3 text-center">{{ 'Status' if lang == 'en' else 'الحالة' }}</th>
-                                    <th class="px-4 py-3 text-center">{{ 'Actions' if lang == 'en' else 'الإجراءات' }}</th>
-                                </tr>
-                            </thead>
-                            <tbody id="employees-table-body">
-                                <tr>
-                                    <td colspan="8" class="text-center py-5">
-                                        <div class="text-muted">
-                                            <i class="fas fa-users fa-3x mb-3 opacity-25"></i>
-                                            <p>{{ 'No employees data. Please import employee data to get started.' if lang == 'en' else 'لا توجد بيانات موظفين. قم باستيراد البيانات للبدء.' }}</p>
-                                            <button class="btn btn-primary" onclick="showSection('import')">
-                                                <i class="fas fa-upload me-2"></i>{{ 'Import Data' if lang == 'en' else 'استيراد البيانات' }}
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-3 py-2">{{ 'Employee' if lang == 'en' else 'الموظف' }}</th>
+                                <th class="px-3 py-2">{{ 'Department' if lang == 'en' else 'القسم' }}</th>
+                                <th class="px-3 py-2">{{ 'Position' if lang == 'en' else 'المنصب' }}</th>
+                                <th class="px-3 py-2 text-center">{{ 'Performance' if lang == 'en' else 'الأداء' }}</th>
+                                <th class="px-3 py-2 text-center">{{ 'Attendance' if lang == 'en' else 'الانضباط' }}</th>
+                                <th class="px-3 py-2 text-center">{{ 'Risk' if lang == 'en' else 'المخاطر' }}</th>
+                                <th class="px-3 py-2 text-center">{{ 'Status' if lang == 'en' else 'الحالة' }}</th>
+                                <th class="px-3 py-2 text-center">{{ 'Actions' if lang == 'en' else 'الإجراءات' }}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employees-table-body">
+                            <tr>
+                                <td colspan="8" class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="fas fa-users fa-2x mb-2 opacity-25"></i>
+                                        <p class="mb-2">
+                                            {{ 'No employees found. Please import data first.' if lang == 'en' else 'لا توجد بيانات موظفين. قم باستيراد البيانات أولاً.' }}
+                                        </p>
+                                        <button class="btn btn-primary btn-sm" onclick="showSection('import')">
+                                            <i class="fas fa-upload me-1"></i>{{ 'Import data' if lang == 'en' else 'استيراد البيانات' }}
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="card-footer bg-white border-top">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="text-muted small">
-                            {{ 'Showing' if lang == 'en' else 'عرض' }} <span id="showing-count">0</span> {{ 'of' if lang == 'en' else 'من' }} <span id="total-count">0</span> {{ 'employees' if lang == 'en' else 'موظف' }}
-                        </div>
-                        <nav>
-                            <ul class="pagination pagination-sm mb-0" id="employees-pagination">
-                                <li class="page-item disabled"><a class="page-link" href="#">{{ 'Previous' if lang == 'en' else 'السابق' }}</a></li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item disabled"><a class="page-link" href="#">{{ 'Next' if lang == 'en' else 'التالي' }}</a></li>
-                            </ul>
-                        </nav>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <div class="text-muted small">
+                        {{ 'Showing' if lang == 'en' else 'عرض' }} <span id="showing-count">0</span>
+                        {{ 'of' if lang == 'en' else 'من' }} <span id="total-count">0</span>
+                        {{ 'employees' if lang == 'en' else 'موظف' }}
                     </div>
+                    <ul class="pagination pagination-sm mb-0" id="employees-pagination">
+                        <li class="page-item disabled"><a class="page-link" href="#">{{ 'Previous' if lang == 'en' else 'السابق' }}</a></li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item disabled"><a class="page-link" href="#">{{ 'Next' if lang == 'en' else 'التالي' }}</a></li>
+                    </ul>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div id="section-performance" class="hr-section">
-            <h2>{{ 'Performance Analytics' if lang == 'en' else 'تحليل الأداء' }}</h2>
-            <p class="text-muted">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
-        </div>
+        <!-- SIMPLE PLACEHOLDERS -->
+        <section id="section-performance" class="hr-section">
+            <div class="hr-card">
+                <h5 class="fw-bold mb-2">{{ 'Performance analytics' if lang == 'en' else 'تحليل الأداء' }}</h5>
+                <p class="text-muted mb-0">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
+            </div>
+        </section>
 
-        <div id="section-attendance" class="hr-section">
-            <h2>{{ 'Attendance Management' if lang == 'en' else 'إدارة الحضور' }}</h2>
-            <p class="text-muted">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
-        </div>
+        <section id="section-attendance" class="hr-section">
+            <div class="hr-card">
+                <h5 class="fw-bold mb-2">{{ 'Attendance management' if lang == 'en' else 'إدارة الحضور' }}</h5>
+                <p class="text-muted mb-0">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
+            </div>
+        </section>
 
-        <div id="section-payroll" class="hr-section">
-            <h2>{{ 'Payroll Management' if lang == 'en' else 'إدارة الرواتب' }}</h2>
-            <p class="text-muted">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
-        </div>
+        <section id="section-payroll" class="hr-section">
+            <div class="hr-card">
+                <h5 class="fw-bold mb-2">{{ 'Payroll management' if lang == 'en' else 'إدارة الرواتب' }}</h5>
+                <p class="text-muted mb-0">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
+            </div>
+        </section>
 
-        <div id="section-resignations" class="hr-section">
-            <h2>{{ 'Resignations' if lang == 'en' else 'الاستقالات' }}</h2>
-            <p class="text-muted">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
-        </div>
+        <section id="section-resignations" class="hr-section">
+            <div class="hr-card">
+                <h5 class="fw-bold mb-2">{{ 'Resignations' if lang == 'en' else 'الاستقالات' }}</h5>
+                <p class="text-muted mb-0">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
+            </div>
+        </section>
 
-        <div id="section-recommendations" class="hr-section">
-            <h2>{{ 'AI Recommendations' if lang == 'en' else 'التوصيات الذكية' }}</h2>
-            <p class="text-muted">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
-        </div>
+        <section id="section-recommendations" class="hr-section">
+            <div class="hr-card">
+                <h5 class="fw-bold mb-2">{{ 'AI recommendations' if lang == 'en' else 'التوصيات الذكية' }}</h5>
+                <p class="text-muted mb-0">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
+            </div>
+        </section>
 
-        <div id="section-turnover" class="hr-section">
-            <h2>{{ 'Turnover Prediction' if lang == 'en' else 'توقع الاستقالات' }}</h2>
-            <p class="text-muted">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
-        </div>
+        <section id="section-turnover" class="hr-section">
+            <div class="hr-card">
+                <h5 class="fw-bold mb-2">{{ 'Turnover prediction' if lang == 'en' else 'توقع الاستقالات' }}</h5>
+                <p class="text-muted mb-0">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
+            </div>
+        </section>
 
-        <div id="section-settings" class="hr-section">
-            <h2>{{ 'Settings' if lang == 'en' else 'الإعدادات' }}</h2>
-            <p class="text-muted">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
-        </div>
-    </div>
+        <section id="section-settings" class="hr-section">
+            <div class="hr-card">
+                <h5 class="fw-bold mb-2">{{ 'Settings' if lang == 'en' else 'الإعدادات' }}</h5>
+                <p class="text-muted mb-0">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
+            </div>
+        </section>
+    </main>
 </div>
 
 <!-- Column Mapping Modal -->
@@ -1419,7 +1334,7 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ 'Column Mapping' if lang == 'en' else 'مطابقة الأعمدة' }}</h5>
+                <h5 class="modal-title">{{ 'Column mapping' if lang == 'en' else 'مطابقة الأعمدة' }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -1427,7 +1342,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'Cancel' if lang == 'en' else 'إلغاء' }}</button>
-                <button type="button" class="btn btn-primary" onclick="applyMapping()">{{ 'Save & Continue' if lang == 'en' else 'حفظ ومتابعة' }}</button>
+                <button type="button" class="btn btn-primary" onclick="applyMapping()">{{ 'Save & continue' if lang == 'en' else 'حفظ ومتابعة' }}</button>
             </div>
         </div>
     </div>
@@ -1440,64 +1355,50 @@ let currentFileType = null;
 let currentHeaders = [];
 let uploadedFilesCount = 0;
 
-// Navigation
+/* NAV SECTIONS */
 function showSection(sectionName) {
-    document.querySelectorAll('.hr-section').forEach(section => {
-        section.classList.remove('active');
-    });
+    document.querySelectorAll('.hr-section').forEach(s => s.classList.remove('active'));
     document.getElementById('section-' + sectionName).classList.add('active');
 }
 
-// Update sidebar active state
-function updateSidebarActive(element) {
-    document.querySelectorAll('.hr-nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    element.classList.add('active');
+function updateSidebarActive(el) {
+    document.querySelectorAll('.hr-nav-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
 }
 
-// Toggle Sidebar with Tooltip
+/* SIDEBAR TOGGLE */
 function toggleSidebar() {
     const sidebar = document.getElementById('hrSidebar');
     const toggleBtn = document.getElementById('sidebarToggle');
-    const icon = toggleBtn.querySelector('i');
-    
     sidebar.classList.toggle('collapsed');
-    
+
+    const icon = toggleBtn.querySelector('i');
     if (sidebar.classList.contains('collapsed')) {
-        // Collapsed state
         icon.classList.remove('fa-chevron-left');
         icon.classList.add('fa-chevron-right');
-        toggleBtn.setAttribute('title', lang === 'en' ? 'Expand Sidebar' : 'توسيع الشريط الجانبي');
-        toggleBtn.setAttribute('data-tooltip', lang === 'en' ? 'Expand' : 'توسيع');
     } else {
-        // Expanded state
         icon.classList.remove('fa-chevron-right');
         icon.classList.add('fa-chevron-left');
-        toggleBtn.setAttribute('title', lang === 'en' ? 'Collapse Sidebar' : 'تقليص الشريط الجانبي');
-        toggleBtn.setAttribute('data-tooltip', lang === 'en' ? 'Collapse' : 'تقليص');
     }
-    
-    // Save preference to localStorage
-    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+
+    localStorage.setItem('hrSidebarCollapsed', sidebar.classList.contains('collapsed'));
 }
 
-// Initialize sidebar state from localStorage
-document.addEventListener('DOMContentLoaded', function() {
-    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+/* INIT SIDEBAR STATE */
+document.addEventListener('DOMContentLoaded', () => {
+    const collapsed = localStorage.getItem('hrSidebarCollapsed') === 'true';
     const sidebar = document.getElementById('hrSidebar');
     const toggleBtn = document.getElementById('sidebarToggle');
-    
-    if (isCollapsed && sidebar && toggleBtn) {
+    if (collapsed && sidebar) {
         sidebar.classList.add('collapsed');
         const icon = toggleBtn.querySelector('i');
         icon.classList.remove('fa-chevron-left');
         icon.classList.add('fa-chevron-right');
-        toggleBtn.setAttribute('title', lang === 'en' ? 'Expand Sidebar' : 'توسيع الشريط الجانبي');
     }
+    loadEmployees();
 });
 
-// Import Steps
+/* IMPORT WIZARD */
 function selectImportType(type) {
     if (type === 'csv') {
         goToImportStep(2);
@@ -1505,9 +1406,10 @@ function selectImportType(type) {
 }
 
 function goToImportStep(step) {
-    document.querySelectorAll('.import-step').forEach(el => el.style.display = 'none');
-    document.getElementById('import-step-' + step).style.display = 'block';
-    
+    document.querySelectorAll('.import-step').forEach(e => e.style.display = 'none');
+    const target = document.getElementById('import-step-' + step);
+    if (target) target.style.display = 'block';
+
     document.querySelectorAll('.progress-step').forEach((el, idx) => {
         el.classList.remove('active', 'completed');
         if (idx + 1 < step) el.classList.add('completed');
@@ -1515,36 +1417,36 @@ function goToImportStep(step) {
     });
 }
 
-// File Upload
 const requiredFields = {
-    'employees': ['employee_id', 'full_name', 'department', 'job_title', 'hire_date', 'base_salary'],
-    'attendance': ['employee_id', 'date', 'check_in', 'check_out', 'status'],
-    'performance': ['employee_id', 'review_period', 'review_date', 'overall_rating'],
-    'payroll': ['employee_id', 'month', 'year', 'net_salary'],
-    'resignations': ['employee_id', 'termination_type', 'termination_date']
+    employees: ['employee_id','full_name','department','job_title','hire_date','base_salary'],
+    attendance: ['employee_id','date','check_in','check_out','status'],
+    performance: ['employee_id','review_period','review_date','overall_rating'],
+    payroll: ['employee_id','month','year','net_salary'],
+    resignations: ['employee_id','termination_type','termination_date']
 };
 
 const fieldLabels = {
-    'employee_id': lang === 'ar' ? 'رقم الموظف' : 'Employee ID',
-    'full_name': lang === 'ar' ? 'الاسم الكامل' : 'Full Name',
-    'department': lang === 'ar' ? 'القسم' : 'Department',
-    'job_title': lang === 'ar' ? 'المسمى الوظيفي' : 'Job Title',
-    'hire_date': lang === 'ar' ? 'تاريخ التعيين' : 'Hire Date',
-    'base_salary': lang === 'ar' ? 'الراتب الأساسي' : 'Base Salary',
-    'date': lang === 'ar' ? 'التاريخ' : 'Date',
-    'check_in': lang === 'ar' ? 'وقت الحضور' : 'Check In',
-    'check_out': lang === 'ar' ? 'وقت الانصراف' : 'Check Out',
-    'status': lang === 'ar' ? 'الحالة' : 'Status',
-    'review_period': lang === 'ar' ? 'فترة التقييم' : 'Review Period',
-    'review_date': lang === 'ar' ? 'تاريخ التقييم' : 'Review Date',
-    'overall_rating': lang === 'ar' ? 'التقييم العام' : 'Overall Rating',
-    'month': lang === 'ar' ? 'الشهر' : 'Month',
-    'year': lang === 'ar' ? 'السنة' : 'Year',
-    'net_salary': lang === 'ar' ? 'صافي الراتب' : 'Net Salary',
-    'termination_type': lang === 'ar' ? 'نوع إنهاء الخدمة' : 'Termination Type',
-    'termination_date': lang === 'ar' ? 'تاريخ إنهاء الخدمة' : 'Termination Date'
+    employee_id: lang === 'ar' ? 'رقم الموظف' : 'Employee ID',
+    full_name: lang === 'ar' ? 'الاسم الكامل' : 'Full name',
+    department: lang === 'ar' ? 'القسم' : 'Department',
+    job_title: lang === 'ar' ? 'المسمى الوظيفي' : 'Job title',
+    hire_date: lang === 'ar' ? 'تاريخ التعيين' : 'Hire date',
+    base_salary: lang === 'ar' ? 'الراتب الأساسي' : 'Base salary',
+    date: lang === 'ar' ? 'التاريخ' : 'Date',
+    check_in: lang === 'ar' ? 'وقت الحضور' : 'Check in',
+    check_out: lang === 'ar' ? 'وقت الانصراف' : 'Check out',
+    status: lang === 'ar' ? 'الحالة' : 'Status',
+    review_period: lang === 'ar' ? 'فترة التقييم' : 'Review period',
+    review_date: lang === 'ar' ? 'تاريخ التقييم' : 'Review date',
+    overall_rating: lang === 'ar' ? 'التقييم العام' : 'Overall rating',
+    month: lang === 'ar' ? 'الشهر' : 'Month',
+    year: lang === 'ar' ? 'السنة' : 'Year',
+    net_salary: lang === 'ar' ? 'صافي الراتب' : 'Net salary',
+    termination_type: lang === 'ar' ? 'نوع إنهاء الخدمة' : 'Termination type',
+    termination_date: lang === 'ar' ? 'تاريخ إنهاء الخدمة' : 'Termination date'
 };
 
+/* File upload */
 async function handleFileUpload(input, fileType) {
     const file = input.files[0];
     if (!file) return;
@@ -1554,208 +1456,198 @@ async function handleFileUpload(input, fileType) {
     formData.append('file_type', fileType);
 
     try {
-        const response = await fetch('/erp/hr/api/import', {
-            method: 'POST',
-            body: formData
-        });
-
+        const response = await fetch('/erp/hr/api/import', { method: 'POST', body: formData });
         const data = await response.json();
 
         if (data.success) {
             currentImportId = data.import_id;
             currentFileType = fileType;
             currentHeaders = data.headers;
-            
+
             const statusBadge = document.querySelector(`#file-row-${fileType} .file-status`);
-            statusBadge.className = 'badge bg-success file-status';
-            statusBadge.innerHTML = '<i class="fas fa-check me-1"></i>' + (lang === 'ar' ? 'مرفوع' : 'Uploaded');
-            
+            if (statusBadge) {
+                statusBadge.className = 'badge bg-success file-status';
+                statusBadge.innerHTML = '<i class="fas fa-check me-1"></i>' + (lang === 'ar' ? 'مرفوع' : 'Uploaded');
+            }
+
             uploadedFilesCount++;
             updateHomeProgress();
-            
+
             await Swal.fire({
                 icon: 'success',
-                title: lang === 'ar' ? 'تم رفع الملف بنجاح!' : 'File uploaded successfully!',
-                text: lang === 'ar' ? `تم اكتشاف ${data.total_rows} صف` : `Found ${data.total_rows} rows`,
+                title: lang === 'ar' ? 'تم رفع الملف!' : 'File uploaded!',
+                text: (lang === 'ar' ? 'تم اكتشاف ' : 'Found ') + (data.total_rows || 0) + (lang === 'ar' ? ' صف' : ' rows'),
                 confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
             });
-            
-            showMappingModal(data.headers, data.sample_rows, fileType);
+
+            showMappingModal(data.headers, data.sample_rows || [], fileType);
         } else {
             await Swal.fire({
                 icon: 'error',
                 title: lang === 'ar' ? 'خطأ' : 'Error',
-                text: data.error,
+                text: data.error || (lang === 'ar' ? 'حدث خطأ أثناء رفع الملف' : 'Error uploading file'),
                 confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
             });
         }
-    } catch (error) {
-        console.error('Upload error:', error);
+    } catch (err) {
+        console.error(err);
         await Swal.fire({
             icon: 'error',
             title: lang === 'ar' ? 'خطأ' : 'Error',
-            text: lang === 'ar' ? 'حدث خطأ أثناء رفع الملف' : 'Error uploading file',
+            text: lang === 'ar' ? 'تعذر الاتصال بالخادم' : 'Failed to contact server',
             confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
         });
+    } finally {
+        input.value = '';
     }
-    
-    input.value = '';
 }
 
 function showMappingModal(headers, sampleRows, fileType) {
     const fields = requiredFields[fileType] || [];
-    let html = '<div class="row">';
-    
+    let html = '<div class="row g-3">';
     fields.forEach(field => {
-        const matchingHeader = headers.find(h => 
-            h.toLowerCase().includes(field.replace('_', '')) ||
-            field.includes(h.toLowerCase().replace(' ', '_'))
-        );
-        
+        const label = fieldLabels[field] || field;
+        const matchingHeader = headers.find(h => h.toLowerCase().includes(field.replace('_',''))) || '';
         html += `
-            <div class="col-md-6 mb-3">
-                <label class="form-label fw-semibold">${fieldLabels[field] || field}</label>
-                <select class="form-select mapping-select" data-field="${field}">
-                    <option value="">-- ${lang === 'ar' ? 'اختر العمود' : 'Select Column'} --</option>
-                    ${headers.map(h => `<option value="${h}" ${h === matchingHeader ? 'selected' : ''}>${h}</option>`).join('')}
-                </select>
-            </div>
-        `;
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">${label}</label>
+            <select class="form-select form-select-sm mapping-select" data-field="${field}">
+                <option value="">-- ${lang === 'ar' ? 'اختر العمود' : 'Select column'} --</option>
+                ${headers.map(h => `<option value="${h}" ${h === matchingHeader ? 'selected':''}>${h}</option>`).join('')}
+            </select>
+        </div>`;
     });
-    
     html += '</div>';
-    
-    if (sampleRows && sampleRows.length > 0) {
+
+    if (sampleRows.length > 0) {
         html += `
-            <div class="mt-4">
-                <h6 class="mb-3"><i class="fas fa-eye me-2"></i>${lang === 'ar' ? 'معاينة البيانات' : 'Data Preview'}</h6>
-                <div class="table-responsive" style="max-height: 300px;">
-                    <table class="table table-sm table-bordered">
-                        <thead class="table-light">
-                            <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
-                        </thead>
-                        <tbody>
-                            ${sampleRows.slice(0, 5).map(row => `
-                                <tr>${headers.map(h => `<td>${row[h] || '-'}</td>`).join('')}</tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
+        <div class="mt-4">
+            <h6 class="fw-bold mb-2"><i class="fas fa-eye me-1"></i>${lang === 'ar' ? 'معاينة البيانات' : 'Data preview'}</h6>
+            <div class="table-responsive" style="max-height:300px;">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
+                    </thead>
+                    <tbody>
+                        ${sampleRows.slice(0,5).map(r => `
+                            <tr>${headers.map(h => `<td>${r[h] ?? '-'}</td>`).join('')}</tr>
+                        `).join('')}
+                    </tbody>
+                </table>
             </div>
-        `;
+        </div>`;
     }
-    
+
     document.getElementById('mappingForm').innerHTML = html;
     new bootstrap.Modal(document.getElementById('mappingModal')).show();
 }
 
 async function applyMapping() {
     const mapping = {};
-    document.querySelectorAll('.mapping-select').forEach(select => {
-        if (select.value) {
-            mapping[select.dataset.field] = select.value;
-        }
+    document.querySelectorAll('.mapping-select').forEach(sel => {
+        if (sel.value) mapping[sel.dataset.field] = sel.value;
     });
-    
+
     try {
         Swal.fire({
             title: lang === 'ar' ? 'جاري الاستيراد...' : 'Importing...',
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading()
         });
-        
-        const mapResponse = await fetch(`/erp/hr/api/import/${currentImportId}/map`, {
+
+        const mapRes = await fetch(`/erp/hr/api/import/${currentImportId}/map`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ mapping: mapping })
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ mapping })
         });
-        
-        const mapResult = await mapResponse.json();
-        
-        if (!mapResult.success) {
+        const mapData = await mapRes.json();
+        if (!mapData.success) {
+            Swal.close();
             await Swal.fire({
                 icon: 'error',
                 title: lang === 'ar' ? 'خطأ' : 'Error',
-                text: mapResult.error,
+                text: mapData.error || (lang === 'ar' ? 'فشل في مطابقة الأعمدة' : 'Mapping failed'),
                 confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
             });
             return;
         }
-        
-        const processResponse = await fetch(`/erp/hr/api/import/${currentImportId}/process`, {
+
+        const processRes = await fetch(`/erp/hr/api/import/${currentImportId}/process`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'}
+            headers: {'Content-Type':'application/json'}
         });
-        
-        const result = await processResponse.json();
-        
-        if (result.success) {
+        const processData = await processRes.json();
+        Swal.close();
+
+        if (processData.success) {
             bootstrap.Modal.getInstance(document.getElementById('mappingModal')).hide();
-            
             await Swal.fire({
                 icon: 'success',
-                title: lang === 'ar' ? 'نجح!' : 'Success!',
-                text: lang === 'ar' ? `تم استيراد ${result.imported || 0} سجل` : `Imported ${result.imported || 0} records`,
+                title: lang === 'ar' ? 'نجح' : 'Success',
+                text: (lang === 'ar' ? 'تم استيراد ' : 'Imported ') + (processData.imported || 0) + (lang === 'ar' ? ' سجل' : ' records'),
                 confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
             });
+            loadEmployees();
         } else {
             await Swal.fire({
                 icon: 'error',
                 title: lang === 'ar' ? 'خطأ' : 'Error',
-                text: result.error,
+                text: processData.error || (lang === 'ar' ? 'فشل في معالجة البيانات' : 'Processing failed'),
                 confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
             });
         }
-    } catch (error) {
-        console.error('Mapping error:', error);
+    } catch (err) {
+        Swal.close();
+        console.error(err);
         await Swal.fire({
             icon: 'error',
             title: lang === 'ar' ? 'خطأ' : 'Error',
-            text: error.message,
+            text: err.message || (lang === 'ar' ? 'حدث خطأ غير متوقع' : 'Unexpected error'),
             confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
         });
     }
 }
 
 function updateHomeProgress() {
-    const totalFiles = 5;
-    const progress = (uploadedFilesCount / totalFiles) * 100;
-    document.getElementById('home-files-count').textContent = `${uploadedFilesCount}/${totalFiles}`;
-    document.getElementById('home-files-progress').style.width = `${progress}%`;
+    const total = 5;
+    const percent = (uploadedFilesCount / total) * 100;
+    document.getElementById('home-files-count').textContent = `${uploadedFilesCount}/${total}`;
+    document.getElementById('home-files-progress').style.width = `${percent}%`;
 }
 
+/* PROCESS ALL FILES SIMULATION */
 async function processAllFiles() {
     showSection('processing');
-    
     const steps = document.querySelectorAll('.processing-step');
     for (let i = 0; i < steps.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 1500));
         steps[i].classList.add('active');
         steps[i].querySelector('i').className = 'fas fa-check-circle';
+        // simulate step
+        // NOTE: this is a visual delay only
+        /* eslint-disable no-await-in-loop */
+        await new Promise(r => setTimeout(r, 1200));
+        /* eslint-enable no-await-in-loop */
     }
-    
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     await Swal.fire({
         icon: 'success',
-        title: lang === 'ar' ? 'تم بنجاح!' : 'Success!',
+        title: lang === 'ar' ? 'تم التحليل' : 'Analysis complete',
         text: lang === 'ar' ? 'تم تحليل البيانات بنجاح' : 'Data analyzed successfully',
-        confirmButtonText: lang === 'ar' ? 'عرض لوحة القيادة' : 'View Dashboard'
+        confirmButtonText: lang === 'ar' ? 'عرض لوحة القيادة' : 'View dashboard'
     });
-    
     showSection('dashboard');
 }
 
 function downloadTemplate() {
     Swal.fire({
         icon: 'info',
-        title: lang === 'ar' ? 'قريباً' : 'Coming Soon',
-        text: lang === 'ar' ? 'ستتوفر قوالب الملفات قريباً' : 'File templates will be available soon',
+        title: lang === 'ar' ? 'قريباً' : 'Coming soon',
+        text: lang === 'ar' ? 'ستتوفر قوالب جاهزة قريباً' : 'Templates will be available soon',
         confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
     });
 }
 
-// Employee Management Functions
+/* EMPLOYEES */
 function clearFilters() {
     document.getElementById('employee-search').value = '';
     document.getElementById('filter-department').value = '';
@@ -1766,76 +1658,73 @@ function clearFilters() {
 
 async function loadEmployees() {
     try {
-        const response = await fetch('/erp/hr/api/employees');
-        const data = await response.json();
-        
+        const res = await fetch('/erp/hr/api/employees');
+        const data = await res.json();
         if (data.success && data.employees) {
             renderEmployeesTable(data.employees);
             document.getElementById('employee-total-badge').textContent = data.employees.length;
             document.getElementById('total-count').textContent = data.employees.length;
             document.getElementById('showing-count').textContent = data.employees.length;
+            document.getElementById('employees-count').textContent = data.employees.length;
+            document.getElementById('sidebar-total-emp').textContent = data.employees.length;
         }
-    } catch (error) {
-        console.error('Error loading employees:', error);
+    } catch (err) {
+        console.error('Error loading employees', err);
     }
 }
 
 function renderEmployeesTable(employees) {
     const tbody = document.getElementById('employees-table-body');
-    
     if (!employees || employees.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" class="text-center py-5">
+                <td colspan="8" class="text-center py-4">
                     <div class="text-muted">
-                        <i class="fas fa-users fa-3x mb-3 opacity-25"></i>
+                        <i class="fas fa-users fa-2x mb-2 opacity-25"></i>
                         <p>${lang === 'ar' ? 'لا توجد بيانات موظفين' : 'No employees data'}</p>
                     </div>
                 </td>
-            </tr>
-        `;
+            </tr>`;
         return;
     }
-    
+
     tbody.innerHTML = employees.map(emp => `
         <tr>
-            <td class="px-4 py-3">
+            <td class="px-3 py-2">
                 <div class="d-flex align-items-center">
-                    <div class="avatar-circle bg-primary-subtle text-primary me-3">
-                        <strong>${emp.full_name ? emp.full_name.charAt(0) : 'U'}</strong>
-                    </div>
+                    <div class="avatar-circle">${(emp.full_name || 'U').charAt(0)}</div>
                     <div>
                         <div class="fw-semibold">${emp.full_name || 'N/A'}</div>
                         <small class="text-muted">ID: ${emp.employee_id || 'N/A'}</small>
                     </div>
                 </div>
             </td>
-            <td class="px-4 py-3">${emp.department || 'N/A'}</td>
-            <td class="px-4 py-3">${emp.job_title || 'N/A'}</td>
-            <td class="px-4 py-3 text-center">
-                <div class="progress" style="height: 6px;">
-                    <div class="progress-bar ${getPerformanceColor(85)}" style="width: 85%"></div>
+            <td class="px-3 py-2">${emp.department || 'N/A'}</td>
+            <td class="px-3 py-2">${emp.job_title || 'N/A'}</td>
+            <td class="px-3 py-2 text-center">
+                <div class="progress" style="height:6px;">
+                    <div class="progress-bar ${getPerformanceColor(85)}" style="width:85%;"></div>
                 </div>
                 <small class="text-muted">85%</small>
             </td>
-            <td class="px-4 py-3 text-center">
-                <div class="progress" style="height: 6px;">
-                    <div class="progress-bar bg-success" style="width: 92%"></div>
+            <td class="px-3 py-2 text-center">
+                <div class="progress" style="height:6px;">
+                    <div class="progress-bar bg-success" style="width:92%;"></div>
                 </div>
                 <small class="text-muted">92%</small>
             </td>
-            <td class="px-4 py-3 text-center">
+            <td class="px-3 py-2 text-center">
                 <span class="badge ${getRiskBadge('low')}">${lang === 'ar' ? 'منخفض' : 'Low'}</span>
             </td>
-            <td class="px-4 py-3 text-center">
+            <td class="px-3 py-2 text-center">
                 <span class="badge bg-success-subtle text-success">${lang === 'ar' ? 'نشط' : 'Active'}</span>
             </td>
-            <td class="px-4 py-3 text-center">
+            <td class="px-3 py-2 text-center">
                 <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-primary" onclick="viewEmployeeProfile(${emp.id})" title="${lang === 'ar' ? 'عرض الملف' : 'View Profile'}">
+                    <button class="btn btn-outline-primary" onclick="viewEmployeeProfile(${emp.id})" title="${lang === 'ar' ? 'عرض' : 'View'}">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="btn btn-outline-success" onclick="analyzeEmployee(${emp.id})" title="${lang === 'ar' ? 'تحليل AI' : 'AI Analysis'}">
+                    <button class="btn btn-outline-success" onclick="analyzeEmployee(${emp.id})" title="${lang === 'ar' ? 'تحليل' : 'Analyze'}">
                         <i class="fas fa-brain"></i>
                     </button>
                 </div>
@@ -1852,18 +1741,18 @@ function getPerformanceColor(score) {
 }
 
 function getRiskBadge(risk) {
-    const badges = {
-        'high': 'bg-danger-subtle text-danger',
-        'medium': 'bg-warning-subtle text-warning',
-        'low': 'bg-success-subtle text-success'
+    const map = {
+        high: 'bg-danger-subtle text-danger',
+        medium: 'bg-warning-subtle text-warning',
+        low: 'bg-success-subtle text-success'
     };
-    return badges[risk] || badges['low'];
+    return map[risk] || map.low;
 }
 
 function viewEmployeeProfile(id) {
     Swal.fire({
         icon: 'info',
-        title: lang === 'ar' ? 'قريباً' : 'Coming Soon',
+        title: lang === 'ar' ? 'قريباً' : 'Coming soon',
         text: lang === 'ar' ? 'سيتم فتح ملف الموظف قريباً' : 'Employee profile will be available soon',
         confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
     });
@@ -1872,8 +1761,8 @@ function viewEmployeeProfile(id) {
 function analyzeEmployee(id) {
     Swal.fire({
         icon: 'info',
-        title: lang === 'ar' ? 'قريباً' : 'Coming Soon',
-        text: lang === 'ar' ? 'سيتم تحليل الموظف بالذكاء الاصطناعي قريباً' : 'AI analysis will be available soon',
+        title: lang === 'ar' ? 'قريباً' : 'Coming soon',
+        text: lang === 'ar' ? 'سيتم تحليل الموظف بالذكاء الاصطناعي قريباً' : 'AI analysis coming soon',
         confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
     });
 }
@@ -1881,48 +1770,46 @@ function analyzeEmployee(id) {
 function exportEmployees() {
     Swal.fire({
         icon: 'info',
-        title: lang === 'ar' ? 'قريباً' : 'Coming Soon',
-        text: lang === 'ar' ? 'سيتم تصدير البيانات قريباً' : 'Export will be available soon',
+        title: lang === 'ar' ? 'قريباً' : 'Coming soon',
+        text: lang === 'ar' ? 'سيتم دعم التصدير قريباً' : 'Export will be available soon',
         confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
     });
 }
 
-// Initialize Charts
+/* CHARTS */
 window.addEventListener('load', () => {
     const turnoverCtx = document.getElementById('turnoverChart');
     if (turnoverCtx) {
         new Chart(turnoverCtx, {
             type: 'bar',
             data: {
-                labels: lang === 'ar' ? ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'] : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                labels: lang === 'ar'
+                    ? ['يناير','فبراير','مارس','أبريل','مايو','يونيو']
+                    : ['Jan','Feb','Mar','Apr','May','Jun'],
                 datasets: [{
-                    label: lang === 'ar' ? 'معدل الاستقالات' : 'Turnover Rate',
-                    data: [12, 15, 10, 18, 14, 16],
-                    backgroundColor: '#3b82f6'
+                    label: lang === 'ar' ? 'معدل الاستقالات' : 'Turnover rate',
+                    data: [12,15,10,18,14,16],
+                    backgroundColor: '#2563eb'
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
+            options: { responsive:true, maintainAspectRatio:false }
         });
     }
-    
+
     const performanceCtx = document.getElementById('performanceChart');
     if (performanceCtx) {
         new Chart(performanceCtx, {
             type: 'doughnut',
             data: {
-                labels: lang === 'ar' ? ['ممتاز', 'جيد', 'متوسط', 'ضعيف'] : ['Excellent', 'Good', 'Average', 'Poor'],
+                labels: lang === 'ar'
+                    ? ['ممتاز','جيد','متوسط','ضعيف']
+                    : ['Excellent','Good','Average','Poor'],
                 datasets: [{
-                    data: [30, 45, 20, 5],
-                    backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444']
+                    data: [30,45,20,5],
+                    backgroundColor: ['#10b981','#2563eb','#f59e0b','#ef4444']
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
+            options: { responsive:true, maintainAspectRatio:false }
         });
     }
 });
