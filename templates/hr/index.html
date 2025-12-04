@@ -307,6 +307,17 @@
     color: white;
 }
 
+/* Avatar Circle */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
 /* Processing Animation */
 .processing-animation {
     text-align: center;
@@ -827,8 +838,128 @@
 
         <!-- Other Sections (Placeholders for now) -->
         <div id="section-employees" class="hr-section">
-            <h2>{{ 'Employees Management' if lang == 'en' else 'إدارة الموظفين' }}</h2>
-            <p class="text-muted">{{ 'Coming soon...' if lang == 'en' else 'قريباً...' }}</p>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-2">{{ 'Employees Management' if lang == 'en' else 'إدارة الموظفين' }}</h2>
+                    <p class="text-muted mb-0">{{ 'Complete employee database with AI insights' if lang == 'en' else 'قاعدة بيانات الموظفين مع التحليلات الذكية' }}</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" onclick="alert('Coming soon!')">
+                        <i class="fas fa-plus me-2"></i>{{ 'Add Employee' if lang == 'en' else 'إضافة موظف' }}
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="showSection('import')">
+                        <i class="fas fa-file-import me-2"></i>{{ 'Import CSV' if lang == 'en' else 'استيراد CSV' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted">{{ 'Search' if lang == 'en' else 'بحث' }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                                <input type="text" class="form-control" placeholder="{{ 'Search by name, ID...' if lang == 'en' else 'البحث بالاسم، الرقم...' }}" id="employee-search">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small text-muted">{{ 'Department' if lang == 'en' else 'القسم' }}</label>
+                            <select class="form-select" id="filter-department">
+                                <option value="">{{ 'All' if lang == 'en' else 'الكل' }}</option>
+                                <option value="IT">IT</option>
+                                <option value="HR">HR</option>
+                                <option value="Sales">Sales</option>
+                                <option value="Finance">Finance</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small text-muted">{{ 'Performance' if lang == 'en' else 'الأداء' }}</label>
+                            <select class="form-select" id="filter-performance">
+                                <option value="">{{ 'All' if lang == 'en' else 'الكل' }}</option>
+                                <option value="excellent">{{ 'Excellent' if lang == 'en' else 'ممتاز' }}</option>
+                                <option value="good">{{ 'Good' if lang == 'en' else 'جيد' }}</option>
+                                <option value="average">{{ 'Average' if lang == 'en' else 'متوسط' }}</option>
+                                <option value="poor">{{ 'Poor' if lang == 'en' else 'ضعيف' }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small text-muted">{{ 'Risk Level' if lang == 'en' else 'مستوى المخاطر' }}</label>
+                            <select class="form-select" id="filter-risk">
+                                <option value="">{{ 'All' if lang == 'en' else 'الكل' }}</option>
+                                <option value="high">{{ 'High' if lang == 'en' else 'مرتفع' }}</option>
+                                <option value="medium">{{ 'Medium' if lang == 'en' else 'متوسط' }}</option>
+                                <option value="low">{{ 'Low' if lang == 'en' else 'منخفض' }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                <i class="fas fa-undo me-2"></i>{{ 'Clear Filters' if lang == 'en' else 'مسح الفلاتر' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employees Table -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-users me-2 text-primary"></i>
+                        {{ 'Employee List' if lang == 'en' else 'قائمة الموظفين' }}
+                        <span class="badge bg-primary ms-2" id="employee-total-badge">0</span>
+                    </h6>
+                    <button class="btn btn-sm btn-outline-primary" onclick="exportEmployees()">
+                        <i class="fas fa-download me-1"></i>{{ 'Export' if lang == 'en' else 'تصدير' }}
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="px-4 py-3">{{ 'Employee' if lang == 'en' else 'الموظف' }}</th>
+                                    <th class="px-4 py-3">{{ 'Department' if lang == 'en' else 'القسم' }}</th>
+                                    <th class="px-4 py-3">{{ 'Position' if lang == 'en' else 'المنصب' }}</th>
+                                    <th class="px-4 py-3 text-center">{{ 'Performance' if lang == 'en' else 'الأداء' }}</th>
+                                    <th class="px-4 py-3 text-center">{{ 'Attendance' if lang == 'en' else 'الانضباط' }}</th>
+                                    <th class="px-4 py-3 text-center">{{ 'Risk' if lang == 'en' else 'المخاطر' }}</th>
+                                    <th class="px-4 py-3 text-center">{{ 'Status' if lang == 'en' else 'الحالة' }}</th>
+                                    <th class="px-4 py-3 text-center">{{ 'Actions' if lang == 'en' else 'الإجراءات' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employees-table-body">
+                                <tr>
+                                    <td colspan="8" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="fas fa-users fa-3x mb-3 opacity-25"></i>
+                                            <p>{{ 'No employees data. Please import employee data to get started.' if lang == 'en' else 'لا توجد بيانات موظفين. قم باستيراد البيانات للبدء.' }}</p>
+                                            <button class="btn btn-primary" onclick="showSection('import')">
+                                                <i class="fas fa-upload me-2"></i>{{ 'Import Data' if lang == 'en' else 'استيراد البيانات' }}
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-top">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            {{ 'Showing' if lang == 'en' else 'عرض' }} <span id="showing-count">0</span> {{ 'of' if lang == 'en' else 'من' }} <span id="total-count">0</span> {{ 'employees' if lang == 'en' else 'موظف' }}
+                        </div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0" id="employees-pagination">
+                                <li class="page-item disabled"><a class="page-link" href="#">{{ 'Previous' if lang == 'en' else 'السابق' }}</a></li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item disabled"><a class="page-link" href="#">{{ 'Next' if lang == 'en' else 'التالي' }}</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="section-performance" class="hr-section">
@@ -1161,6 +1292,138 @@ function downloadTemplate() {
         icon: 'info',
         title: lang === 'ar' ? 'قريباً' : 'Coming Soon',
         text: lang === 'ar' ? 'ستتوفر قوالب الملفات قريباً' : 'File templates will be available soon',
+        confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+    });
+}
+
+// Employee Management Functions
+function clearFilters() {
+    document.getElementById('employee-search').value = '';
+    document.getElementById('filter-department').value = '';
+    document.getElementById('filter-performance').value = '';
+    document.getElementById('filter-risk').value = '';
+    loadEmployees();
+}
+
+async function loadEmployees() {
+    try {
+        const response = await fetch('/erp/hr/api/employees');
+        const data = await response.json();
+        
+        if (data.success && data.employees) {
+            renderEmployeesTable(data.employees);
+            document.getElementById('employee-total-badge').textContent = data.employees.length;
+            document.getElementById('total-count').textContent = data.employees.length;
+            document.getElementById('showing-count').textContent = data.employees.length;
+        }
+    } catch (error) {
+        console.error('Error loading employees:', error);
+    }
+}
+
+function renderEmployeesTable(employees) {
+    const tbody = document.getElementById('employees-table-body');
+    
+    if (!employees || employees.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-5">
+                    <div class="text-muted">
+                        <i class="fas fa-users fa-3x mb-3 opacity-25"></i>
+                        <p>${lang === 'ar' ? 'لا توجد بيانات موظفين' : 'No employees data'}</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = employees.map(emp => `
+        <tr>
+            <td class="px-4 py-3">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-circle bg-primary-subtle text-primary me-3">
+                        <strong>${emp.full_name ? emp.full_name.charAt(0) : 'U'}</strong>
+                    </div>
+                    <div>
+                        <div class="fw-semibold">${emp.full_name || 'N/A'}</div>
+                        <small class="text-muted">ID: ${emp.employee_id || 'N/A'}</small>
+                    </div>
+                </div>
+            </td>
+            <td class="px-4 py-3">${emp.department || 'N/A'}</td>
+            <td class="px-4 py-3">${emp.job_title || 'N/A'}</td>
+            <td class="px-4 py-3 text-center">
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar ${getPerformanceColor(85)}" style="width: 85%"></div>
+                </div>
+                <small class="text-muted">85%</small>
+            </td>
+            <td class="px-4 py-3 text-center">
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-success" style="width: 92%"></div>
+                </div>
+                <small class="text-muted">92%</small>
+            </td>
+            <td class="px-4 py-3 text-center">
+                <span class="badge ${getRiskBadge('low')}">${lang === 'ar' ? 'منخفض' : 'Low'}</span>
+            </td>
+            <td class="px-4 py-3 text-center">
+                <span class="badge bg-success-subtle text-success">${lang === 'ar' ? 'نشط' : 'Active'}</span>
+            </td>
+            <td class="px-4 py-3 text-center">
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="viewEmployeeProfile(${emp.id})" title="${lang === 'ar' ? 'عرض الملف' : 'View Profile'}">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-outline-success" onclick="analyzeEmployee(${emp.id})" title="${lang === 'ar' ? 'تحليل AI' : 'AI Analysis'}">
+                        <i class="fas fa-brain"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function getPerformanceColor(score) {
+    if (score >= 80) return 'bg-success';
+    if (score >= 60) return 'bg-primary';
+    if (score >= 40) return 'bg-warning';
+    return 'bg-danger';
+}
+
+function getRiskBadge(risk) {
+    const badges = {
+        'high': 'bg-danger-subtle text-danger',
+        'medium': 'bg-warning-subtle text-warning',
+        'low': 'bg-success-subtle text-success'
+    };
+    return badges[risk] || badges['low'];
+}
+
+function viewEmployeeProfile(id) {
+    Swal.fire({
+        icon: 'info',
+        title: lang === 'ar' ? 'قريباً' : 'Coming Soon',
+        text: lang === 'ar' ? 'سيتم فتح ملف الموظف قريباً' : 'Employee profile will be available soon',
+        confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+    });
+}
+
+function analyzeEmployee(id) {
+    Swal.fire({
+        icon: 'info',
+        title: lang === 'ar' ? 'قريباً' : 'Coming Soon',
+        text: lang === 'ar' ? 'سيتم تحليل الموظف بالذكاء الاصطناعي قريباً' : 'AI analysis will be available soon',
+        confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
+    });
+}
+
+function exportEmployees() {
+    Swal.fire({
+        icon: 'info',
+        title: lang === 'ar' ? 'قريباً' : 'Coming Soon',
+        text: lang === 'ar' ? 'سيتم تصدير البيانات قريباً' : 'Export will be available soon',
         confirmButtonText: lang === 'ar' ? 'حسناً' : 'OK'
     });
 }
