@@ -108,6 +108,7 @@ integrations = [
   "javascript_database:1.0.0",
   "javascript_stripe:1.0.0",
 ]
+expertMode = true
 
 [objectStorage]
 defaultBucketID = "replit-objstore-e8b76c12-dbc1-4b41-a5a0-8f7100313f6c"
