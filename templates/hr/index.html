@@ -15,73 +15,105 @@
     background: linear-gradient(135deg, #f8fafb 0%, #eef2f7 100%);
 }
 
-/* Sidebar - Professional Design */
+/* Sidebar - Premium Professional Design */
 .hr-sidebar {
-    width: 280px;
-    background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #0f3460 100%);
+    width: 300px;
+    background: linear-gradient(180deg, #0f3460 0%, #1a2942 50%, #0f3460 100%);
     color: white;
     padding: 0;
     position: sticky;
     top: 70px;
     height: calc(100vh - 70px);
     overflow-y: auto;
-    box-shadow: 0 8px 32px rgba(15, 52, 96, 0.2);
-    border-right: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 10px 40px rgba(15, 52, 96, 0.25);
+    border-right: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
 }
 
+/* Sidebar Header */
 .hr-sidebar-header {
-    padding: 30px 20px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    backdrop-filter: blur(10px);
+    padding: 32px 24px;
+    background: linear-gradient(135deg, rgba(0,212,255,0.1) 0%, rgba(0,150,200,0.05) 100%);
+    border-bottom: 1.5px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+    flex-shrink: 0;
 }
 
 .hr-sidebar-header h4 {
-    margin: 0 0 8px 0;
-    font-size: 19px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg, #00d4ff, #0099cc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .hr-sidebar-header small {
-    opacity: 0.85;
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.hr-nav-section {
-    padding: 20px 0;
-    border-top: 1px solid rgba(255,255,255,0.05);
-}
-
-.hr-nav-section:first-of-type {
-    padding-top: 10px;
-    border-top: none;
-}
-
-.hr-nav-section-title {
-    padding: 12px 20px;
-    font-size: 10px;
+    opacity: 0.8;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    opacity: 0.6;
-    font-weight: 700;
     color: rgba(255,255,255,0.7);
 }
 
-.hr-nav-item {
-    padding: 14px 20px;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
+/* Navigation Sections */
+.hr-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+.hr-nav-section {
+    padding: 18px 0;
+    margin: 0;
+}
+
+.hr-nav-section:first-of-type {
+    padding-top: 12px;
+}
+
+.hr-nav-section-title {
+    padding: 14px 24px 10px;
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.55;
+    font-weight: 800;
+    color: rgba(255,255,255,0.6);
     display: flex;
     align-items: center;
-    gap: 14px;
-    border-left: 3px solid transparent;
-    color: rgba(255,255,255,0.85);
+    gap: 8px;
+}
+
+.hr-nav-section-title::before {
+    content: '';
+    width: 3px;
+    height: 3px;
+    background: rgba(0,212,255,0.6);
+    border-radius: 50%;
+}
+
+/* Navigation Items */
+.hr-nav-item {
+    padding: 12px 24px;
+    margin: 4px 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: rgba(255,255,255,0.8);
     text-decoration: none;
     font-weight: 500;
+    font-size: 14px;
     position: relative;
+    border-radius: 10px;
     overflow: hidden;
 }
 
@@ -90,18 +122,18 @@
     position: absolute;
     left: 0;
     top: 0;
-    width: 3px;
+    width: 4px;
     height: 100%;
     background: linear-gradient(180deg, #00d4ff, #0099cc);
     opacity: 0;
-    transition: opacity 0.25s;
+    transition: opacity 0.3s;
 }
 
 .hr-nav-item:hover {
-    background: rgba(255,255,255,0.08);
+    background: rgba(0,212,255,0.12);
     color: white;
-    padding-left: 24px;
-    transform: translateX(2px);
+    padding-left: 28px;
+    box-shadow: inset 8px 0 16px rgba(0,212,255,0.1);
 }
 
 .hr-nav-item:hover::before {
@@ -109,9 +141,10 @@
 }
 
 .hr-nav-item.active {
-    background: linear-gradient(90deg, rgba(0,212,255,0.1), rgba(0,212,255,0.05));
+    background: linear-gradient(90deg, rgba(0,212,255,0.2), rgba(0,212,255,0.08));
     color: #00d4ff;
-    font-weight: 600;
+    font-weight: 700;
+    box-shadow: inset 8px 0 16px rgba(0,212,255,0.15);
 }
 
 .hr-nav-item.active::before {
@@ -122,21 +155,69 @@
     width: 20px;
     text-align: center;
     font-size: 16px;
-    transition: transform 0.25s;
+    flex-shrink: 0;
+    transition: all 0.3s;
 }
 
-.hr-nav-item:hover i {
-    transform: scale(1.1);
+.hr-nav-item:hover i,
+.hr-nav-item.active i {
+    transform: scale(1.15) rotate(2deg);
+}
+
+.hr-nav-item-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .hr-nav-badge {
-    margin-left: auto;
     background: linear-gradient(135deg, #00d4ff, #0099cc);
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 700;
-    box-shadow: 0 4px 12px rgba(0,212,255,0.3);
+    padding: 4px 12px;
+    border-radius: 14px;
+    font-size: 10px;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(0,212,255,0.35);
+    margin-left: auto;
+    flex-shrink: 0;
+    letter-spacing: 0.3px;
+}
+
+/* Sidebar Footer */
+.hr-sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1.5px solid rgba(255,255,255,0.08);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,212,255,0.05));
+    flex-shrink: 0;
+    margin-top: auto;
+}
+
+.hr-sidebar-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.hr-sidebar-stat {
+    background: rgba(0,212,255,0.1);
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid rgba(0,212,255,0.2);
+}
+
+.hr-sidebar-stat-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: #00d4ff;
+    line-height: 1;
+}
+
+.hr-sidebar-stat-label {
+    font-size: 9px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 4px;
+    font-weight: 600;
 }
 
 .hr-content {
@@ -555,77 +636,121 @@
 
 {% block content %}
 <div class="hr-wrapper">
-    <!-- Sidebar Navigation -->
+    <!-- Sidebar Navigation - Redesigned -->
     <div class="hr-sidebar">
+        <!-- Sidebar Header -->
         <div class="hr-sidebar-header">
-            <h4><i class="fas fa-brain me-2"></i>{{ 'HR Intelligence' if lang == 'en' else 'ذكاء الموارد البشرية' }}</h4>
-            <small>{{ 'AI-Powered Analytics' if lang == 'en' else 'التحليلات الذكية' }}</small>
+            <h4><i class="fas fa-chart-network me-2"></i>Mcidia HR</h4>
+            <small>{{ 'AI Engine' if lang == 'en' else 'محرك الذكاء' }}</small>
         </div>
 
-        <!-- Navigation Items -->
-        <div class="hr-nav-section">
-            <div class="hr-nav-section-title">{{ 'MAIN' if lang == 'en' else 'الرئيسية' }}</div>
-            <a class="hr-nav-item active" onclick="showSection('home')">
-                <i class="fas fa-home"></i>
-                <span>{{ 'Home' if lang == 'en' else 'الرئيسية' }}</span>
-            </a>
-            <a class="hr-nav-item" onclick="showSection('dashboard')">
-                <i class="fas fa-chart-line"></i>
-                <span>{{ 'Dashboard' if lang == 'en' else 'لوحة القيادة' }}</span>
-            </a>
+        <!-- Sidebar Content -->
+        <div class="hr-sidebar-content">
+            <!-- Section 1: Core Features -->
+            <div class="hr-nav-section">
+                <div class="hr-nav-section-title">{{ 'CORE' if lang == 'en' else 'الأساسي' }}</div>
+                <a class="hr-nav-item active" onclick="showSection('home'); updateSidebarActive(this)">
+                    <i class="fas fa-home"></i>
+                    <div class="hr-nav-item-label">
+                        <span>{{ 'Home' if lang == 'en' else 'الرئيسية' }}</span>
+                    </div>
+                </a>
+                <a class="hr-nav-item" onclick="showSection('dashboard'); updateSidebarActive(this)">
+                    <i class="fas fa-tv"></i>
+                    <div class="hr-nav-item-label">
+                        <span>{{ 'Dashboard' if lang == 'en' else 'لوحة القيادة' }}</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Section 2: Data Management -->
+            <div class="hr-nav-section">
+                <div class="hr-nav-section-title">{{ 'MANAGE DATA' if lang == 'en' else 'إدارة البيانات' }}</div>
+                <a class="hr-nav-item" onclick="showSection('import'); updateSidebarActive(this)">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <div class="hr-nav-item-label">
+                        <span>{{ 'Import' if lang == 'en' else 'استيراد' }}</span>
+                    </div>
+                </a>
+                <a class="hr-nav-item" onclick="showSection('employees'); updateSidebarActive(this)">
+                    <i class="fas fa-people-group"></i>
+                    <div class="hr-nav-item-label">
+                        <span>{{ 'Employees' if lang == 'en' else 'الموظفون' }}</span>
+                    </div>
+                    <span class="hr-nav-badge" id="employees-count">0</span>
+                </a>
+            </div>
+
+            <!-- Section 3: Analytics Suite -->
+            <div class="hr-nav-section">
+                <div class="hr-nav-section-title">{{ 'ANALYTICS' if lang == 'en' else 'التحليلات' }}</div>
+                <a class="hr-nav-item" onclick="showSection('performance'); updateSidebarActive(this)">
+                    <i class="fas fa-chart-bar"></i>
+                    <div class="hr-nav-item-label">
+                        <span>{{ 'Performance' if lang == 'en' else 'الأداء' }}</span>
+                    </div>
+                </a>
+                <a class="hr-nav-item" onclick="showSection('attendance'); updateSidebarActive(this)">
+                    <i class="fas fa-calendar-alt"></i>
+                    <div class="hr-nav-item-label">
+                        <span>{{ 'Attendance' if lang == 'en' else 'الحضور' }}</span>
+                    </div>
+                </a>
+                <a class="hr-nav-item" onclick="showSection('payroll'); updateSidebarActive(this)">
+                    <i class="fas fa-money-check-alt"></i>
+                    <div class="hr-nav-item-label">
+                        <span>{{ 'Payroll' if lang == 'en' else 'الرواتب' }}</span>
+                    </div>
+                </a>
+                <a class="hr-nav-item" onclick="showSection('resignations'); updateSidebarActive(this)">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <div class="hr-nav-item-label">
+                        <span>{{ 'Resignations' if lang == 'en' else 'الاستقالات' }}</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Section 4: AI Intelligence -->
+            <div class="hr-nav-section">
+                <div class="hr-nav-section-title">{{ 'AI POWERED' if lang == 'en' else 'الذكاء' }}</div>
+                <a class="hr-nav-item" onclick="showSection('turnover'); updateSidebarActive(this)">
+                    <i class="fas fa-brain"></i>
+                    <div class="hr-nav-item-label">
+                        <span>{{ 'Turnover AI' if lang == 'en' else 'توقع الاستقالات' }}</span>
+                    </div>
+                </a>
+                <a class="hr-nav-item" onclick="showSection('recommendations'); updateSidebarActive(this)">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    <div class="hr-nav-item-label">
+                        <span>{{ 'Insights' if lang == 'en' else 'التوصيات' }}</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Section 5: System -->
+            <div class="hr-nav-section">
+                <div class="hr-nav-section-title">{{ 'SYSTEM' if lang == 'en' else 'النظام' }}</div>
+                <a class="hr-nav-item" onclick="showSection('settings'); updateSidebarActive(this)">
+                    <i class="fas fa-sliders-h"></i>
+                    <div class="hr-nav-item-label">
+                        <span>{{ 'Settings' if lang == 'en' else 'الإعدادات' }}</span>
+                    </div>
+                </a>
+            </div>
         </div>
 
-        <div class="hr-nav-section">
-            <div class="hr-nav-section-title">{{ 'DATA MANAGEMENT' if lang == 'en' else 'إدارة البيانات' }}</div>
-            <a class="hr-nav-item" onclick="showSection('import')">
-                <i class="fas fa-file-import"></i>
-                <span>{{ 'Data Import' if lang == 'en' else 'استيراد البيانات' }}</span>
-            </a>
-            <a class="hr-nav-item" onclick="showSection('employees')">
-                <i class="fas fa-users"></i>
-                <span>{{ 'Employees' if lang == 'en' else 'الموظفون' }}</span>
-                <span class="hr-nav-badge" id="employees-count">0</span>
-            </a>
-        </div>
-
-        <div class="hr-nav-section">
-            <div class="hr-nav-section-title">{{ 'ANALYTICS' if lang == 'en' else 'التحليلات' }}</div>
-            <a class="hr-nav-item" onclick="showSection('performance')">
-                <i class="fas fa-star"></i>
-                <span>{{ 'Performance' if lang == 'en' else 'الأداء' }}</span>
-            </a>
-            <a class="hr-nav-item" onclick="showSection('attendance')">
-                <i class="fas fa-calendar-check"></i>
-                <span>{{ 'Attendance' if lang == 'en' else 'الحضور' }}</span>
-            </a>
-            <a class="hr-nav-item" onclick="showSection('payroll')">
-                <i class="fas fa-money-bill-wave"></i>
-                <span>{{ 'Payroll' if lang == 'en' else 'الرواتب' }}</span>
-            </a>
-            <a class="hr-nav-item" onclick="showSection('resignations')">
-                <i class="fas fa-user-minus"></i>
-                <span>{{ 'Resignations' if lang == 'en' else 'الاستقالات' }}</span>
-            </a>
-        </div>
-
-        <div class="hr-nav-section">
-            <div class="hr-nav-section-title">{{ 'AI FEATURES' if lang == 'en' else 'الذكاء الاصطناعي' }}</div>
-            <a class="hr-nav-item" onclick="showSection('recommendations')">
-                <i class="fas fa-lightbulb"></i>
-                <span>{{ 'AI Recommendations' if lang == 'en' else 'التوصيات الذكية' }}</span>
-            </a>
-            <a class="hr-nav-item" onclick="showSection('turnover')">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>{{ 'Turnover Prediction' if lang == 'en' else 'توقع الاستقالات' }}</span>
-            </a>
-        </div>
-
-        <div class="hr-nav-section">
-            <div class="hr-nav-section-title">{{ 'SETTINGS' if lang == 'en' else 'الإعدادات' }}</div>
-            <a class="hr-nav-item" onclick="showSection('settings')">
-                <i class="fas fa-cog"></i>
-                <span>{{ 'Settings' if lang == 'en' else 'الإعدادات' }}</span>
-            </a>
+        <!-- Sidebar Footer -->
+        <div class="hr-sidebar-footer">
+            <div class="hr-sidebar-stats">
+                <div class="hr-sidebar-stat">
+                    <div class="hr-sidebar-stat-value" id="sidebar-total-emp">0</div>
+                    <div class="hr-sidebar-stat-label">{{ 'Employees' if lang == 'en' else 'الموظفون' }}</div>
+                </div>
+                <div class="hr-sidebar-stat">
+                    <div class="hr-sidebar-stat-value" id="sidebar-health">--</div>
+                    <div class="hr-sidebar-stat-label">{{ 'Health' if lang == 'en' else 'الصحة' }}</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1222,11 +1347,14 @@ function showSection(sectionName) {
         section.classList.remove('active');
     });
     document.getElementById('section-' + sectionName).classList.add('active');
-    
+}
+
+// Update sidebar active state
+function updateSidebarActive(element) {
     document.querySelectorAll('.hr-nav-item').forEach(item => {
         item.classList.remove('active');
     });
-    event.currentTarget.classList.add('active');
+    element.classList.add('active');
 }
 
 // Import Steps
