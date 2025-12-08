@@ -10,12 +10,16 @@
    HR Module - Professional Design System
    ======================================== */
 
-/* CRITICAL: Override parent container from base.html */
-.main-content:has(.hr-app) {
+/* CRITICAL: Override ALL parent containers to prevent layout conflicts */
+.main-content {
     padding: 0 !important;
     margin: 0 !important;
-    max-width: 100% !important;
     width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    display: flex !important;
 }
 
 /* Global Reset for HR Module */
@@ -1437,7 +1441,7 @@ html[dir="rtl"] .hr-sidebar__toggle i {
             <div class="modal-body" id="mappingForm"></div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'Cancel' if lang == 'en' else 'إلغاء' }}</button>
-                <button type="button" class="btn btn-primary" onclick="HRModule.applyMapping()">{{ 'Save & Continue' if lang == 'en' else 'حفظ ومتابعة' }}</button>
+                <button type="button" class="btn btn-primary" onclick="HRModule.applyMapping()">{{ 'Save &amp; Continue' if lang == 'en' else 'حفظ ومتابعة' }}</button>
             </div>
         </div>
     </div>
@@ -1488,7 +1492,12 @@ const HRModule = (function() {
         // CRITICAL: Fix parent container layout
         const hrApp = document.getElementById('hrApp');
         if (hrApp && hrApp.parentElement) {
-            hrApp.parentElement.style.cssText = 'padding:0!important;margin:0!important;width:100%!important;max-width:100%!important;';
+            const parent = hrApp.parentElement;
+            parent.style.cssText = 'padding:0!important;margin:0!important;width:100%!important;max-width:100%!important;flex-direction:row!important;height:auto!important;';
+            // Also fix grandparent if needed
+            if (parent.parentElement && parent.parentElement.classList.contains('main-content')) {
+                parent.parentElement.style.cssText = 'padding:0!important;margin:0!important;width:100%!important;flex-direction:row!important;';
+            }
         }
         
         // Bind navigation clicks
