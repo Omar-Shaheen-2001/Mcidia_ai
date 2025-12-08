@@ -85,7 +85,7 @@ Implemented a complete password reset flow with enterprise-grade security and pr
 - **Admin Features**: Full password reset email template with branded design, support contact info, and security notifications
 
 ### HR Module - Complete Implementation (Dec 8, 2025)
-Comprehensive HR Intelligence module with 12 dedicated sections and sidebar navigation:
+Comprehensive HR Intelligence module with 12 dedicated sections, fully integrated with Mcidia design system and multilingual support:
 
 **12 Main Sections (organized in 5 sidebar groups):**
 1. **Core** - Dashboard, Employees
@@ -94,81 +94,66 @@ Comprehensive HR Intelligence module with 12 dedicated sections and sidebar navi
 4. **Data & Integration** - Data Import, ERP Integrations
 5. **Configuration** - Settings
 
+**Design System Integration:**
+- **Color Palette**: Uses platform CSS variables (#0A2756 primary, #2767B1 active, #2C8C56 secondary)
+- **Spacing System**: Consistent with design-system.css (var(--space-1) through var(--space-24))
+- **Typography**: Cairo (Arabic) and Inter (English) with semantic font weights
+- **Shadows & Transitions**: Platform-standard transitions (fast/base/slow) with shadow hierarchy
+- **Status Badges**: Color-coded (success/warning/danger/info) with consistent styling
+- **Border Radius**: Semantic sizing (sm/md/lg/xl) for component hierarchy
+
+**Sidebar (260px collapsible to 80px):**
+- Left-aligned collapse button with chevron icon
+- 5 organized sections with uppercase labels
+- Active state: light blue background + left border + primary text color
+- Hover state: background-alt color with smooth transition
+- localStorage persistence for collapsed state
+- RTL-aware positioning and text direction
+
+**Main Content Area:**
+- Light background (#F7FBFF) for visual hierarchy
+- KPI Grid with 7 cards: Employees, Absence Rate, Compliance, Performance, Turnover, Cost, Risk
+- Cards have hover states with border color and shadow changes
+- Responsive grid (auto-fit, minmax 200px)
+
 **Dashboard Section:**
-- 7 KPI Cards: Total Employees, Absence Rate, Compliance Rate, Avg Performance, Turnover Rate, Monthly Cost, Turnover Risk
-- Turnover Prediction table (top 10 at-risk employees)
-- HR Alerts & Anomalies with color-coded warnings
+- 7 KPI Cards with color-coded values (primary blue)
+- Turnover Prediction table with badge indicators
+- HR Alerts & Anomalies with color-coded alert boxes (warning/danger/info)
 
-**Employees Section:**
-- Employee management with DataTable
-- Add Employee, Import CSV, Export, AI Analysis buttons
-- View/Edit/Delete actions for each employee
+**Employees/Attendance/Performance/Payroll/Resignations Sections:**
+- Professional data tables with hover effects
+- Action buttons with secondary styling
+- Status badges with color coding
+- Upload CSV buttons for data import
 
-**Attendance Section:**
-- Upload attendance.csv
-- Attendance summary table
-- AI Analysis option
-
-**Performance Section:**
-- Performance ratings by quarter
-- Upload performance.csv
-- AI Insights
-
-**Payroll Section:**
-- Monthly payroll table
-- Cost analysis
-- Upload payroll.csv
-
-**Resignations Section:**
-- Resignation records with reasons
-- Trend analysis
-- Pattern detection
-
-**HR AI Insights Section:**
-- Turnover Prediction Model
-- Productivity Analysis
-- Behavioral Analysis
-- Skills Gap Analysis
-
-**Recommendations Section:**
-- Actionable recommendations table
-- Impact and confidence ratings
-- Apply actions
-
-**Anomalies Section:**
-- Salary anomalies
-- Performance drops
-- Attendance patterns
-- Data validation issues
+**HR AI Insights/Recommendations/Anomalies Sections:**
+- Card-based layouts for insights
+- Actionable recommendation tables
+- Color-coded anomaly indicators (warning/danger/info)
 
 **Data Import Section:**
-- CSV upload interface for: employees.csv, attendance.csv, payroll.csv, performance.csv, resignations.csv
-- Automatic data validation and quality checks
+- CSV file upload grid
+- Validation section with secondary buttons
 
-**ERP Integrations Section:**
-- Connect via API
-- CSV Sync setup
-- Webhook configuration
+**ERP Integrations & Settings Sections:**
+- Card-based configuration options
+- Secondary buttons for setup/configure actions
 
-**Settings Section:**
-- Evaluation forms customization
-- AI settings and risk formulas
-- Custom columns configuration
-- Report scheduling
-
-**Design System:**
-- Color scheme: #2563eb (primary), #64748b (secondary), #94a3b8 (tertiary)
-- Minimal design with solid colors (no gradients)
-- Sidebar: 280px (collapsible to 80px)
-- Smooth transitions and hover effects
-- Full bilingual support (Arabic/English with RTL/LTR)
-- Responsive layout (mobile-friendly)
+**Bilingual (Arabic/English) Support:**
+- Dynamic RTL/LTR layout based on `lang` parameter
+- Conditional borders: `border-{{ 'right' if lang == 'en' else 'left' }}`
+- Bidirectional text alignment for tables and content
+- All labels translated inline: `{{ 'عربي' if lang == 'ar' else 'English' }}`
+- RTL-aware direction for chevron icons
+- Full bilingual KPI and button labels
 
 **Navigation Features:**
-- Collapsible sidebar with localStorage state persistence
-- Section navigation with active state highlighting
-- Smooth fade-in animations between sections
-- Category-based menu organization
+- Sidebar toggle with smooth 0.3s transition
+- Active section highlighting with primary color
+- Smooth fade-in animations (0.3s) between sections
+- JavaScript-based section switching with data attributes
+- localStorage persistence for sidebar state
 
 ## External Dependencies
 

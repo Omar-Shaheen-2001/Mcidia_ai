@@ -1,64 +1,30 @@
 {% extends "base.html" %}
 
-{% block title %}HR Intelligence - Mcidia{% endblock %}
+{% block title %}{{ 'إدارة الموارد البشرية' if lang == 'ar' else 'HR Intelligence' }} - Mcidia{% endblock %}
 
 {% block extra_css %}
 <style>
-:root {
-    --primary: #2563eb;
-    --secondary: #64748b;
-    --tertiary: #94a3b8;
-    --bg: #ffffff;
-    --bg-light: #f8fafc;
-    --border: #e2e8f0;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --text-light: #94a3b8;
-    --hover-bg: #f4f7fa;
-    --active-bg: #eff6ff;
-    --spacing-xs: 8px;
-    --spacing-sm: 12px;
-    --spacing-md: 16px;
-    --spacing-lg: 24px;
-    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-    --shadow-md: 0 2px 4px rgba(0,0,0,0.08);
-}
+/* ========================================
+   HR Module Design System
+   Extends Mcidia design-system.css
+   ======================================== */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-.hr-app {
+.hr-container {
     display: flex;
-    flex-direction: row;
-    width: 100%;
+    height: 100%;
     flex: 1;
-    background: var(--bg);
-    font-family: 'Inter', system-ui, sans-serif;
-}
-
-html[lang="ar"] .hr-app {
-    font-family: 'Cairo', system-ui, sans-serif;
 }
 
 /* ==================== SIDEBAR ==================== */
 .hr-sidebar {
-    width: 280px;
-    height: 100%;
-    background: var(--bg);
-    border-right: 1px solid var(--border);
+    width: 260px;
+    background-color: var(--color-surface);
+    border-{{ 'right' if lang == 'en' else 'left' }}: 1px solid var(--color-border);
     overflow-y: auto;
     overflow-x: hidden;
-    padding: var(--spacing-md);
-    transition: width 0.35s ease, margin-inline-start 0.35s ease;
+    padding: var(--space-4);
+    transition: width 0.3s var(--transition-base);
     flex-shrink: 0;
-}
-
-html[lang="ar"] .hr-sidebar {
-    border-right: none;
-    border-left: 1px solid var(--border);
 }
 
 .hr-sidebar--collapsed {
@@ -69,16 +35,18 @@ html[lang="ar"] .hr-sidebar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
-    border-bottom: 1px solid var(--border);
+    padding-bottom: var(--space-4);
+    margin-bottom: var(--space-6);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .hr-sidebar__title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--primary);
-    transition: opacity 0.3s ease;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary);
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.3s var(--transition-base);
 }
 
 .hr-sidebar--collapsed .hr-sidebar__title {
@@ -88,36 +56,38 @@ html[lang="ar"] .hr-sidebar {
 }
 
 .hr-sidebar__toggle {
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    background: transparent;
     border: none;
+    background-color: transparent;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    color: var(--primary);
-    transition: all 0.2s ease;
+    color: var(--color-primary);
+    transition: all var(--transition-base);
     flex-shrink: 0;
+    font-size: var(--font-size-sm);
 }
 
 .hr-sidebar__toggle:hover {
-    background: var(--hover-bg);
-    transform: scale(1.05);
+    background-color: var(--color-background-alt);
 }
 
 .hr-sidebar__section {
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--space-6);
 }
 
 .hr-sidebar__section-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-light);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-tertiary);
     text-transform: uppercase;
-    padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-md);
-    transition: opacity 0.3s ease;
+    letter-spacing: 0.5px;
+    padding: var(--space-3);
+    opacity: 1;
+    transition: opacity 0.3s var(--transition-base);
 }
 
 .hr-sidebar--collapsed .hr-sidebar__section-label {
@@ -129,46 +99,37 @@ html[lang="ar"] .hr-sidebar {
 .hr-sidebar__nav {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: var(--space-2);
 }
 
 .hr-nav-item {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    padding: 10px 12px;
-    border-radius: 6px;
-    background: transparent;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    background-color: transparent;
     border: none;
-    border-left: 2px solid transparent;
+    border-{{ 'left' if lang == 'en' else 'right' }}: 2px solid transparent;
     cursor: pointer;
-    color: var(--text-secondary);
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-base);
     white-space: nowrap;
     text-decoration: none;
 }
 
-html[lang="ar"] .hr-nav-item {
-    border-left: none;
-    border-right: 2px solid transparent;
-}
-
 .hr-nav-item:hover {
-    background: var(--hover-bg);
-    color: var(--text-primary);
+    background-color: var(--color-background-alt);
+    color: var(--color-text-primary);
 }
 
 .hr-nav-item.is-active {
-    background: var(--active-bg);
-    color: var(--primary);
-    font-weight: 600;
-    border-left-color: var(--primary);
-}
-
-html[lang="ar"] .hr-nav-item.is-active {
-    border-right-color: var(--primary);
+    background-color: var(--color-background-alt);
+    color: var(--color-active);
+    font-weight: var(--font-weight-semibold);
+    border-{{ 'left' if lang == 'en' else 'right' }}-color: var(--color-active);
 }
 
 .hr-nav-item__icon {
@@ -178,10 +139,13 @@ html[lang="ar"] .hr-nav-item.is-active {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    font-size: var(--font-size-base);
 }
 
 .hr-nav-item__label {
-    transition: opacity 0.3s ease;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.3s var(--transition-base);
 }
 
 .hr-sidebar--collapsed .hr-nav-item__label {
@@ -197,34 +161,34 @@ html[lang="ar"] .hr-nav-item.is-active {
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
-    background: var(--bg-light);
-    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    padding: var(--space-6);
 }
 
 .hr-main__header {
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--space-6);
 }
 
 .hr-main__title {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-2);
 }
 
 .hr-main__subtitle {
-    font-size: 14px;
-    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
 }
 
 /* ==================== SECTIONS ==================== */
 .hr-section {
     display: none;
+    animation: fadeIn 0.3s var(--transition-base);
 }
 
 .hr-section.is-active {
     display: block;
-    animation: fadeIn 0.3s ease;
 }
 
 @keyframes fadeIn {
@@ -232,126 +196,149 @@ html[lang="ar"] .hr-nav-item.is-active {
     to { opacity: 1; }
 }
 
-/* ==================== COMPONENTS ==================== */
+/* ==================== KPI GRID ==================== */
 .hr-kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
 }
 
 .hr-kpi-card {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: var(--spacing-md);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
     box-shadow: var(--shadow-sm);
+    transition: all var(--transition-base);
+}
+
+.hr-kpi-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-active);
 }
 
 .hr-kpi-card__label {
-    font-size: 12px;
-    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
     text-transform: uppercase;
-    margin-bottom: var(--spacing-xs);
-    font-weight: 600;
+    margin-bottom: var(--space-2);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.5px;
 }
 
 .hr-kpi-card__value {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--primary);
-    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-active);
+    margin-bottom: var(--space-2);
 }
 
 .hr-kpi-card__change {
-    font-size: 12px;
-    color: var(--text-light);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
 }
 
+/* ==================== CARD ==================== */
 .hr-card {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: var(--spacing-lg);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
     box-shadow: var(--shadow-sm);
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--space-6);
 }
 
 .hr-card__title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
 }
 
+/* ==================== TABLE ==================== */
 .hr-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.hr-table th {
-    background: var(--bg-light);
-    padding: var(--spacing-md);
-    text-align: start;
-    font-weight: 600;
-    color: var(--text-secondary);
-    border-bottom: 2px solid var(--border);
-    font-size: 13px;
+.hr-table thead {
+    background-color: var(--color-background);
 }
 
-html[lang="ar"] .hr-table th {
-    text-align: end;
+.hr-table th {
+    padding: var(--space-4);
+    text-align: {{ 'right' if lang == 'ar' else 'left' }};
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    border-bottom: 2px solid var(--color-border);
+    font-size: var(--font-size-sm);
 }
 
 .hr-table td {
-    padding: var(--spacing-md);
-    border-bottom: 1px solid var(--border);
-    color: var(--text-primary);
-    font-size: 14px;
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
 }
 
+.hr-table tbody tr:hover {
+    background-color: var(--color-background);
+}
+
+/* ==================== BUTTONS ==================== */
 .hr-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: var(--primary);
-    color: white;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-active);
+    color: var(--color-text-inverse);
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.2s ease;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    transition: all var(--transition-base);
 }
 
 .hr-btn:hover {
-    background: #1d4ed8;
-    transform: translateY(-1px);
+    background-color: var(--color-active-dark);
     box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    text-decoration: none;
+    color: var(--color-text-inverse);
+}
+
+.hr-btn:active {
+    transform: translateY(0);
 }
 
 .hr-btn--secondary {
-    background: var(--bg);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
 }
 
 .hr-btn--secondary:hover {
-    background: var(--hover-bg);
+    background-color: var(--color-background-alt);
+    border-color: var(--color-active);
+    color: var(--color-active);
 }
 
 /* ==================== UTILITIES ==================== */
 .hr-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--spacing-lg);
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--space-6);
 }
 
 .hr-row {
     display: flex;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
     flex-wrap: wrap;
 }
 
@@ -360,32 +347,68 @@ html[lang="ar"] .hr-table th {
     min-width: 250px;
 }
 
-.hr-empty-state {
-    text-align: center;
-    padding: var(--spacing-lg);
-    color: var(--text-secondary);
+.hr-alert {
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border-left: 4px solid transparent;
+    margin-bottom: var(--space-4);
 }
 
-.hr-empty-state__icon {
-    font-size: 48px;
-    margin-bottom: var(--spacing-md);
+.hr-alert--warning {
+    background-color: #fef3c7;
+    border-left-color: var(--color-warning);
+    color: #b45309;
+}
+
+.hr-alert--danger {
+    background-color: #fee2e2;
+    border-left-color: var(--color-danger);
+    color: #991b1b;
+}
+
+.hr-alert--info {
+    background-color: #dbeafe;
+    border-left-color: var(--color-info);
+    color: #1e40af;
+}
+
+.hr-badge {
+    display: inline-block;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+}
+
+.hr-badge--success {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.hr-badge--warning {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.hr-badge--danger {
+    background-color: #fee2e2;
+    color: #991b1b;
 }
 
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
-    .hr-app {
+    .hr-container {
         flex-direction: column;
     }
     
     .hr-sidebar {
         width: 100%;
-        height: auto;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
+        border-{{ 'right' if lang == 'en' else 'left' }}: none;
+        border-bottom: 1px solid var(--color-border);
     }
     
     .hr-main {
-        padding: var(--spacing-md);
+        padding: var(--space-4);
     }
     
     .hr-kpi-grid {
@@ -396,99 +419,113 @@ html[lang="ar"] .hr-table th {
         grid-template-columns: 1fr;
     }
 }
+
+@media (max-width: 480px) {
+    .hr-main {
+        padding: var(--space-3);
+    }
+    
+    .hr-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hr-card {
+        padding: var(--space-4);
+    }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="hr-app">
+<div class="hr-container">
     <!-- SIDEBAR -->
     <aside class="hr-sidebar" id="hrSidebar">
         <div class="hr-sidebar__header">
-            <span class="hr-sidebar__title">{{ _('قائمة الموارد البشرية') if g.get('lang') == 'ar' else 'HR Menu' }}</span>
-            <button class="hr-sidebar__toggle" id="sidebarToggle" title="{{ _('إغلاق') if g.get('lang') == 'ar' else 'Collapse' }}">
-                <i class="fas fa-chevron-left"></i>
+            <span class="hr-sidebar__title">{{ 'قائمة الموارد البشرية' if lang == 'ar' else 'HR Menu' }}</span>
+            <button class="hr-sidebar__toggle" id="sidebarToggle" title="{{ 'إغلاق' if lang == 'ar' else 'Collapse' }}">
+                <i class="fas fa-chevron-{{ 'right' if lang == 'ar' else 'left' }}"></i>
             </button>
         </div>
 
         <!-- CORE SECTION -->
         <div class="hr-sidebar__section">
-            <div class="hr-sidebar__section-label">{{ _('أساسي') if g.get('lang') == 'ar' else 'Core' }}</div>
+            <div class="hr-sidebar__section-label">{{ 'أساسي' if lang == 'ar' else 'Core' }}</div>
             <nav class="hr-sidebar__nav">
                 <button class="hr-nav-item is-active" data-section="dashboard">
                     <span class="hr-nav-item__icon"><i class="fas fa-chart-line"></i></span>
-                    <span class="hr-nav-item__label">{{ _('لوحة القيادة') if g.get('lang') == 'ar' else 'Dashboard' }}</span>
+                    <span class="hr-nav-item__label">{{ 'لوحة القيادة' if lang == 'ar' else 'Dashboard' }}</span>
                 </button>
                 <button class="hr-nav-item" data-section="employees">
                     <span class="hr-nav-item__icon"><i class="fas fa-users"></i></span>
-                    <span class="hr-nav-item__label">{{ _('إدارة الموظفين') if g.get('lang') == 'ar' else 'Employees' }}</span>
+                    <span class="hr-nav-item__label">{{ 'إدارة الموظفين' if lang == 'ar' else 'Employees' }}</span>
                 </button>
             </nav>
         </div>
 
         <!-- OPERATIONS SECTION -->
         <div class="hr-sidebar__section">
-            <div class="hr-sidebar__section-label">{{ _('العمليات') if g.get('lang') == 'ar' else 'Operations' }}</div>
+            <div class="hr-sidebar__section-label">{{ 'العمليات' if lang == 'ar' else 'Operations' }}</div>
             <nav class="hr-sidebar__nav">
                 <button class="hr-nav-item" data-section="attendance">
                     <span class="hr-nav-item__icon"><i class="fas fa-clock"></i></span>
-                    <span class="hr-nav-item__label">{{ _('الحضور والانصراف') if g.get('lang') == 'ar' else 'Attendance' }}</span>
+                    <span class="hr-nav-item__label">{{ 'الحضور والانصراف' if lang == 'ar' else 'Attendance' }}</span>
                 </button>
                 <button class="hr-nav-item" data-section="performance">
                     <span class="hr-nav-item__icon"><i class="fas fa-star"></i></span>
-                    <span class="hr-nav-item__label">{{ _('تقييم الأداء') if g.get('lang') == 'ar' else 'Performance' }}</span>
+                    <span class="hr-nav-item__label">{{ 'تقييم الأداء' if lang == 'ar' else 'Performance' }}</span>
                 </button>
                 <button class="hr-nav-item" data-section="payroll">
-                    <span class="hr-nav-item__icon"><i class="fas fa-money-bill"></i></span>
-                    <span class="hr-nav-item__label">{{ _('الرواتب') if g.get('lang') == 'ar' else 'Payroll' }}</span>
+                    <span class="hr-nav-item__icon"><i class="fas fa-money-bill-wave"></i></span>
+                    <span class="hr-nav-item__label">{{ 'الرواتب' if lang == 'ar' else 'Payroll' }}</span>
                 </button>
                 <button class="hr-nav-item" data-section="resignations">
                     <span class="hr-nav-item__icon"><i class="fas fa-sign-out-alt"></i></span>
-                    <span class="hr-nav-item__label">{{ _('الاستقالات') if g.get('lang') == 'ar' else 'Resignations' }}</span>
+                    <span class="hr-nav-item__label">{{ 'الاستقالات' if lang == 'ar' else 'Resignations' }}</span>
                 </button>
             </nav>
         </div>
 
-        <!-- AI INTELLIGENCE SECTION -->
+        <!-- AI & ANALYTICS SECTION -->
         <div class="hr-sidebar__section">
-            <div class="hr-sidebar__section-label">{{ _('الذكاء الاصطناعي') if g.get('lang') == 'ar' else 'AI & Analytics' }}</div>
+            <div class="hr-sidebar__section-label">{{ 'الذكاء الاصطناعي' if lang == 'ar' else 'AI & Analytics' }}</div>
             <nav class="hr-sidebar__nav">
                 <button class="hr-nav-item" data-section="hr-insights">
                     <span class="hr-nav-item__icon"><i class="fas fa-brain"></i></span>
-                    <span class="hr-nav-item__label">{{ _('التحليلات الذكية') if g.get('lang') == 'ar' else 'AI Insights' }}</span>
+                    <span class="hr-nav-item__label">{{ 'التحليلات الذكية' if lang == 'ar' else 'AI Insights' }}</span>
                 </button>
                 <button class="hr-nav-item" data-section="recommendations">
                     <span class="hr-nav-item__icon"><i class="fas fa-lightbulb"></i></span>
-                    <span class="hr-nav-item__label">{{ _('التوصيات الذكية') if g.get('lang') == 'ar' else 'Recommendations' }}</span>
+                    <span class="hr-nav-item__label">{{ 'التوصيات الذكية' if lang == 'ar' else 'Recommendations' }}</span>
                 </button>
                 <button class="hr-nav-item" data-section="anomalies">
-                    <span class="hr-nav-item__icon"><i class="fas fa-exclamation-triangle"></i></span>
-                    <span class="hr-nav-item__label">{{ _('كشف الانحرافات') if g.get('lang') == 'ar' else 'Anomalies' }}</span>
+                    <span class="hr-nav-item__icon"><i class="fas fa-triangle-exclamation"></i></span>
+                    <span class="hr-nav-item__label">{{ 'كشف الانحرافات' if lang == 'ar' else 'Anomalies' }}</span>
                 </button>
             </nav>
         </div>
 
-        <!-- INTEGRATION SECTION -->
+        <!-- DATA & INTEGRATION SECTION -->
         <div class="hr-sidebar__section">
-            <div class="hr-sidebar__section-label">{{ _('البيانات والتكامل') if g.get('lang') == 'ar' else 'Data & Integration' }}</div>
+            <div class="hr-sidebar__section-label">{{ 'البيانات والتكامل' if lang == 'ar' else 'Data & Integration' }}</div>
             <nav class="hr-sidebar__nav">
                 <button class="hr-nav-item" data-section="data-import">
-                    <span class="hr-nav-item__icon"><i class="fas fa-upload"></i></span>
-                    <span class="hr-nav-item__label">{{ _('استيراد البيانات') if g.get('lang') == 'ar' else 'Data Import' }}</span>
+                    <span class="hr-nav-item__icon"><i class="fas fa-cloud-arrow-up"></i></span>
+                    <span class="hr-nav-item__label">{{ 'استيراد البيانات' if lang == 'ar' else 'Data Import' }}</span>
                 </button>
                 <button class="hr-nav-item" data-section="erp-integrations">
                     <span class="hr-nav-item__icon"><i class="fas fa-plug"></i></span>
-                    <span class="hr-nav-item__label">{{ _('التكامل مع الأنظمة') if g.get('lang') == 'ar' else 'ERP Integration' }}</span>
+                    <span class="hr-nav-item__label">{{ 'التكامل مع الأنظمة' if lang == 'ar' else 'ERP Integration' }}</span>
                 </button>
             </nav>
         </div>
 
         <!-- CONFIGURATION SECTION -->
         <div class="hr-sidebar__section">
-            <div class="hr-sidebar__section-label">{{ _('الإعدادات') if g.get('lang') == 'ar' else 'Configuration' }}</div>
+            <div class="hr-sidebar__section-label">{{ 'الإعدادات' if lang == 'ar' else 'Configuration' }}</div>
             <nav class="hr-sidebar__nav">
                 <button class="hr-nav-item" data-section="settings">
                     <span class="hr-nav-item__icon"><i class="fas fa-cog"></i></span>
-                    <span class="hr-nav-item__label">{{ _('إعدادات القسم') if g.get('lang') == 'ar' else 'Settings' }}</span>
+                    <span class="hr-nav-item__label">{{ 'إعدادات القسم' if lang == 'ar' else 'Settings' }}</span>
                 </button>
             </nav>
         </div>
@@ -499,60 +536,60 @@ html[lang="ar"] .hr-table th {
         <!-- DASHBOARD SECTION -->
         <section id="dashboard-section" class="hr-section is-active">
             <div class="hr-main__header">
-                <h1 class="hr-main__title">{{ _('لوحة القيادة') if g.get('lang') == 'ar' else 'Dashboard' }}</h1>
-                <p class="hr-main__subtitle">{{ _('عرض عام للأداء والتحليلات الرئيسية') if g.get('lang') == 'ar' else 'Overview of key metrics and performance' }}</p>
+                <h1 class="hr-main__title">{{ 'لوحة القيادة' if lang == 'ar' else 'Dashboard' }}</h1>
+                <p class="hr-main__subtitle">{{ 'عرض عام للأداء والتحليلات الرئيسية' if lang == 'ar' else 'Overview of key metrics and performance' }}</p>
             </div>
 
             <!-- KPI GRID -->
             <div class="hr-kpi-grid">
                 <div class="hr-kpi-card">
-                    <div class="hr-kpi-card__label">{{ _('عدد الموظفين') if g.get('lang') == 'ar' else 'Total Employees' }}</div>
+                    <div class="hr-kpi-card__label">{{ 'عدد الموظفين' if lang == 'ar' else 'Total Employees' }}</div>
                     <div class="hr-kpi-card__value">245</div>
-                    <div class="hr-kpi-card__change">{{ _('آخر 30 يوم') if g.get('lang') == 'ar' else 'Last 30 days' }}</div>
+                    <div class="hr-kpi-card__change">{{ 'آخر 30 يوم' if lang == 'ar' else 'Last 30 days' }}</div>
                 </div>
                 <div class="hr-kpi-card">
-                    <div class="hr-kpi-card__label">{{ _('نسبة الغياب') if g.get('lang') == 'ar' else 'Absence Rate' }}</div>
+                    <div class="hr-kpi-card__label">{{ 'نسبة الغياب' if lang == 'ar' else 'Absence Rate' }}</div>
                     <div class="hr-kpi-card__value">3.2%</div>
-                    <div class="hr-kpi-card__change">{{ _('↓ 0.5% من الشهر السابق') if g.get('lang') == 'ar' else '↓ 0.5% vs last month' }}</div>
+                    <div class="hr-kpi-card__change">{{ '↓ 0.5% من الشهر السابق' if lang == 'ar' else '↓ 0.5% vs last month' }}</div>
                 </div>
                 <div class="hr-kpi-card">
-                    <div class="hr-kpi-card__label">{{ _('معدل الالتزام') if g.get('lang') == 'ar' else 'Compliance Rate' }}</div>
+                    <div class="hr-kpi-card__label">{{ 'معدل الالتزام' if lang == 'ar' else 'Compliance Rate' }}</div>
                     <div class="hr-kpi-card__value">94.8%</div>
-                    <div class="hr-kpi-card__change">{{ _('↑ 2.1% تحسن') if g.get('lang') == 'ar' else '↑ 2.1% improvement' }}</div>
+                    <div class="hr-kpi-card__change">{{ '↑ 2.1% تحسن' if lang == 'ar' else '↑ 2.1% improvement' }}</div>
                 </div>
                 <div class="hr-kpi-card">
-                    <div class="hr-kpi-card__label">{{ _('متوسط الأداء') if g.get('lang') == 'ar' else 'Avg Performance' }}</div>
+                    <div class="hr-kpi-card__label">{{ 'متوسط الأداء' if lang == 'ar' else 'Avg Performance' }}</div>
                     <div class="hr-kpi-card__value">3.8/5</div>
-                    <div class="hr-kpi-card__change">{{ _('من 245 موظف') if g.get('lang') == 'ar' else 'from 245 employees' }}</div>
+                    <div class="hr-kpi-card__change">{{ 'من 245 موظف' if lang == 'ar' else 'from 245 employees' }}</div>
                 </div>
                 <div class="hr-kpi-card">
-                    <div class="hr-kpi-card__label">{{ _('معدل الدوران') if g.get('lang') == 'ar' else 'Turnover Rate' }}</div>
+                    <div class="hr-kpi-card__label">{{ 'معدل الدوران' if lang == 'ar' else 'Turnover Rate' }}</div>
                     <div class="hr-kpi-card__value">2.8%</div>
-                    <div class="hr-kpi-card__change">{{ _('هذا الربع') if g.get('lang') == 'ar' else 'This quarter' }}</div>
+                    <div class="hr-kpi-card__change">{{ 'هذا الربع' if lang == 'ar' else 'This quarter' }}</div>
                 </div>
                 <div class="hr-kpi-card">
-                    <div class="hr-kpi-card__label">{{ _('التكلفة الشهرية') if g.get('lang') == 'ar' else 'Monthly Cost' }}</div>
+                    <div class="hr-kpi-card__label">{{ 'التكلفة الشهرية' if lang == 'ar' else 'Monthly Cost' }}</div>
                     <div class="hr-kpi-card__value">$2.4M</div>
-                    <div class="hr-kpi-card__change">{{ _('لرواتب الموظفين') if g.get('lang') == 'ar' else 'payroll expenses' }}</div>
+                    <div class="hr-kpi-card__change">{{ 'لرواتب الموظفين' if lang == 'ar' else 'payroll expenses' }}</div>
                 </div>
                 <div class="hr-kpi-card">
-                    <div class="hr-kpi-card__label">{{ _('خطر الدوران') if g.get('lang') == 'ar' else 'Turnover Risk' }}</div>
+                    <div class="hr-kpi-card__label">{{ 'خطر الدوران' if lang == 'ar' else 'Turnover Risk' }}</div>
                     <div class="hr-kpi-card__value">18</div>
-                    <div class="hr-kpi-card__change">{{ _('موظفين معرضين للخطر') if g.get('lang') == 'ar' else 'employees at risk' }}</div>
+                    <div class="hr-kpi-card__change">{{ 'موظفين معرضين للخطر' if lang == 'ar' else 'employees at risk' }}</div>
                 </div>
             </div>
 
-            <!-- DASHBOARD SECTIONS -->
+            <!-- DASHBOARD CARDS -->
             <div class="hr-grid">
                 <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('التنبؤ بدوران الموظفين') if g.get('lang') == 'ar' else 'Turnover Prediction' }}</h2>
+                    <h2 class="hr-card__title">{{ 'التنبؤ بدوران الموظفين' if lang == 'ar' else 'Turnover Prediction' }}</h2>
                     <table class="hr-table">
                         <thead>
                             <tr>
-                                <th>{{ _('الموظف') if g.get('lang') == 'ar' else 'Employee' }}</th>
-                                <th>{{ _('القسم') if g.get('lang') == 'ar' else 'Department' }}</th>
-                                <th>{{ _('الأداء') if g.get('lang') == 'ar' else 'Performance' }}</th>
-                                <th>{{ _('الاحتمالية') if g.get('lang') == 'ar' else 'Risk %' }}</th>
+                                <th>{{ 'الموظف' if lang == 'ar' else 'Employee' }}</th>
+                                <th>{{ 'القسم' if lang == 'ar' else 'Department' }}</th>
+                                <th>{{ 'الأداء' if lang == 'ar' else 'Performance' }}</th>
+                                <th>{{ 'احتمالية الخطر' if lang == 'ar' else 'Risk %' }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -560,35 +597,33 @@ html[lang="ar"] .hr-table th {
                                 <td>أحمد محمد</td>
                                 <td>IT</td>
                                 <td>3.2/5</td>
-                                <td>72%</td>
+                                <td><span class="hr-badge hr-badge--danger">72%</span></td>
                             </tr>
                             <tr>
                                 <td>فاطمة علي</td>
                                 <td>HR</td>
                                 <td>2.8/5</td>
-                                <td>65%</td>
+                                <td><span class="hr-badge hr-badge--warning">65%</span></td>
                             </tr>
                             <tr>
                                 <td>محمود حسن</td>
                                 <td>Finance</td>
                                 <td>2.5/5</td>
-                                <td>58%</td>
+                                <td><span class="hr-badge hr-badge--warning">58%</span></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('التنبيهات والانحرافات') if g.get('lang') == 'ar' else 'Alerts & Anomalies' }}</h2>
-                    <div style="padding: var(--spacing-md);">
-                        <div style="padding: 12px; background: #fef3c7; border-left: 4px solid #f59e0b; margin-bottom: 12px; border-radius: 4px;">
-                            <strong>{{ _('⚠️ زيادة غياب مفاجئة') if g.get('lang') == 'ar' else '⚠️ Unexpected absence spike' }}</strong>
-                            <p style="font-size: 13px; margin-top: 4px;">{{ _('24 موظف غابوا اليوم') if g.get('lang') == 'ar' else '24 employees absent today' }}</p>
-                        </div>
-                        <div style="padding: 12px; background: #fee2e2; border-left: 4px solid #ef4444; margin-bottom: 12px; border-radius: 4px;">
-                            <strong>{{ _('🔴 انخفاض أداء مفاجئ') if g.get('lang') == 'ar' else '🔴 Performance decline' }}</strong>
-                            <p style="font-size: 13px; margin-top: 4px;">{{ _('قسم IT انخفضت أداؤه 15%') if g.get('lang') == 'ar' else 'IT dept performance down 15%' }}</p>
-                        </div>
+                    <h2 class="hr-card__title">{{ 'التنبيهات والانحرافات' if lang == 'ar' else 'Alerts & Anomalies' }}</h2>
+                    <div class="hr-alert hr-alert--warning">
+                        <strong>{{ '⚠️ زيادة غياب مفاجئة' if lang == 'ar' else '⚠️ Unexpected absence spike' }}</strong>
+                        <p style="font-size: var(--font-size-xs); margin-top: var(--space-2);">{{ '24 موظف غابوا اليوم' if lang == 'ar' else '24 employees absent today' }}</p>
+                    </div>
+                    <div class="hr-alert hr-alert--danger">
+                        <strong>{{ '🔴 انخفاض أداء مفاجئ' if lang == 'ar' else '🔴 Performance decline' }}</strong>
+                        <p style="font-size: var(--font-size-xs); margin-top: var(--space-2);">{{ 'قسم IT انخفضت أداؤه 15%' if lang == 'ar' else 'IT dept performance down 15%' }}</p>
                     </div>
                 </div>
             </div>
@@ -597,48 +632,48 @@ html[lang="ar"] .hr-table th {
         <!-- EMPLOYEES SECTION -->
         <section id="employees-section" class="hr-section">
             <div class="hr-main__header">
-                <h1 class="hr-main__title">{{ _('إدارة الموظفين') if g.get('lang') == 'ar' else 'Employees' }}</h1>
-                <p class="hr-main__subtitle">{{ _('عرض وإدارة جميع موظفي المؤسسة') if g.get('lang') == 'ar' else 'View and manage all employees' }}</p>
+                <h1 class="hr-main__title">{{ 'إدارة الموظفين' if lang == 'ar' else 'Employees' }}</h1>
+                <p class="hr-main__subtitle">{{ 'عرض وإدارة جميع موظفي المؤسسة' if lang == 'ar' else 'View and manage all employees' }}</p>
             </div>
 
             <div class="hr-row">
-                <button class="hr-btn"><i class="fas fa-plus"></i> {{ _('إضافة موظف') if g.get('lang') == 'ar' else 'Add Employee' }}</button>
-                <button class="hr-btn hr-btn--secondary"><i class="fas fa-upload"></i> {{ _('استيراد CSV') if g.get('lang') == 'ar' else 'Import CSV' }}</button>
-                <button class="hr-btn hr-btn--secondary"><i class="fas fa-download"></i> {{ _('تصدير') if g.get('lang') == 'ar' else 'Export' }}</button>
-                <button class="hr-btn hr-btn--secondary"><i class="fas fa-brain"></i> {{ _('تحليل AI') if g.get('lang') == 'ar' else 'AI Analysis' }}</button>
+                <button class="hr-btn"><i class="fas fa-plus"></i> {{ 'إضافة موظف' if lang == 'ar' else 'Add Employee' }}</button>
+                <button class="hr-btn hr-btn--secondary"><i class="fas fa-cloud-arrow-up"></i> {{ 'استيراد CSV' if lang == 'ar' else 'Import CSV' }}</button>
+                <button class="hr-btn hr-btn--secondary"><i class="fas fa-cloud-arrow-down"></i> {{ 'تصدير' if lang == 'ar' else 'Export' }}</button>
+                <button class="hr-btn hr-btn--secondary"><i class="fas fa-brain"></i> {{ 'تحليل AI' if lang == 'ar' else 'AI Analysis' }}</button>
             </div>
 
             <div class="hr-card">
                 <table class="hr-table">
                     <thead>
                         <tr>
-                            <th>{{ _('رقم الموظف') if g.get('lang') == 'ar' else 'ID' }}</th>
-                            <th>{{ _('الاسم') if g.get('lang') == 'ar' else 'Name' }}</th>
-                            <th>{{ _('الوظيفة') if g.get('lang') == 'ar' else 'Position' }}</th>
-                            <th>{{ _('القسم') if g.get('lang') == 'ar' else 'Department' }}</th>
-                            <th>{{ _('الراتب') if g.get('lang') == 'ar' else 'Salary' }}</th>
-                            <th>{{ _('الحالة') if g.get('lang') == 'ar' else 'Status' }}</th>
-                            <th>{{ _('الإجراءات') if g.get('lang') == 'ar' else 'Actions' }}</th>
+                            <th>{{ 'رقم الموظف' if lang == 'ar' else 'ID' }}</th>
+                            <th>{{ 'الاسم' if lang == 'ar' else 'Name' }}</th>
+                            <th>{{ 'الوظيفة' if lang == 'ar' else 'Position' }}</th>
+                            <th>{{ 'القسم' if lang == 'ar' else 'Department' }}</th>
+                            <th>{{ 'الراتب' if lang == 'ar' else 'Salary' }}</th>
+                            <th>{{ 'الحالة' if lang == 'ar' else 'Status' }}</th>
+                            <th>{{ 'الإجراءات' if lang == 'ar' else 'Actions' }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>EMP001</td>
                             <td>أحمد محمد</td>
-                            <td>مهندس برمجيات</td>
+                            <td>{{ 'مهندس برمجيات' if lang == 'ar' else 'Software Engineer' }}</td>
                             <td>IT</td>
                             <td>$4,500</td>
-                            <td><span style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-size: 12px;">{{ _('نشط') if g.get('lang') == 'ar' else 'Active' }}</span></td>
-                            <td><button class="hr-btn hr-btn--secondary" style="padding: 6px 12px; font-size: 12px;">{{ _('عرض') if g.get('lang') == 'ar' else 'View' }}</button></td>
+                            <td><span class="hr-badge hr-badge--success">{{ 'نشط' if lang == 'ar' else 'Active' }}</span></td>
+                            <td><button class="hr-btn hr-btn--secondary" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-xs);">{{ 'عرض' if lang == 'ar' else 'View' }}</button></td>
                         </tr>
                         <tr>
                             <td>EMP002</td>
                             <td>فاطمة علي</td>
-                            <td>مدير موارد بشرية</td>
+                            <td>{{ 'مدير موارد بشرية' if lang == 'ar' else 'HR Manager' }}</td>
                             <td>HR</td>
                             <td>$5,200</td>
-                            <td><span style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-size: 12px;">{{ _('نشط') if g.get('lang') == 'ar' else 'Active' }}</span></td>
-                            <td><button class="hr-btn hr-btn--secondary" style="padding: 6px 12px; font-size: 12px;">{{ _('عرض') if g.get('lang') == 'ar' else 'View' }}</button></td>
+                            <td><span class="hr-badge hr-badge--success">{{ 'نشط' if lang == 'ar' else 'Active' }}</span></td>
+                            <td><button class="hr-btn hr-btn--secondary" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-xs);">{{ 'عرض' if lang == 'ar' else 'View' }}</button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -648,81 +683,79 @@ html[lang="ar"] .hr-table th {
         <!-- ATTENDANCE SECTION -->
         <section id="attendance-section" class="hr-section">
             <div class="hr-main__header">
-                <h1 class="hr-main__title">{{ _('الحضور والانصراف') if g.get('lang') == 'ar' else 'Attendance' }}</h1>
-                <p class="hr-main__subtitle">{{ _('تتبع حضور الموظفين وأوقات العمل') if g.get('lang') == 'ar' else 'Track employee attendance and working hours' }}</p>
+                <h1 class="hr-main__title">{{ 'الحضور والانصراف' if lang == 'ar' else 'Attendance' }}</h1>
+                <p class="hr-main__subtitle">{{ 'تتبع حضور الموظفين وأوقات العمل' if lang == 'ar' else 'Track employee attendance and working hours' }}</p>
             </div>
 
             <div class="hr-row">
-                <button class="hr-btn"><i class="fas fa-upload"></i> {{ _('رفع attendance.csv') if g.get('lang') == 'ar' else 'Upload Attendance' }}</button>
-                <button class="hr-btn hr-btn--secondary"><i class="fas fa-brain"></i> {{ _('تحليل AI') if g.get('lang') == 'ar' else 'AI Analysis' }}</button>
+                <button class="hr-btn"><i class="fas fa-cloud-arrow-up"></i> {{ 'رفع attendance.csv' if lang == 'ar' else 'Upload Attendance' }}</button>
+                <button class="hr-btn hr-btn--secondary"><i class="fas fa-brain"></i> {{ 'تحليل AI' if lang == 'ar' else 'AI Analysis' }}</button>
             </div>
 
-            <div class="hr-grid">
-                <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('ملخص الحضور') if g.get('lang') == 'ar' else 'Attendance Summary' }}</h2>
-                    <table class="hr-table">
-                        <thead>
-                            <tr>
-                                <th>{{ _('الموظف') if g.get('lang') == 'ar' else 'Employee' }}</th>
-                                <th>{{ _('أيام الحضور') if g.get('lang') == 'ar' else 'Present Days' }}</th>
-                                <th>{{ _('أيام الغياب') if g.get('lang') == 'ar' else 'Absent Days' }}</th>
-                                <th>{{ _('النسبة') if g.get('lang') == 'ar' else 'Rate' }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>أحمد محمد</td>
-                                <td>22</td>
-                                <td>1</td>
-                                <td>95.7%</td>
-                            </tr>
-                            <tr>
-                                <td>فاطمة علي</td>
-                                <td>23</td>
-                                <td>0</td>
-                                <td>100%</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="hr-card">
+                <h2 class="hr-card__title">{{ 'ملخص الحضور' if lang == 'ar' else 'Attendance Summary' }}</h2>
+                <table class="hr-table">
+                    <thead>
+                        <tr>
+                            <th>{{ 'الموظف' if lang == 'ar' else 'Employee' }}</th>
+                            <th>{{ 'أيام الحضور' if lang == 'ar' else 'Present Days' }}</th>
+                            <th>{{ 'أيام الغياب' if lang == 'ar' else 'Absent Days' }}</th>
+                            <th>{{ 'النسبة' if lang == 'ar' else 'Rate' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>أحمد محمد</td>
+                            <td>22</td>
+                            <td>1</td>
+                            <td><span class="hr-badge hr-badge--success">95.7%</span></td>
+                        </tr>
+                        <tr>
+                            <td>فاطمة علي</td>
+                            <td>23</td>
+                            <td>0</td>
+                            <td><span class="hr-badge hr-badge--success">100%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </section>
 
         <!-- PERFORMANCE SECTION -->
         <section id="performance-section" class="hr-section">
             <div class="hr-main__header">
-                <h1 class="hr-main__title">{{ _('تقييم الأداء') if g.get('lang') == 'ar' else 'Performance' }}</h1>
-                <p class="hr-main__subtitle">{{ _('تقييمات الأداء والتحليلات') if g.get('lang') == 'ar' else 'Performance ratings and analytics' }}</p>
+                <h1 class="hr-main__title">{{ 'تقييم الأداء' if lang == 'ar' else 'Performance' }}</h1>
+                <p class="hr-main__subtitle">{{ 'تقييمات الأداء والتحليلات' if lang == 'ar' else 'Performance ratings and analytics' }}</p>
             </div>
 
             <div class="hr-row">
-                <button class="hr-btn"><i class="fas fa-upload"></i> {{ _('رفع performance.csv') if g.get('lang') == 'ar' else 'Upload Performance' }}</button>
-                <button class="hr-btn hr-btn--secondary"><i class="fas fa-brain"></i> {{ _('تحليل AI') if g.get('lang') == 'ar' else 'AI Insights' }}</button>
+                <button class="hr-btn"><i class="fas fa-cloud-arrow-up"></i> {{ 'رفع performance.csv' if lang == 'ar' else 'Upload Performance' }}</button>
+                <button class="hr-btn hr-btn--secondary"><i class="fas fa-brain"></i> {{ 'تحليل AI' if lang == 'ar' else 'AI Insights' }}</button>
             </div>
 
             <div class="hr-card">
-                <h2 class="hr-card__title">{{ _('تقييمات الأداء') if g.get('lang') == 'ar' else 'Performance Ratings' }}</h2>
+                <h2 class="hr-card__title">{{ 'تقييمات الأداء' if lang == 'ar' else 'Performance Ratings' }}</h2>
                 <table class="hr-table">
                     <thead>
                         <tr>
-                            <th>{{ _('الموظف') if g.get('lang') == 'ar' else 'Employee' }}</th>
-                            <th>{{ _('الفترة') if g.get('lang') == 'ar' else 'Period' }}</th>
-                            <th>{{ _('التقييم') if g.get('lang') == 'ar' else 'Rating' }}</th>
-                            <th>{{ _('الملاحظات') if g.get('lang') == 'ar' else 'Notes' }}</th>
+                            <th>{{ 'الموظف' if lang == 'ar' else 'Employee' }}</th>
+                            <th>{{ 'الفترة' if lang == 'ar' else 'Period' }}</th>
+                            <th>{{ 'التقييم' if lang == 'ar' else 'Rating' }}</th>
+                            <th>{{ 'الملاحظات' if lang == 'ar' else 'Notes' }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>أحمد محمد</td>
                             <td>Q4 2024</td>
-                            <td>4.2/5</td>
-                            <td>أداء ممتاز</td>
+                            <td><span class="hr-badge hr-badge--success">4.2/5</span></td>
+                            <td>{{ 'أداء ممتاز' if lang == 'ar' else 'Excellent' }}</td>
                         </tr>
                         <tr>
                             <td>فاطمة علي</td>
                             <td>Q4 2024</td>
-                            <td>4.5/5</td>
-                            <td>متفوقة</td>
+                            <td><span class="hr-badge hr-badge--success">4.5/5</span></td>
+                            <td>{{ 'متفوقة' if lang == 'ar' else 'Outstanding' }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -732,25 +765,25 @@ html[lang="ar"] .hr-table th {
         <!-- PAYROLL SECTION -->
         <section id="payroll-section" class="hr-section">
             <div class="hr-main__header">
-                <h1 class="hr-main__title">{{ _('الرواتب') if g.get('lang') == 'ar' else 'Payroll' }}</h1>
-                <p class="hr-main__subtitle">{{ _('إدارة الرواتب والبدلات') if g.get('lang') == 'ar' else 'Manage salaries and allowances' }}</p>
+                <h1 class="hr-main__title">{{ 'الرواتب' if lang == 'ar' else 'Payroll' }}</h1>
+                <p class="hr-main__subtitle">{{ 'إدارة الرواتب والبدلات' if lang == 'ar' else 'Manage salaries and allowances' }}</p>
             </div>
 
             <div class="hr-row">
-                <button class="hr-btn"><i class="fas fa-upload"></i> {{ _('رفع payroll.csv') if g.get('lang') == 'ar' else 'Upload Payroll' }}</button>
-                <button class="hr-btn hr-btn--secondary"><i class="fas fa-brain"></i> {{ _('تحليل التكاليف') if g.get('lang') == 'ar' else 'Cost Analysis' }}</button>
+                <button class="hr-btn"><i class="fas fa-cloud-arrow-up"></i> {{ 'رفع payroll.csv' if lang == 'ar' else 'Upload Payroll' }}</button>
+                <button class="hr-btn hr-btn--secondary"><i class="fas fa-chart-pie"></i> {{ 'تحليل التكاليف' if lang == 'ar' else 'Cost Analysis' }}</button>
             </div>
 
             <div class="hr-card">
-                <h2 class="hr-card__title">{{ _('الرواتب الشهرية') if g.get('lang') == 'ar' else 'Monthly Payroll' }}</h2>
+                <h2 class="hr-card__title">{{ 'الرواتب الشهرية' if lang == 'ar' else 'Monthly Payroll' }}</h2>
                 <table class="hr-table">
                     <thead>
                         <tr>
-                            <th>{{ _('الموظف') if g.get('lang') == 'ar' else 'Employee' }}</th>
-                            <th>{{ _('الراتب الأساسي') if g.get('lang') == 'ar' else 'Base Salary' }}</th>
-                            <th>{{ _('البدلات') if g.get('lang') == 'ar' else 'Allowances' }}</th>
-                            <th>{{ _('الخصومات') if g.get('lang') == 'ar' else 'Deductions' }}</th>
-                            <th>{{ _('الصافي') if g.get('lang') == 'ar' else 'Net' }}</th>
+                            <th>{{ 'الموظف' if lang == 'ar' else 'Employee' }}</th>
+                            <th>{{ 'الراتب الأساسي' if lang == 'ar' else 'Base Salary' }}</th>
+                            <th>{{ 'البدلات' if lang == 'ar' else 'Allowances' }}</th>
+                            <th>{{ 'الخصومات' if lang == 'ar' else 'Deductions' }}</th>
+                            <th>{{ 'الصافي' if lang == 'ar' else 'Net' }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -776,28 +809,24 @@ html[lang="ar"] .hr-table th {
         <!-- RESIGNATIONS SECTION -->
         <section id="resignations-section" class="hr-section">
             <div class="hr-main__header">
-                <h1 class="hr-main__title">{{ _('الاستقالات') if g.get('lang') == 'ar' else 'Resignations' }}</h1>
-                <p class="hr-main__subtitle">{{ _('تحليل الاستقالات والدوران الوظيفي') if g.get('lang') == 'ar' else 'Analyze resignations and turnover patterns' }}</p>
-            </div>
-
-            <div class="hr-row">
-                <button class="hr-btn hr-btn--secondary"><i class="fas fa-brain"></i> {{ _('تحليل الأسباب') if g.get('lang') == 'ar' else 'Analyze Reasons' }}</button>
+                <h1 class="hr-main__title">{{ 'الاستقالات' if lang == 'ar' else 'Resignations' }}</h1>
+                <p class="hr-main__subtitle">{{ 'تحليل الاستقالات والدوران الوظيفي' if lang == 'ar' else 'Analyze resignations and turnover patterns' }}</p>
             </div>
 
             <div class="hr-card">
-                <h2 class="hr-card__title">{{ _('السجل') if g.get('lang') == 'ar' else 'Resignation Records' }}</h2>
+                <h2 class="hr-card__title">{{ 'السجل' if lang == 'ar' else 'Resignation Records' }}</h2>
                 <table class="hr-table">
                     <thead>
                         <tr>
-                            <th>{{ _('الموظف') if g.get('lang') == 'ar' else 'Employee' }}</th>
-                            <th>{{ _('تاريخ الاستقالة') if g.get('lang') == 'ar' else 'Resignation Date' }}</th>
-                            <th>{{ _('السبب') if g.get('lang') == 'ar' else 'Reason' }}</th>
-                            <th>{{ _('القسم') if g.get('lang') == 'ar' else 'Department' }}</th>
+                            <th>{{ 'الموظف' if lang == 'ar' else 'Employee' }}</th>
+                            <th>{{ 'تاريخ الاستقالة' if lang == 'ar' else 'Resignation Date' }}</th>
+                            <th>{{ 'السبب' if lang == 'ar' else 'Reason' }}</th>
+                            <th>{{ 'القسم' if lang == 'ar' else 'Department' }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-secondary);">{{ _('لا توجد استقالات') if g.get('lang') == 'ar' else 'No resignations recorded' }}</td>
+                            <td colspan="4" style="text-align: center; padding: var(--space-6); color: var(--color-text-secondary);">{{ 'لا توجد استقالات' if lang == 'ar' else 'No resignations recorded' }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -807,22 +836,22 @@ html[lang="ar"] .hr-table th {
         <!-- HR AI INSIGHTS SECTION -->
         <section id="hr-insights-section" class="hr-section">
             <div class="hr-main__header">
-                <h1 class="hr-main__title">{{ _('التحليلات الذكية') if g.get('lang') == 'ar' else 'AI Insights' }}</h1>
-                <p class="hr-main__subtitle">{{ _('تحليلات متقدمة مدعومة بالذكاء الاصطناعي') if g.get('lang') == 'ar' else 'Advanced AI-powered analytics and predictions' }}</p>
+                <h1 class="hr-main__title">{{ 'التحليلات الذكية' if lang == 'ar' else 'AI Insights' }}</h1>
+                <p class="hr-main__subtitle">{{ 'تحليلات متقدمة مدعومة بالذكاء الاصطناعي' if lang == 'ar' else 'Advanced AI-powered analytics and predictions' }}</p>
             </div>
 
             <div class="hr-grid">
                 <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('نموذج التنبؤ بالدوران') if g.get('lang') == 'ar' else 'Turnover Prediction Model' }}</h2>
-                    <p style="color: var(--text-secondary); margin: var(--spacing-md) 0;">{{ _('استخدام خوارزميات ML المتقدمة للتنبؤ بأعضاء الفريق الذين قد يتركون الشركة.') if g.get('lang') == 'ar' else 'Advanced ML algorithms predict which team members may leave.' }}</p>
+                    <h2 class="hr-card__title">{{ 'نموذج التنبؤ بالدوران' if lang == 'ar' else 'Turnover Prediction Model' }}</h2>
+                    <p style="color: var(--color-text-secondary); margin: var(--space-4) 0;">{{ 'استخدام خوارزميات ML المتقدمة للتنبؤ بأعضاء الفريق الذين قد يتركون الشركة.' if lang == 'ar' else 'Advanced ML algorithms predict which team members may leave.' }}</p>
                 </div>
                 <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('تحليل الإنتاجية') if g.get('lang') == 'ar' else 'Productivity Analysis' }}</h2>
-                    <p style="color: var(--text-secondary); margin: var(--spacing-md) 0;">{{ _('مقارنة الإنتاجية مع التكاليف لكل موظف والقسم.') if g.get('lang') == 'ar' else 'Compare productivity metrics against costs per employee and department.' }}</p>
+                    <h2 class="hr-card__title">{{ 'تحليل الإنتاجية' if lang == 'ar' else 'Productivity Analysis' }}</h2>
+                    <p style="color: var(--color-text-secondary); margin: var(--space-4) 0;">{{ 'مقارنة الإنتاجية مع التكاليف لكل موظف والقسم.' if lang == 'ar' else 'Compare productivity metrics against costs per employee and department.' }}</p>
                 </div>
                 <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('تحليل السلوك') if g.get('lang') == 'ar' else 'Behavioral Analysis' }}</h2>
-                    <p style="color: var(--text-secondary); margin: var(--spacing-md) 0;">{{ _('كشف الأنماط غير المعتادة في الغياب والتأخير والأداء.') if g.get('lang') == 'ar' else 'Detect unusual patterns in absences, delays, and performance.' }}</p>
+                    <h2 class="hr-card__title">{{ 'تحليل السلوك' if lang == 'ar' else 'Behavioral Analysis' }}</h2>
+                    <p style="color: var(--color-text-secondary); margin: var(--space-4) 0;">{{ 'كشف الأنماط غير المعتادة في الغياب والتأخير والأداء.' if lang == 'ar' else 'Detect unusual patterns in absences, delays, and performance.' }}</p>
                 </div>
             </div>
         </section>
@@ -830,32 +859,32 @@ html[lang="ar"] .hr-table th {
         <!-- RECOMMENDATIONS SECTION -->
         <section id="recommendations-section" class="hr-section">
             <div class="hr-main__header">
-                <h1 class="hr-main__title">{{ _('التوصيات الذكية') if g.get('lang') == 'ar' else 'Recommendations' }}</h1>
-                <p class="hr-main__subtitle">{{ _('توصيات قابلة للتنفيذ لتحسين إدارة الموارد البشرية') if g.get('lang') == 'ar' else 'Actionable recommendations to improve HR management' }}</p>
+                <h1 class="hr-main__title">{{ 'التوصيات الذكية' if lang == 'ar' else 'Recommendations' }}</h1>
+                <p class="hr-main__subtitle">{{ 'توصيات قابلة للتنفيذ لتحسين إدارة الموارد البشرية' if lang == 'ar' else 'Actionable recommendations to improve HR management' }}</p>
             </div>
 
             <div class="hr-card">
                 <table class="hr-table">
                     <thead>
                         <tr>
-                            <th>{{ _('التوصية') if g.get('lang') == 'ar' else 'Recommendation' }}</th>
-                            <th>{{ _('التأثير') if g.get('lang') == 'ar' else 'Impact' }}</th>
-                            <th>{{ _('الثقة') if g.get('lang') == 'ar' else 'Confidence' }}</th>
-                            <th>{{ _('الإجراء') if g.get('lang') == 'ar' else 'Action' }}</th>
+                            <th>{{ 'التوصية' if lang == 'ar' else 'Recommendation' }}</th>
+                            <th>{{ 'التأثير' if lang == 'ar' else 'Impact' }}</th>
+                            <th>{{ 'الثقة' if lang == 'ar' else 'Confidence' }}</th>
+                            <th>{{ 'الإجراء' if lang == 'ar' else 'Action' }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>{{ _('نقل أحمد إلى قسم التطوير') if g.get('lang') == 'ar' else 'Transfer Ahmed to Dev Team' }}</td>
-                            <td>{{ _('عالي') if g.get('lang') == 'ar' else 'High' }}</td>
+                            <td>{{ 'نقل أحمد إلى قسم التطوير' if lang == 'ar' else 'Transfer Ahmed to Dev Team' }}</td>
+                            <td>{{ 'عالي' if lang == 'ar' else 'High' }}</td>
                             <td>92%</td>
-                            <td><button class="hr-btn hr-btn--secondary" style="padding: 6px 12px; font-size: 12px;">{{ _('تطبيق') if g.get('lang') == 'ar' else 'Apply' }}</button></td>
+                            <td><button class="hr-btn hr-btn--secondary" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-xs);">{{ 'تطبيق' if lang == 'ar' else 'Apply' }}</button></td>
                         </tr>
                         <tr>
-                            <td>{{ _('تدريب إضافي لفاطمة') if g.get('lang') == 'ar' else 'Provide training for Fatima' }}</td>
-                            <td>{{ _('متوسط') if g.get('lang') == 'ar' else 'Medium' }}</td>
+                            <td>{{ 'تدريب إضافي لفاطمة' if lang == 'ar' else 'Provide training for Fatima' }}</td>
+                            <td>{{ 'متوسط' if lang == 'ar' else 'Medium' }}</td>
                             <td>78%</td>
-                            <td><button class="hr-btn hr-btn--secondary" style="padding: 6px 12px; font-size: 12px;">{{ _('تطبيق') if g.get('lang') == 'ar' else 'Apply' }}</button></td>
+                            <td><button class="hr-btn hr-btn--secondary" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-xs);">{{ 'تطبيق' if lang == 'ar' else 'Apply' }}</button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -865,22 +894,22 @@ html[lang="ar"] .hr-table th {
         <!-- ANOMALIES SECTION -->
         <section id="anomalies-section" class="hr-section">
             <div class="hr-main__header">
-                <h1 class="hr-main__title">{{ _('كشف الانحرافات') if g.get('lang') == 'ar' else 'Anomalies' }}</h1>
-                <p class="hr-main__subtitle">{{ _('التحديات غير الطبيعية في البيانات والأنماط') if g.get('lang') == 'ar' else 'Unusual patterns and data anomalies' }}</p>
+                <h1 class="hr-main__title">{{ 'كشف الانحرافات' if lang == 'ar' else 'Anomalies' }}</h1>
+                <p class="hr-main__subtitle">{{ 'التحديات غير الطبيعية في البيانات والأنماط' if lang == 'ar' else 'Unusual patterns and data anomalies' }}</p>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
-                <div class="hr-card" style="border-left: 4px solid #f59e0b;">
-                    <h3 style="color: #f59e0b; margin-bottom: 8px;">⚠️ {{ _('راتب أعلى من المتوسط') if g.get('lang') == 'ar' else 'Above-Average Salary' }}</h3>
-                    <p style="color: var(--text-secondary); font-size: 14px;">{{ _('موظف برواتب أعلى 30% من نطاق الوظيفة') if g.get('lang') == 'ar' else 'Employee earning 30% above job role range' }}</p>
+            <div>
+                <div class="hr-card">
+                    <h3 style="color: var(--color-warning); margin-bottom: var(--space-3);"><strong>⚠️ {{ 'راتب أعلى من المتوسط' if lang == 'ar' else 'Above-Average Salary' }}</strong></h3>
+                    <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">{{ 'موظف برواتب أعلى 30% من نطاق الوظيفة' if lang == 'ar' else 'Employee earning 30% above job role range' }}</p>
                 </div>
-                <div class="hr-card" style="border-left: 4px solid #ef4444;">
-                    <h3 style="color: #ef4444; margin-bottom: 8px;">🔴 {{ _('انخفاض أداء مفاجئ') if g.get('lang') == 'ar' else 'Performance Drop' }}</h3>
-                    <p style="color: var(--text-secondary); font-size: 14px;">{{ _('انخفاض أداء بنسبة 25% خلال الشهر الأخير') if g.get('lang') == 'ar' else '25% performance decline over last month' }}</p>
+                <div class="hr-card">
+                    <h3 style="color: var(--color-danger); margin-bottom: var(--space-3);"><strong>🔴 {{ 'انخفاض أداء مفاجئ' if lang == 'ar' else 'Performance Drop' }}</strong></h3>
+                    <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">{{ 'انخفاض أداء بنسبة 25% خلال الشهر الأخير' if lang == 'ar' else '25% performance decline over last month' }}</p>
                 </div>
-                <div class="hr-card" style="border-left: 4px solid #8b5cf6;">
-                    <h3 style="color: #8b5cf6; margin-bottom: 8px;">🔵 {{ _('غياب متكرر') if g.get('lang') == 'ar' else 'Frequent Absences' }}</h3>
-                    <p style="color: var(--text-secondary); font-size: 14px;">{{ _('زيادة الغياب بنسبة 40% عن المعتاد') if g.get('lang') == 'ar' else '40% increase in absence frequency' }}</p>
+                <div class="hr-card">
+                    <h3 style="color: var(--color-info); margin-bottom: var(--space-3);"><strong>🔵 {{ 'غياب متكرر' if lang == 'ar' else 'Frequent Absences' }}</strong></h3>
+                    <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">{{ 'زيادة الغياب بنسبة 40% عن المعتاد' if lang == 'ar' else '40% increase in absence frequency' }}</p>
                 </div>
             </div>
         </section>
@@ -888,40 +917,40 @@ html[lang="ar"] .hr-table th {
         <!-- DATA IMPORT SECTION -->
         <section id="data-import-section" class="hr-section">
             <div class="hr-main__header">
-                <h1 class="hr-main__title">{{ _('استيراد البيانات') if g.get('lang') == 'ar' else 'Data Import' }}</h1>
-                <p class="hr-main__subtitle">{{ _('استيراد ملفات CSV من أنظمة خارجية') if g.get('lang') == 'ar' else 'Import data from external systems' }}</p>
+                <h1 class="hr-main__title">{{ 'استيراد البيانات' if lang == 'ar' else 'Data Import' }}</h1>
+                <p class="hr-main__subtitle">{{ 'استيراد ملفات CSV من أنظمة خارجية' if lang == 'ar' else 'Import data from external systems' }}</p>
             </div>
 
             <div class="hr-grid">
                 <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('ملفات قابلة للاستيراد') if g.get('lang') == 'ar' else 'Importable Files' }}</h2>
-                    <div style="padding: var(--spacing-md); background: var(--bg-light); border-radius: 6px;">
-                        <div style="padding: 12px; background: var(--bg); border-radius: 4px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                            <span>{{ _('employees.csv') if g.get('lang') == 'ar' else 'employees.csv' }}</span>
-                            <button class="hr-btn" style="padding: 6px 12px; font-size: 12px;"><i class="fas fa-upload"></i> {{ _('رفع') if g.get('lang') == 'ar' else 'Upload' }}</button>
+                    <h2 class="hr-card__title">{{ 'ملفات قابلة للاستيراد' if lang == 'ar' else 'Importable Files' }}</h2>
+                    <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); background-color: var(--color-background); border-radius: var(--radius-md);">
+                            <span>employees.csv</span>
+                            <button class="hr-btn" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-xs);"><i class="fas fa-cloud-arrow-up"></i> {{ 'رفع' if lang == 'ar' else 'Upload' }}</button>
                         </div>
-                        <div style="padding: 12px; background: var(--bg); border-radius: 4px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                            <span>{{ _('attendance.csv') if g.get('lang') == 'ar' else 'attendance.csv' }}</span>
-                            <button class="hr-btn" style="padding: 6px 12px; font-size: 12px;"><i class="fas fa-upload"></i> {{ _('رفع') if g.get('lang') == 'ar' else 'Upload' }}</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); background-color: var(--color-background); border-radius: var(--radius-md);">
+                            <span>attendance.csv</span>
+                            <button class="hr-btn" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-xs);"><i class="fas fa-cloud-arrow-up"></i> {{ 'رفع' if lang == 'ar' else 'Upload' }}</button>
                         </div>
-                        <div style="padding: 12px; background: var(--bg); border-radius: 4px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                            <span>{{ _('payroll.csv') if g.get('lang') == 'ar' else 'payroll.csv' }}</span>
-                            <button class="hr-btn" style="padding: 6px 12px; font-size: 12px;"><i class="fas fa-upload"></i> {{ _('رفع') if g.get('lang') == 'ar' else 'Upload' }}</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); background-color: var(--color-background); border-radius: var(--radius-md);">
+                            <span>payroll.csv</span>
+                            <button class="hr-btn" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-xs);"><i class="fas fa-cloud-arrow-up"></i> {{ 'رفع' if lang == 'ar' else 'Upload' }}</button>
                         </div>
-                        <div style="padding: 12px; background: var(--bg); border-radius: 4px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                            <span>{{ _('performance.csv') if g.get('lang') == 'ar' else 'performance.csv' }}</span>
-                            <button class="hr-btn" style="padding: 6px 12px; font-size: 12px;"><i class="fas fa-upload"></i> {{ _('رفع') if g.get('lang') == 'ar' else 'Upload' }}</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); background-color: var(--color-background); border-radius: var(--radius-md);">
+                            <span>performance.csv</span>
+                            <button class="hr-btn" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-xs);"><i class="fas fa-cloud-arrow-up"></i> {{ 'رفع' if lang == 'ar' else 'Upload' }}</button>
                         </div>
-                        <div style="padding: 12px; background: var(--bg); border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
-                            <span>{{ _('resignations.csv') if g.get('lang') == 'ar' else 'resignations.csv' }}</span>
-                            <button class="hr-btn" style="padding: 6px 12px; font-size: 12px;"><i class="fas fa-upload"></i> {{ _('رفع') if g.get('lang') == 'ar' else 'Upload' }}</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); background-color: var(--color-background); border-radius: var(--radius-md);">
+                            <span>resignations.csv</span>
+                            <button class="hr-btn" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-xs);"><i class="fas fa-cloud-arrow-up"></i> {{ 'رفع' if lang == 'ar' else 'Upload' }}</button>
                         </div>
                     </div>
                 </div>
                 <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('التحقق من البيانات') if g.get('lang') == 'ar' else 'Data Validation' }}</h2>
-                    <p style="color: var(--text-secondary); margin: var(--spacing-md) 0;">{{ _('تنظيف تلقائي للبيانات والتحقق من جودتها') if g.get('lang') == 'ar' else 'Automatic data cleaning and quality checks' }}</p>
-                    <button class="hr-btn hr-btn--secondary" style="margin-top: var(--spacing-md);">{{ _('تشغيل التحقق') if g.get('lang') == 'ar' else 'Run Validation' }}</button>
+                    <h2 class="hr-card__title">{{ 'التحقق من البيانات' if lang == 'ar' else 'Data Validation' }}</h2>
+                    <p style="color: var(--color-text-secondary); margin: var(--space-4) 0;">{{ 'تنظيف تلقائي للبيانات والتحقق من جودتها' if lang == 'ar' else 'Automatic data cleaning and quality checks' }}</p>
+                    <button class="hr-btn hr-btn--secondary" style="margin-top: var(--space-4);">{{ 'تشغيل التحقق' if lang == 'ar' else 'Run Validation' }}</button>
                 </div>
             </div>
         </section>
@@ -929,25 +958,25 @@ html[lang="ar"] .hr-table th {
         <!-- ERP INTEGRATIONS SECTION -->
         <section id="erp-integrations-section" class="hr-section">
             <div class="hr-main__header">
-                <h1 class="hr-main__title">{{ _('التكامل مع الأنظمة') if g.get('lang') == 'ar' else 'ERP Integration' }}</h1>
-                <p class="hr-main__subtitle">{{ _('ربط مع الأنظمة والخدمات الخارجية') if g.get('lang') == 'ar' else 'Connect with external systems and services' }}</p>
+                <h1 class="hr-main__title">{{ 'التكامل مع الأنظمة' if lang == 'ar' else 'ERP Integration' }}</h1>
+                <p class="hr-main__subtitle">{{ 'ربط مع الأنظمة والخدمات الخارجية' if lang == 'ar' else 'Connect with external systems and services' }}</p>
             </div>
 
             <div class="hr-grid">
                 <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('ربط ERP عبر API') if g.get('lang') == 'ar' else 'Connect ERP via API' }}</h2>
-                    <p style="color: var(--text-secondary); margin: var(--spacing-md) 0;">{{ _('ربط مباشر مع نظام ERP الخاص بك') if g.get('lang') == 'ar' else 'Direct connection to your ERP system' }}</p>
-                    <button class="hr-btn hr-btn--secondary">{{ _('إعداد') if g.get('lang') == 'ar' else 'Setup' }}</button>
+                    <h2 class="hr-card__title">{{ 'ربط ERP عبر API' if lang == 'ar' else 'Connect ERP via API' }}</h2>
+                    <p style="color: var(--color-text-secondary); margin: var(--space-4) 0;">{{ 'ربط مباشر مع نظام ERP الخاص بك' if lang == 'ar' else 'Direct connection to your ERP system' }}</p>
+                    <button class="hr-btn hr-btn--secondary">{{ 'إعداد' if lang == 'ar' else 'Setup' }}</button>
                 </div>
                 <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('ربط الإشعارات') if g.get('lang') == 'ar' else 'Enable Webhooks' }}</h2>
-                    <p style="color: var(--text-secondary); margin: var(--spacing-md) 0;">{{ _('فعّل Webhooks لأحداث الموارد البشرية') if g.get('lang') == 'ar' else 'Enable webhooks for HR events' }}</p>
-                    <button class="hr-btn hr-btn--secondary">{{ _('فعّل') if g.get('lang') == 'ar' else 'Enable' }}</button>
+                    <h2 class="hr-card__title">{{ 'ربط الإشعارات' if lang == 'ar' else 'Enable Webhooks' }}</h2>
+                    <p style="color: var(--color-text-secondary); margin: var(--space-4) 0;">{{ 'فعّل Webhooks لأحداث الموارد البشرية' if lang == 'ar' else 'Enable webhooks for HR events' }}</p>
+                    <button class="hr-btn hr-btn--secondary">{{ 'فعّل' if lang == 'ar' else 'Enable' }}</button>
                 </div>
                 <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('مزامنة CSV') if g.get('lang') == 'ar' else 'CSV Sync' }}</h2>
-                    <p style="color: var(--text-secondary); margin: var(--spacing-md) 0;">{{ _('المزامنة الدورية للبيانات عبر ملفات CSV') if g.get('lang') == 'ar' else 'Periodic data sync via CSV files' }}</p>
-                    <button class="hr-btn hr-btn--secondary">{{ _('تكوين') if g.get('lang') == 'ar' else 'Configure' }}</button>
+                    <h2 class="hr-card__title">{{ 'مزامنة CSV' if lang == 'ar' else 'CSV Sync' }}</h2>
+                    <p style="color: var(--color-text-secondary); margin: var(--space-4) 0;">{{ 'المزامنة الدورية للبيانات عبر ملفات CSV' if lang == 'ar' else 'Periodic data sync via CSV files' }}</p>
+                    <button class="hr-btn hr-btn--secondary">{{ 'تكوين' if lang == 'ar' else 'Configure' }}</button>
                 </div>
             </div>
         </section>
@@ -955,30 +984,30 @@ html[lang="ar"] .hr-table th {
         <!-- SETTINGS SECTION -->
         <section id="settings-section" class="hr-section">
             <div class="hr-main__header">
-                <h1 class="hr-main__title">{{ _('إعدادات القسم') if g.get('lang') == 'ar' else 'Settings' }}</h1>
-                <p class="hr-main__subtitle">{{ _('تخصيص إعدادات وحدة الموارد البشرية') if g.get('lang') == 'ar' else 'Customize HR module settings' }}</p>
+                <h1 class="hr-main__title">{{ 'إعدادات القسم' if lang == 'ar' else 'Settings' }}</h1>
+                <p class="hr-main__subtitle">{{ 'تخصيص إعدادات وحدة الموارد البشرية' if lang == 'ar' else 'Customize HR module settings' }}</p>
             </div>
 
             <div class="hr-grid">
                 <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('نماذج التقييم') if g.get('lang') == 'ar' else 'Evaluation Forms' }}</h2>
-                    <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md);">{{ _('تحديد نماذج التقييم المستخدمة') if g.get('lang') == 'ar' else 'Define evaluation forms' }}</p>
-                    <button class="hr-btn hr-btn--secondary">{{ _('تحرير') if g.get('lang') == 'ar' else 'Edit' }}</button>
+                    <h2 class="hr-card__title">{{ 'نماذج التقييم' if lang == 'ar' else 'Evaluation Forms' }}</h2>
+                    <p style="color: var(--color-text-secondary); margin-bottom: var(--space-4);">{{ 'تحديد نماذج التقييم المستخدمة' if lang == 'ar' else 'Define evaluation forms' }}</p>
+                    <button class="hr-btn hr-btn--secondary">{{ 'تحرير' if lang == 'ar' else 'Edit' }}</button>
                 </div>
                 <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('إعدادات AI') if g.get('lang') == 'ar' else 'AI Settings' }}</h2>
-                    <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md);">{{ _('معادلات المخاطر وإعدادات التنبؤ') if g.get('lang') == 'ar' else 'Risk formulas and prediction settings' }}</p>
-                    <button class="hr-btn hr-btn--secondary">{{ _('تحرير') if g.get('lang') == 'ar' else 'Edit' }}</button>
+                    <h2 class="hr-card__title">{{ 'إعدادات AI' if lang == 'ar' else 'AI Settings' }}</h2>
+                    <p style="color: var(--color-text-secondary); margin-bottom: var(--space-4);">{{ 'معادلات المخاطر وإعدادات التنبؤ' if lang == 'ar' else 'Risk formulas and prediction settings' }}</p>
+                    <button class="hr-btn hr-btn--secondary">{{ 'تحرير' if lang == 'ar' else 'Edit' }}</button>
                 </div>
                 <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('الأعمدة المخصصة') if g.get('lang') == 'ar' else 'Custom Columns' }}</h2>
-                    <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md);">{{ _('تخصيص الأعمدة المعروضة') if g.get('lang') == 'ar' else 'Customize displayed columns' }}</p>
-                    <button class="hr-btn hr-btn--secondary">{{ _('تحرير') if g.get('lang') == 'ar' else 'Edit' }}</button>
+                    <h2 class="hr-card__title">{{ 'الأعمدة المخصصة' if lang == 'ar' else 'Custom Columns' }}</h2>
+                    <p style="color: var(--color-text-secondary); margin-bottom: var(--space-4);">{{ 'تخصيص الأعمدة المعروضة' if lang == 'ar' else 'Customize displayed columns' }}</p>
+                    <button class="hr-btn hr-btn--secondary">{{ 'تحرير' if lang == 'ar' else 'Edit' }}</button>
                 </div>
                 <div class="hr-card">
-                    <h2 class="hr-card__title">{{ _('جدولة التقارير') if g.get('lang') == 'ar' else 'Report Scheduling' }}</h2>
-                    <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md);">{{ _('جدولة التقارير التلقائية') if g.get('lang') == 'ar' else 'Schedule automated reports' }}</p>
-                    <button class="hr-btn hr-btn--secondary">{{ _('تحرير') if g.get('lang') == 'ar' else 'Edit' }}</button>
+                    <h2 class="hr-card__title">{{ 'جدولة التقارير' if lang == 'ar' else 'Report Scheduling' }}</h2>
+                    <p style="color: var(--color-text-secondary); margin-bottom: var(--space-4);">{{ 'جدولة التقارير التلقائية' if lang == 'ar' else 'Schedule automated reports' }}</p>
+                    <button class="hr-btn hr-btn--secondary">{{ 'تحرير' if lang == 'ar' else 'Edit' }}</button>
                 </div>
             </div>
         </section>
@@ -1007,11 +1036,9 @@ document.addEventListener('DOMContentLoaded', function() {
         item.addEventListener('click', function() {
             const section = this.dataset.section;
             
-            // Remove active class from all items and sections
             navItems.forEach(nav => nav.classList.remove('is-active'));
             document.querySelectorAll('.hr-section').forEach(sec => sec.classList.remove('is-active'));
             
-            // Add active class to clicked item and corresponding section
             this.classList.add('is-active');
             const sectionId = section + '-section';
             const sectionElement = document.getElementById(sectionId);
