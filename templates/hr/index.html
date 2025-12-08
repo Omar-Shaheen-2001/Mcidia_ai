@@ -36,7 +36,8 @@
 /* Main Layout */
 .hr-app {
     display: flex;
-    min-height: calc(100vh - 70px);
+    flex-direction: row;
+    width: 100%;
     background: var(--bg);
     font-family: 'Inter', system-ui, sans-serif;
 }
@@ -50,17 +51,15 @@ html[lang="ar"] .hr-app {
    ======================================== */
 .hr-sidebar {
     width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
     background: var(--surface);
     border-inline-end: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    position: fixed;
-    top: 70px;
-    bottom: 0;
-    inset-inline-start: 0;
     transition: width 0.3s ease;
     z-index: 100;
     overflow: hidden;
+    height: calc(100vh - 70px);
 }
 
 .hr-sidebar.is-collapsed {
@@ -263,14 +262,10 @@ html[dir="rtl"] .hr-sidebar__toggle i {
    ======================================== */
 .hr-main {
     flex: 1;
-    margin-inline-start: var(--sidebar-w);
     padding: 24px;
-    transition: margin 0.3s ease;
-    min-height: calc(100vh - 70px);
-}
-
-.hr-sidebar.is-collapsed ~ .hr-main {
-    margin-inline-start: var(--sidebar-collapsed);
+    overflow-y: auto;
+    height: calc(100vh - 70px);
+    width: 100%;
 }
 
 /* Panels - CRITICAL: Hide all, show only active */
