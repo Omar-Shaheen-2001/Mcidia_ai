@@ -10,11 +10,17 @@
    HR Module - Professional Design System
    ======================================== */
 
+/* CRITICAL: Override parent container from base.html */
+.main-content:has(.hr-app) {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
 /* Global Reset for HR Module */
 #hrApp, #hrApp *, #hrApp *::before, #hrApp *::after {
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
 }
 
 /* CSS Variables */
@@ -43,10 +49,12 @@
     display: flex !important;
     flex-direction: row !important;
     width: 100% !important;
-    min-height: calc(100vh - 70px) !important;
+    min-height: calc(100vh - 80px) !important;
     background: var(--bg) !important;
     font-family: 'Inter', system-ui, sans-serif !important;
     position: relative !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 html[lang="ar"] .hr-app {
@@ -1477,6 +1485,12 @@ const HRModule = (function() {
 
     // Initialize
     function init() {
+        // CRITICAL: Fix parent container layout
+        const hrApp = document.getElementById('hrApp');
+        if (hrApp && hrApp.parentElement) {
+            hrApp.parentElement.style.cssText = 'padding:0!important;margin:0!important;width:100%!important;max-width:100%!important;';
+        }
+        
         // Bind navigation clicks
         document.querySelectorAll('.hr-nav__item[data-panel]').forEach(btn => {
             btn.addEventListener('click', function() {
