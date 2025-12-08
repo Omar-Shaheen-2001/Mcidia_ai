@@ -10,9 +10,14 @@
    HR Module - Professional Design System
    ======================================== */
 
-/* Reset & Variables */
-.hr-app * { box-sizing: border-box; margin: 0; padding: 0; }
+/* Global Reset for HR Module */
+#hrApp, #hrApp *, #hrApp *::before, #hrApp *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
+/* CSS Variables */
 .hr-app {
     --sidebar-w: 260px;
     --sidebar-collapsed: 70px;
@@ -33,33 +38,37 @@
     --shadow-lg: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-/* Main Layout */
+/* Main Layout Container */
 .hr-app {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    background: var(--bg);
-    font-family: 'Inter', system-ui, sans-serif;
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    min-height: calc(100vh - 70px) !important;
+    background: var(--bg) !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    position: relative !important;
 }
 
 html[lang="ar"] .hr-app {
-    font-family: 'Cairo', system-ui, sans-serif;
+    font-family: 'Cairo', system-ui, sans-serif !important;
 }
 
 /* ========================================
    Sidebar
    ======================================== */
 .hr-sidebar {
-    width: var(--sidebar-w);
-    min-width: var(--sidebar-w);
-    background: var(--surface);
-    border-inline-end: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    transition: width 0.3s ease;
-    z-index: 100;
-    overflow: hidden;
-    height: calc(100vh - 70px);
+    width: var(--sidebar-w) !important;
+    min-width: var(--sidebar-w) !important;
+    max-width: var(--sidebar-w) !important;
+    flex-shrink: 0 !important;
+    background: var(--surface) !important;
+    border-inline-end: 1px solid var(--border) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    transition: width 0.3s ease !important;
+    z-index: 100 !important;
+    overflow: hidden !important;
+    height: 100% !important;
 }
 
 .hr-sidebar.is-collapsed {
@@ -261,20 +270,27 @@ html[dir="rtl"] .hr-sidebar__toggle i {
    Main Content Area
    ======================================== */
 .hr-main {
-    flex: 1;
-    padding: 24px;
-    overflow-y: auto;
-    height: calc(100vh - 70px);
-    width: 100%;
+    flex: 1 1 auto !important;
+    padding: 24px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: 100% !important;
+    background: var(--bg) !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
 /* Panels - CRITICAL: Hide all, show only active */
 .hr-panel {
     display: none !important;
+    width: 100% !important;
 }
 
 .hr-panel.is-active {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
     animation: hrFadeIn 0.25s ease;
 }
 
