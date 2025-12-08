@@ -1,4 +1,4 @@
-{% extends "base_hr.html" %}
+{% extends "base.html" %}
 
 {% block title %}{{ 'HR Module' if lang == 'en' else 'وحدة الموارد البشرية' }} - Mcidia{% endblock %}
 
@@ -10,7 +10,17 @@
    HR Module - Professional Design System
    ======================================== */
 
-/* No need for overrides - base_hr.html doesn't have conflicting main-content */
+/* CRITICAL: Override ALL parent containers to prevent layout conflicts */
+.main-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    display: flex !important;
+}
 
 /* Global Reset for HR Module */
 #hrApp, #hrApp *, #hrApp *::before, #hrApp *::after {
@@ -1479,7 +1489,16 @@ const HRModule = (function() {
 
     // Initialize
     function init() {
-        // No layout fixes needed - base_hr.html has proper structure
+        // CRITICAL: Fix parent container layout
+        const hrApp = document.getElementById('hrApp');
+        if (hrApp && hrApp.parentElement) {
+            const parent = hrApp.parentElement;
+            parent.style.cssText = 'padding:0!important;margin:0!important;width:100%!important;max-width:100%!important;flex-direction:row!important;height:auto!important;';
+            // Also fix grandparent if needed
+            if (parent.parentElement && parent.parentElement.classList.contains('main-content')) {
+                parent.parentElement.style.cssText = 'padding:0!important;margin:0!important;width:100%!important;flex-direction:row!important;';
+            }
+        }
         
         // Bind navigation clicks
         document.querySelectorAll('.hr-nav__item[data-panel]').forEach(btn => {
