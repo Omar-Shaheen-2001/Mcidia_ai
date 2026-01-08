@@ -69,8 +69,21 @@ def create_app():
     if db_url:
         app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace('postgres://', 'postgresql://')
     else:
-        # Fallback for local development if everything else is missing
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
+        # No database URL - raise error with helpful message
+        raise ValueError(
+            "\n\n"
+            "=" * 60 + "\n"
+            "DATABASE CONNECTION ERROR\n"
+            "=" * 60 + "\n\n"
+            "DATABASE_URL environment variable is not set!\n\n"
+            "For Railway deployment:\n"
+            "1. Add a PostgreSQL database to your Railway project\n"
+            "2. Railway will automatically set DATABASE_URL\n"
+            "   OR set it manually in Variables tab\n\n"
+            "Required format:\n"
+            "postgresql://user:password@host:port/database\n"
+            "=" * 60 + "\n"
+        )
         
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
