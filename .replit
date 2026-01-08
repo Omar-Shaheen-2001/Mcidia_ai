@@ -15,66 +15,6 @@ run = ["python", "app.py"]
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 34069
-externalPort = 8000
-
-[[ports]]
-localPort = 35287
-externalPort = 4200
-
-[[ports]]
-localPort = 35443
-externalPort = 8080
-
-[[ports]]
-localPort = 35511
-externalPort = 8099
-
-[[ports]]
-localPort = 36089
-externalPort = 5173
-
-[[ports]]
-localPort = 37585
-externalPort = 5000
-
-[[ports]]
-localPort = 38017
-externalPort = 8008
-
-[[ports]]
-localPort = 38029
-externalPort = 3000
-
-[[ports]]
-localPort = 39349
-externalPort = 6000
-
-[[ports]]
-localPort = 39913
-externalPort = 3001
-
-[[ports]]
-localPort = 41575
-externalPort = 3003
-
-[[ports]]
-localPort = 42403
-externalPort = 8081
-
-[[ports]]
-localPort = 44391
-externalPort = 9000
-
-[[ports]]
-localPort = 45781
-externalPort = 3002
-
-[[ports]]
-localPort = 46497
-externalPort = 6800
-
 [env]
 PORT = "5000"
 

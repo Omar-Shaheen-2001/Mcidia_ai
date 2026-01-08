@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5"><div class="card shadow"><div class="card-body p-5"><h2 class="text-center mb-4">{{ 'الهيكل التنظيمي' if lang == 'ar' else 'Organizational Structure' }}</h2><div class="bg-light p-4 rounded" style="white-space: pre-wrap;">{{ structure }}</div><div class="mt-4 text-center"><a href="{{ url_for('hr.index') }}" class="btn btn-primary">{{ 'العودة' if lang == 'ar' else 'Back' }}</a></div></div></div></div>
+{% endblock %}

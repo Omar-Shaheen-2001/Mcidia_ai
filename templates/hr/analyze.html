@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'HR Analytics' if lang == 'en' else 'تحليلات الموارد البشرية' }} - Mcidia{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('erp.index') }}">ERP</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('hr.index') }}">HR</a></li>
+                    <li class="breadcrumb-item active">{{ 'Analytics' if lang == 'en' else 'التحليلات' }}</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold mb-3">
+                <i class="fas fa-chart-pie text-primary me-2"></i>
+                {{ 'HR Analytics Dashboard' if lang == 'en' else 'لوحة تحليلات الموارد البشرية' }}
+            </h2>
+        </div>
+    </div>
+
+    {% if not has_data %}
+    <div class="alert alert-warning d-flex align-items-center">
+        <i class="fas fa-exclamation-triangle me-3 fa-2x"></i>
+        <div>
+            <h5 class="alert-heading mb-1">{{ 'No HR Data Available' if lang == 'en' else 'لا توجد بيانات موارد بشرية' }}</h5>
+            <p class="mb-0">
+                {{ 'Please import HR data first to view analytics.' if lang == 'en' else 'يرجى استيراد بيانات الموارد البشرية أولاً لعرض التحليلات.' }}
+                <a href="{{ url_for('hr.index') }}" class="alert-link">{{ 'Import Data' if lang == 'en' else 'استيراد البيانات' }}</a>
+            </p>
+        </div>
+    </div>
+    {% else %}
+    
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary-subtle rounded-circle p-3">
+                                <i class="fas fa-users fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 {{ 'me-3' if lang == 'ar' else 'ms-3' }}">
+                            <h4 class="mb-0">{{ employees|length }}</h4>
+                            <p class="text-muted mb-0">{{ 'Total Employees' if lang == 'en' else 'إجمالي الموظفين' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success-subtle rounded-circle p-3">
+                                <i class="fas fa-user-check fa-2x text-success"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 {{ 'me-3' if lang == 'ar' else 'ms-3' }}">
+                            <h4 class="mb-0">{{ employees|selectattr('status', 'equalto', 'active')|list|length }}</h4>
+                            <p class="text-muted mb-0">{{ 'Active' if lang == 'en' else 'نشط' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning-subtle rounded-circle p-3">
+                                <i class="fas fa-building fa-2x text-warning"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 {{ 'me-3' if lang == 'ar' else 'ms-3' }}">
+                            <h4 class="mb-0">{{ employees|map(attribute='department')|unique|list|length }}</h4>
+                            <p class="text-muted mb-0">{{ 'Departments' if lang == 'en' else 'الأقسام' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info-subtle rounded-circle p-3">
+                                <i class="fas fa-money-bill-wave fa-2x text-info"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 {{ 'me-3' if lang == 'ar' else 'ms-3' }}">
+                            <h4 class="mb-0">{{ '{:,.0f}'.format(employees|map(attribute='base_salary')|sum) }}</h4>
+                            <p class="text-muted mb-0">{{ 'Total Salaries' if lang == 'en' else 'إجمالي الرواتب' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar text-primary me-2"></i>
+                        {{ 'Employees by Department' if lang == 'en' else 'الموظفين حسب القسم' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="deptChart" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie text-success me-2"></i>
+                        {{ 'Employment Status' if lang == 'en' else 'حالة التوظيف' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="statusChart" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table text-primary me-2"></i>
+                        {{ 'Employee List' if lang == 'en' else 'قائمة الموظفين' }}
+                    </h5>
+                    <button class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-download me-1"></i>{{ 'Export' if lang == 'en' else 'تصدير' }}
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{{ 'Employee #' if lang == 'en' else 'رقم الموظف' }}</th>
+                                    <th>{{ 'Name' if lang == 'en' else 'الاسم' }}</th>
+                                    <th>{{ 'Department' if lang == 'en' else 'القسم' }}</th>
+                                    <th>{{ 'Job Title' if lang == 'en' else 'المسمى الوظيفي' }}</th>
+                                    <th>{{ 'Status' if lang == 'en' else 'الحالة' }}</th>
+                                    <th class="text-end">{{ 'Salary' if lang == 'en' else 'الراتب' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for emp in employees[:20] %}
+                                <tr>
+                                    <td>{{ emp.employee_number }}</td>
+                                    <td>{{ emp.full_name }}</td>
+                                    <td>{{ emp.department or '—' }}</td>
+                                    <td>{{ emp.job_title or '—' }}</td>
+                                    <td>
+                                        {% if emp.status == 'active' %}
+                                        <span class="badge bg-success">{{ 'Active' if lang == 'en' else 'نشط' }}</span>
+                                        {% elif emp.status == 'on_leave' %}
+                                        <span class="badge bg-warning">{{ 'On Leave' if lang == 'en' else 'في إجازة' }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ emp.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">{{ '{:,.2f}'.format(emp.base_salary or 0) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if has_data %}
+    const employees = {{ employees|map(attribute='to_dict')|list|tojson if employees else '[]' }};
+    
+    const deptCounts = {};
+    employees.forEach(emp => {
+        const dept = emp.department || 'Unassigned';
+        deptCounts[dept] = (deptCounts[dept] || 0) + 1;
+    });
+    
+    Plotly.newPlot('deptChart', [{
+        type: 'bar',
+        x: Object.keys(deptCounts),
+        y: Object.values(deptCounts),
+        marker: { color: '#0d6efd' }
+    }], {
+        margin: { t: 20, b: 60 },
+        xaxis: { tickangle: -45 }
+    }, { responsive: true });
+    
+    const statusCounts = {};
+    employees.forEach(emp => {
+        const status = emp.status || 'unknown';
+        statusCounts[status] = (statusCounts[status] || 0) + 1;
+    });
+    
+    Plotly.newPlot('statusChart', [{
+        type: 'pie',
+        labels: Object.keys(statusCounts),
+        values: Object.values(statusCounts),
+        hole: 0.4,
+        marker: {
+            colors: ['#198754', '#ffc107', '#dc3545', '#6c757d']
+        }
+    }], {
+        margin: { t: 20, b: 20 }
+    }, { responsive: true });
+    {% endif %}
+});
+</script>
+{% endblock %}

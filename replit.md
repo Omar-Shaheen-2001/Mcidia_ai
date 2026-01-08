@@ -84,76 +84,80 @@ Implemented a complete password reset flow with enterprise-grade security and pr
 - **Development Tools**: `/auth/dev/reset-links` endpoint for testing reset links
 - **Admin Features**: Full password reset email template with branded design, support contact info, and security notifications
 
-### HR Module - Complete Implementation (Dec 8, 2025)
-Comprehensive HR Intelligence module with 12 dedicated sections, fully integrated with Mcidia design system and multilingual support:
+### HR Module - Sidebar Design System v2.0 (Dec 4, 2025)
+Implemented a refined, clean, and minimal design system for the HR sidebar with zero gradients and maximum clarity:
 
-**12 Main Sections (organized in 5 sidebar groups):**
-1. **Core** - Dashboard, Employees
-2. **Operations** - Attendance, Performance, Payroll, Resignations
-3. **AI & Analytics** - HR AI Insights, Recommendations, Anomalies
-4. **Data & Integration** - Data Import, ERP Integrations
-5. **Configuration** - Settings
+**Design Principles:**
+- **Minimal Design**: Removed all gradients, using solid colors only
+- **Subtle Shadows**: Light shadows (0.05 - 0.1 opacity) instead of heavy effects
+- **Clear Spacing**: Consistent 12px inner padding, 16px between items, 24px between sections
+- **Simple States**: No animations or transforms, simple color changes only
+- **Icon Focus**: 20px icons for better visibility and clarity
 
-**Design System Integration:**
-- **Color Palette**: Uses platform CSS variables (#0A2756 primary, #2767B1 active, #2C8C56 secondary)
-- **Spacing System**: Consistent with design-system.css (var(--space-1) through var(--space-24))
-- **Typography**: Cairo (Arabic) and Inter (English) with semantic font weights
-- **Shadows & Transitions**: Platform-standard transitions (fast/base/slow) with shadow hierarchy
-- **Status Badges**: Color-coded (success/warning/danger/info) with consistent styling
-- **Border Radius**: Semantic sizing (sm/md/lg/xl) for component hierarchy
+**Design System Components:**
+- **Spacing System**: Unified system (12px inner, 16px between items, 24px between sections)
+- **Typography Scale**: Section 11px/600, Items 14px/500, Badges 10px/600
+- **Icon Sizing**: 20px icons in 24×24px containers (increased from 16px)
+- **Color Palette**: 
+  - Primary: #2563eb (Blue for actions)
+  - Secondary: #64748b (Gray for secondary text)
+  - Tertiary: #94a3b8 (Light gray for captions)
+  - Background: #ffffff (Pure white, no gradients)
+  - Hover: #f4f7fa (Soft light gray)
+  - Active: #eff6ff (Light blue)
+  - Text: #1e293b (Primary), #64748b (Secondary), #94a3b8 (Tertiary)
+  - Border: #e2e8f0
 
-**Sidebar (260px collapsible to 80px):**
-- Left-aligned collapse button with chevron icon
-- 5 organized sections with uppercase labels
-- Active state: light blue background + left border + primary text color
-- Hover state: background-alt color with smooth transition
-- localStorage persistence for collapsed state
-- RTL-aware positioning and text direction
+**Active State Design:**
+- Background: #eff6ff (light blue, solid)
+- Border-left: 2px solid #2563eb
+- Text color: #2563eb
+- Font-weight: 600 (semi-bold)
+- Icon color: #2563eb
+- No inset shadows or animations
 
-**Main Content Area:**
-- Light background (#F7FBFF) for visual hierarchy
-- KPI Grid with 7 cards: Employees, Absence Rate, Compliance, Performance, Turnover, Cost, Risk
-- Cards have hover states with border color and shadow changes
-- Responsive grid (auto-fit, minmax 200px)
+**Hover State Design:**
+- Background: #f4f7fa (clean soft gray, solid)
+- Text color: #1e293b (darker)
+- Icon color: #2563eb (primary blue)
+- Transition: 0.2s ease (smooth, no transforms)
+- No gradient, shadow, or padding changes
 
-**Dashboard Section:**
-- 7 KPI Cards with color-coded values (primary blue)
-- Turnover Prediction table with badge indicators
-- HR Alerts & Anomalies with color-coded alert boxes (warning/danger/info)
+**Sidebar Structure (5 Sections):**
+1. CORE - Home, Dashboard
+2. MANAGE DATA - Import, Employees
+3. ANALYTICS - Performance, Attendance, Payroll, Resignations
+4. AI POWERED - Turnover AI, Insights
+5. SYSTEM - Settings
 
-**Employees/Attendance/Performance/Payroll/Resignations Sections:**
-- Professional data tables with hover effects
-- Action buttons with secondary styling
-- Status badges with color coding
-- Upload CSV buttons for data import
+**Collapsible Sidebar Features:**
+- Toggle button with chevron icon (solid blue #2563eb, minimal shadow)
+- Collapses from 280px to 80px width with smooth 0.35s animation
+- Icons remain visible when collapsed, labels hide
+- localStorage persistence (remembers collapsed state)
+- Dynamic tooltip updates on toggle (Collapse/Expand)
+- Hover effect with subtle scale (1.05x) and darker blue
 
-**HR AI Insights/Recommendations/Anomalies Sections:**
-- Card-based layouts for insights
-- Actionable recommendation tables
-- Color-coded anomaly indicators (warning/danger/info)
+**Section Footer Stats:**
+- Live employee count + health indicator
+- Grid layout (2 columns) with 12px gap
+- Solid #f8f9fa background (no gradient)
+- Hover effect: light blue background + blue border + subtle shadow
+- Clean typography: 16px bold value, 10px gray label
 
-**Data Import Section:**
-- CSV file upload grid
-- Validation section with secondary buttons
+**Key Features:**
+- Zero gradients throughout (solid colors only)
+- Minimal shadow system (0.05 - 0.1 opacity)
+- Sections lazy-load on navigation (display:none until active)
+- Full RTL/LTR support for Arabic/English
+- Accessibility compliant (WCAG 4.5:1 contrast ratios)
+- Clean, clutter-free, professional appearance
+- Semantic HTML and consistent spacing
+- Responsive on mobile (collapse on small screens)
 
-**ERP Integrations & Settings Sections:**
-- Card-based configuration options
-- Secondary buttons for setup/configure actions
-
-**Bilingual (Arabic/English) Support:**
-- Dynamic RTL/LTR layout based on `lang` parameter
-- Conditional borders: `border-{{ 'right' if lang == 'en' else 'left' }}`
-- Bidirectional text alignment for tables and content
-- All labels translated inline: `{{ 'عربي' if lang == 'ar' else 'English' }}`
-- RTL-aware direction for chevron icons
-- Full bilingual KPI and button labels
-
-**Navigation Features:**
-- Sidebar toggle with smooth 0.3s transition
-- Active section highlighting with primary color
-- Smooth fade-in animations (0.3s) between sections
-- JavaScript-based section switching with data attributes
-- localStorage persistence for sidebar state
+**Documentation:**
+- `DESIGN_SYSTEM_SIDEBAR.md` - Complete design system specification
+- `SIDEBAR_VISUAL_GUIDE.md` - Visual examples and implementation details
 
 ## External Dependencies
 
