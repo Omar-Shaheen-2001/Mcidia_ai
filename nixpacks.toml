@@ -2,7 +2,6 @@
 builder = "nixpacks"
 
 [phases.setup]
-nixPkgs = ["...", "pango", "gobject-introspection", "libglib", "harfbuzz", "fontconfig", "cairo"]
 aptPkgs = [
   "libpango-1.0-0",
   "libpangocairo-1.0-0",
@@ -13,5 +12,15 @@ aptPkgs = [
   "libffi-dev",
   "libcairo2",
   "libpixman-1-0",
-  "libgirepository1.0-dev"
+  "libgirepository1.0-dev",
+  "pango1.0-tools",
+  "python3-dev",
+  "build-essential"
 ]
+
+[phases.install]
+cmds = ["python -m venv .venv", ". .venv/bin/activate && pip install -r requirements.txt"]
+
+[variables]
+PYTHONUNBUFFERED = "1"
+LD_LIBRARY_PATH = "/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu"

@@ -1,0 +1,43 @@
+[2026-01-08 17:53:24 +0000] [2] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+    from .computed_values import COMPUTER_FUNCTIONS
+  File "/app/.venv/lib/python3.11/site-packages/weasyprint/css/computed_values.py", line 9, in <module>
+    from ..text.ffi import FROM_UNITS, ffi, pango
+  File "/app/.venv/lib/python3.11/site-packages/weasyprint/text/ffi.py", line 475, in <module>
+    gobject = _dlopen(
+           ^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/util.py", line 423, in import_app
+    app = app(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^
+  File "/app/app.py", line 188, in create_app
+    from blueprints.dashboard import dashboard_bp
+  File "/app/blueprints/dashboard.py", line 5, in <module>
+    from weasyprint import HTML
+  File "/app/.venv/lib/python3.11/site-packages/weasyprint/__init__.py", line 433, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/weasyprint/css/__init__.py", line 28, in <module>
+  File "/app/.venv/lib/python3.11/site-packages/cffi/api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': libgobject-2.0-0: cannot open shared object file: No such file or directory.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+[2026-01-08 17:53:24 +0000] [2] [INFO] Worker exiting (pid: 2)
+              ^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/weasyprint/text/ffi.py", line 463, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/cffi/api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/cffi/api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-01-08 17:53:24 +0000] [1] [ERROR] Worker (pid:2) exited with code 3
+[2026-01-08 17:53:24 +0000] [1] [ERROR] Shutting down: Master
+[2026-01-08 17:53:24 +0000] [1] [ERROR] Reason: Worker failed to boot.
