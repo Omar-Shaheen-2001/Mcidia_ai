@@ -53,7 +53,25 @@ def create_app():
     
     # Configuration
     app.config['SECRET_KEY'] = os.getenv('SESSION_SECRET', 'dev-secret-key-change-in-production')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', '').replace('postgres://', 'postgresql://')
+    
+    # Handle Railway/Production Database URL
+    db_url = os.getenv('DATABASE_URL')
+    if not db_url:
+        # Check for individual components if DATABASE_URL is missing
+        pg_user = os.getenv('PGUSER')
+        pg_pass = os.getenv('PGPASSWORD')
+        pg_host = os.getenv('PGHOST')
+        pg_port = os.getenv('PGPORT', '5432')
+        pg_db = os.getenv('PGDATABASE')
+        if pg_user and pg_pass and pg_host and pg_db:
+            db_url = f"postgresql://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}"
+    
+    if db_url:
+        app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace('postgres://', 'postgresql://')
+    else:
+        # Fallback for local development if everything else is missing
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
+        
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         'pool_pre_ping': True,
