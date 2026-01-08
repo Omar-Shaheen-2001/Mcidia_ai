@@ -1,0 +1,109 @@
+    from google.cloud import storage
+ModuleNotFoundError: No module named 'google'
+[2026-01-08 18:24:20 +0000] [2] [INFO] Worker exiting (pid: 2)
+[2026-01-08 18:24:20 +0000] [1] [ERROR] Worker (pid:2) exited with code 3
+[2026-01-08 18:24:20 +0000] [1] [ERROR] Shutting down: Master
+[2026-01-08 18:24:20 +0000] [1] [ERROR] Reason: Worker failed to boot.
+[2026-01-08 18:24:22 +0000] [1] [INFO] Starting gunicorn 23.0.0
+[2026-01-08 18:24:22 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+[2026-01-08 18:24:22 +0000] [1] [INFO] Using worker: sync
+[2026-01-08 18:24:22 +0000] [2] [INFO] Booting worker with pid: 2
+[2026-01-08 18:24:23 +0000] [2] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+                ^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+                    ^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/util.py", line 423, in import_app
+    app = app(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^
+  File "/app/app.py", line 190, in create_app
+    from blueprints.hr import hr_bp
+  File "/app/blueprints/hr.py", line 16, in <module>
+    from utils.object_storage import ObjectStorageService
+  File "/app/utils/object_storage.py", line 5, in <module>
+    from google.cloud import storage
+ModuleNotFoundError: No module named 'google'
+[2026-01-08 18:24:23 +0000] [2] [INFO] Worker exiting (pid: 2)
+[2026-01-08 18:24:24 +0000] [1] [ERROR] Worker (pid:2) exited with code 3
+[2026-01-08 18:24:24 +0000] [1] [ERROR] Shutting down: Master
+[2026-01-08 18:24:24 +0000] [1] [ERROR] Reason: Worker failed to boot.
+[2026-01-08 18:24:26 +0000] [1] [INFO] Starting gunicorn 23.0.0
+[2026-01-08 18:24:26 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+[2026-01-08 18:24:26 +0000] [1] [INFO] Using worker: sync
+[2026-01-08 18:24:26 +0000] [2] [INFO] Booting worker with pid: 2
+[2026-01-08 18:24:27 +0000] [2] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+                ^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+                    ^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/util.py", line 423, in import_app
+    app = app(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^
+  File "/app/app.py", line 190, in create_app
+    from blueprints.hr import hr_bp
+  File "/app/blueprints/hr.py", line 16, in <module>
+    from utils.object_storage import ObjectStorageService
+  File "/app/utils/object_storage.py", line 5, in <module>
+    from google.cloud import storage
+ModuleNotFoundError: No module named 'google'
+[2026-01-08 18:24:27 +0000] [2] [INFO] Worker exiting (pid: 2)
+[2026-01-08 18:24:28 +0000] [1] [ERROR] Worker (pid:2) exited with code 3
+[2026-01-08 18:24:28 +0000] [1] [ERROR] Shutting down: Master
+[2026-01-08 18:24:28 +0000] [1] [ERROR] Reason: Worker failed to boot.
+[2026-01-08 18:24:29 +0000] [1] [INFO] Starting gunicorn 23.0.0
+[2026-01-08 18:24:29 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+[2026-01-08 18:24:29 +0000] [1] [INFO] Using worker: sync
+[2026-01-08 18:24:29 +0000] [2] [INFO] Booting worker with pid: 2
+[2026-01-08 18:24:31 +0000] [2] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+                ^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+                    ^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/gunicorn/util.py", line 423, in import_app
+    app = app(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^
+  File "/app/app.py", line 190, in create_app
+    from blueprints.hr import hr_bp
+  File "/app/blueprints/hr.py", line 16, in <module>
+    from utils.object_storage import ObjectStorageService
+  File "/app/utils/object_storage.py", line 5, in <module>
+    from google.cloud import storage

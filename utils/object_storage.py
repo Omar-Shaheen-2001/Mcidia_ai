@@ -2,10 +2,18 @@
 Object Storage Service for Replit
 Handles file uploads and downloads using Google Cloud Storage via Replit's sidecar
 """
-from google.cloud import storage
-from google.auth.credentials import Credentials
-from google.auth.transport import requests as google_requests
-from google.oauth2 import service_account
+try:
+    from google.cloud import storage
+    from google.auth.credentials import Credentials
+    from google.auth.transport import requests as google_requests
+    from google.oauth2 import service_account
+    GOOGLE_CLOUD_AVAILABLE = True
+except (ImportError, OSError):
+    GOOGLE_CLOUD_AVAILABLE = False
+    storage = None
+    Credentials = object
+    google_requests = None
+    service_account = None
 import requests
 import os
 from typing import Optional
@@ -19,6 +27,11 @@ class ReplitStorageCredentials(Credentials):
     """Custom credentials for Replit's object storage"""
     
     def __init__(self):
+        if not GOOGLE_CLOUD_AVAILABLE:
+            self._token = None
+            self._expiry = None
+            return
+            
         super().__init__()
         self._token = None
         self._expiry = None
@@ -27,6 +40,9 @@ class ReplitStorageCredentials(Credentials):
         
     def refresh(self, request):
         """Fetch token from Replit sidecar"""
+        if not GOOGLE_CLOUD_AVAILABLE:
+            return
+            
         try:
             response = requests.get(f"{REPLIT_SIDECAR_ENDPOINT}/credential", timeout=5)
             if response.ok:
@@ -44,6 +60,9 @@ class ReplitStorageCredentials(Credentials):
     
     def before_request(self, request, method, url, headers):
         """Add authorization header to requests"""
+        if not GOOGLE_CLOUD_AVAILABLE:
+            return
+            
         if self.expired:
             self.refresh(google_requests.Request())
         headers['Authorization'] = f'Bearer {self._token}'
@@ -80,13 +99,20 @@ class ObjectStorageService:
     
     def __init__(self):
         """Initialize storage client with Replit credentials"""
+        self.enabled = os.environ.get("REPLIT_OBJECT_STORAGE_ENABLED") == "1"
+        self.bucket_name = os.environ.get("REPLIT_OBJECT_STORAGE_BUCKET")
         self.client = None
-        try:
-            # Replit Object Storage is not available in this environment
-            # Fall back to session-based storage
+        
+        if self.enabled and self.bucket_name and GOOGLE_CLOUD_AVAILABLE:
+            try:
+                self.client = storage.Client(credentials=ReplitStorageCredentials())
+                self.bucket = self.client.bucket(self.bucket_name)
+            except Exception as e:
+                print(f"Error initializing Object Storage: {e}")
+                self.enabled = False
+        else:
+            # Replit Object Storage is not available or disabled
             print("Note: Object Storage initialization skipped - using session fallback")
-        except Exception as e:
-            print(f"Warning: Could not initialize object storage: {e}")
     
     def get_bucket_name(self) -> str:
         """Get bucket name from environment variable"""
