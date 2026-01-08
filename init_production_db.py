@@ -104,6 +104,7 @@ def _create_all_services():
     # Service 1: البناء المؤسسي
     print("      - Organizational Building")
     org_building = Service(
+        name='البناء المؤسسي والخدمات الإدارية',
         slug='organizational-building',
         title_ar='البناء المؤسسي والخدمات الإدارية',
         title_en='Organizational Building & Administrative Services',
@@ -121,6 +122,7 @@ def _create_all_services():
     org_offerings = [
         ServiceOffering(
             service_id=org_building.id,
+            name='التخطيط الاستراتيجي وبناء مؤشرات الأداء',
             slug='strategic-planning-kpis',
             title_ar='التخطيط الاستراتيجي وبناء مؤشرات الأداء',
             title_en='Strategic Planning & KPIs Development',
@@ -132,6 +134,7 @@ def _create_all_services():
         ),
         ServiceOffering(
             service_id=org_building.id,
+            name='بناء الهوية الاستراتيجية',
             slug='strategic-identity',
             title_ar='بناء الهوية الاستراتيجية',
             title_en='Strategic Identity Building',
@@ -143,6 +146,7 @@ def _create_all_services():
         ),
         ServiceOffering(
             service_id=org_building.id,
+            name='بناء إطار الحوكمة',
             slug='governance-framework',
             title_ar='بناء إطار الحوكمة',
             title_en='Governance Framework Development',
@@ -159,6 +163,7 @@ def _create_all_services():
     # Service 2: خدمات الموارد البشرية
     print("      - HR Services")
     hr_services = Service(
+        name='خدمات الموارد البشرية',
         slug='hr-services',
         title_ar='خدمات الموارد البشرية',
         title_en='Human Resources Services',
@@ -175,6 +180,7 @@ def _create_all_services():
     hr_offerings = [
         ServiceOffering(
             service_id=hr_services.id,
+            name='تصميم الهيكل التنظيمي',
             slug='org-structure-design',
             title_ar='تصميم الهيكل التنظيمي',
             title_en='Organizational Structure Design',
@@ -186,6 +192,7 @@ def _create_all_services():
         ),
         ServiceOffering(
             service_id=hr_services.id,
+            name='بناء الوصف الوظيفي',
             slug='job-description',
             title_ar='بناء الوصف الوظيفي',
             title_en='Job Description Development',
@@ -202,6 +209,7 @@ def _create_all_services():
     # Service 3: الخدمات المالية
     print("      - Finance Services")
     finance_services = Service(
+        name='الخدمات المالية والمحاسبية',
         slug='finance-services',
         title_ar='الخدمات المالية والمحاسبية',
         title_en='Financial & Accounting Services',
@@ -218,6 +226,7 @@ def _create_all_services():
     finance_offerings = [
         ServiceOffering(
             service_id=finance_services.id,
+            name='التحليل المالي',
             slug='financial-analysis',
             title_ar='التحليل المالي',
             title_en='Financial Analysis',
@@ -229,6 +238,7 @@ def _create_all_services():
         ),
         ServiceOffering(
             service_id=finance_services.id,
+            name='التخطيط المالي والميزانية',
             slug='budget-planning',
             title_ar='التخطيط المالي والميزانية',
             title_en='Budget Planning',
@@ -245,6 +255,7 @@ def _create_all_services():
     # Service 4: خدمات التسويق
     print("      - Marketing Services")
     marketing_services = Service(
+        name='خدمات التسويق',
         slug='marketing-services',
         title_ar='خدمات التسويق',
         title_en='Marketing Services',
@@ -261,6 +272,7 @@ def _create_all_services():
     marketing_offerings = [
         ServiceOffering(
             service_id=marketing_services.id,
+            name='استراتيجية التسويق',
             slug='marketing-strategy',
             title_ar='استراتيجية التسويق',
             title_en='Marketing Strategy',

@@ -1,0 +1,54 @@
+The above exception was the direct cause of the following exception:
+Traceback (most recent call last):
+  File "/app/init_production_db.py", line 75, in initialize_production_database
+    _create_all_services()
+  File "/app/init_production_db.py", line 118, in _create_all_services
+    db.session.flush()
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/orm/scoping.py", line 924, in flush
+    return self._proxied.flush(objects=objects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4331, in flush
+    self._flush(objects)
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4466, in _flush
+    with util.safe_reraise():
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4427, in _flush
+    flush_context.execute()
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.NotNullViolation) null value in column "name" of relation "services" violates not-null constraint
+DETAIL:  Failing row contains (1, null, organizational-building, البناء المؤسسي والخدمات الإدارية, Organizational Building & Administrative Services, null, خدمات شاملة لبناء وتطوير البنية ال..., Comprehensive services for building and developing organizationa..., fa-building, null, #0A2756, 1, t, 2026-01-08 18:42:27.269996, 2026-01-08 18:42:27.27).
+[SQL: INSERT INTO services (name, slug, title_ar, title_en, description, description_ar, description_en, icon, category, color, display_order, is_active, created_at, updated_at) VALUES (%(name)s, %(slug)s, %(title_ar)s, %(title_en)s, %(description)s, %(description_ar)s, %(description_en)s, %(icon)s, %(category)s, %(color)s, %(display_order)s, %(is_active)s, %(created_at)s, %(updated_at)s) RETURNING services.id]
+[parameters: {'name': None, 'slug': 'organizational-building', 'title_ar': 'البناء المؤسسي والخدمات الإدارية', 'title_en': 'Organizational Building & Administrative Services', 'description': None, 'description_ar': 'خدمات شاملة لبناء وتطوير البنية المؤسسية والإدارية', 'description_en': 'Comprehensive services for building and developing organizational and administrative structure', 'icon': 'fa-building', 'category': None, 'color': '#0A2756', 'display_order': 1, 'is_active': True, 'created_at': datetime.datetime(2026, 1, 8, 18, 42, 27, 269996), 'updated_at': datetime.datetime(2026, 1, 8, 18, 42, 27, 270000)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+⚠️  WARNING: Automatic initialization failed!
+   Please run manually: python init_production_db.py
+======================================================================
