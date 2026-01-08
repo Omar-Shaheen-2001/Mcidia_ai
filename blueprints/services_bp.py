@@ -11,7 +11,7 @@ from utils.ai_providers.ai_manager import AIManager
 try:
     from weasyprint import HTML
     WEASYPRINT_AVAILABLE = True
-except ImportError:
+except (ImportError, OSError):
     WEASYPRINT_AVAILABLE = False
     HTML = None
 from openpyxl import Workbook

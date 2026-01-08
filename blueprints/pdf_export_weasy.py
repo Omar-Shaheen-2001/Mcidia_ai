@@ -3,7 +3,7 @@ from flask import render_template_string
 try:
     from weasyprint import HTML
     WEASYPRINT_AVAILABLE = True
-except ImportError:
+except (ImportError, OSError):
     WEASYPRINT_AVAILABLE = False
     HTML = None
 from io import BytesIO

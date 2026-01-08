@@ -5,7 +5,7 @@ from models import User, Project, AILog, Transaction, Service, ServiceOffering, 
 try:
     from weasyprint import HTML
     WEASYPRINT_AVAILABLE = True
-except Exception:
+except (ImportError, OSError):
     WEASYPRINT_AVAILABLE = False
     HTML = None
 from openpyxl import Workbook
