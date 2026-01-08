@@ -2,7 +2,11 @@ import os
 from openai import OpenAI
 
 # the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+api_key = os.getenv('OPENAI_API_KEY')
+if not api_key:
+    # Use a dummy key if not provided to avoid crash during initialization
+    api_key = "sk-placeholder-for-initialization"
+client = OpenAI(api_key=api_key)
 
 def llm_chat(system_prompt, user_message, response_format="text"):
     """
