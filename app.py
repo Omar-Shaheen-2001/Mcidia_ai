@@ -185,7 +185,6 @@ def create_app():
     
     # Register blueprints
     from blueprints.auth import auth_bp
-    from blueprints.dashboard import dashboard_bp
     from blueprints.profile import profile_bp
     from blueprints.strategy import strategy_bp
     from blueprints.hr import hr_bp
@@ -210,11 +209,20 @@ def create_app():
     from blueprints.knowledge_rag import knowledge_rag_bp
     from blueprints.user_notifications import user_notifications_bp
     
+    # Try to load dashboard blueprint with WeasyPrint safely
+    try:
+        from blueprints.dashboard import dashboard_bp
+        app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
+        print("✅ Dashboard blueprint loaded successfully")
+    except Exception as e:
+        print(f"⚠️ Warning: Could not load dashboard blueprint (PDF generation may be unavailable): {e}")
+    
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
     app.register_blueprint(profile_bp)
     app.register_blueprint(services_bp)
+    app.register_blueprint(org_dashboard_bp)
+    app.register_blueprint(member_dashboard_bp)
     app.register_blueprint(strategy_bp, url_prefix='/strategy')
     app.register_blueprint(strategic_planning_bp, url_prefix='/services/organizational-building/strategic-planning-kpis')
     app.register_blueprint(strategic_identity_bp, url_prefix='/services/organizational-building/strategic-identity')
@@ -228,8 +236,6 @@ def create_app():
     app.register_blueprint(knowledge_rag_bp, url_prefix='/api')
     app.register_blueprint(billing_bp, url_prefix='/billing')
     app.register_blueprint(admin_bp, url_prefix='/admin')
-    app.register_blueprint(org_dashboard_bp)
-    app.register_blueprint(member_dashboard_bp)
     app.register_blueprint(erp_bp)
     app.register_blueprint(hr_module_bp)
     app.register_blueprint(settings_bp, url_prefix='/admin/settings')
@@ -250,36 +256,36 @@ def create_app():
         
         # Step 3: Auto-initialize production database if empty
         from models import User, Service
-        user_count = db.session.query(User).count()
-        service_count = db.session.query(Service).count()
-        
-        print(f"\n📊 Database Status: {user_count} users, {service_count} services")
-        
-        if user_count == 0 or service_count == 0:
-            print("\n" + "=" * 70)
-            print("🔍 FIRST TIME DEPLOYMENT DETECTED!")
-            print("   Initializing production database...")
-            print("=" * 70)
+        try:
+            user_count = db.session.query(User).count()
+            service_count = db.session.query(Service).count()
             
-            try:
-                from init_production_db import initialize_production_database
-                success = initialize_production_database()
-                
-                if not success:
-                    print("\n⚠️  WARNING: Automatic initialization failed!")
-                    print("   Please run manually: python init_production_db.py")
-                    print("=" * 70)
-                    
-            except Exception as e:
-                print(f"\n❌ ERROR: Auto-initialization failed: {e}")
-                print("\n📝 MANUAL SETUP REQUIRED:")
-                print("   Run: python init_production_db.py")
+            print(f"\n📊 Database Status: {user_count} users, {service_count} services")
+            
+            if user_count == 0 or service_count == 0:
+                print("\n" + "=" * 70)
+                print("🔍 FIRST TIME DEPLOYMENT DETECTED!")
+                print("   Initializing production database...")
                 print("=" * 70)
-                import traceback
-                traceback.print_exc()
-        else:
-            print("✅ Database already initialized")
-            print(f"   Users: {user_count}, Services: {service_count}")
+                
+                try:
+                    from init_production_db import initialize_production_database
+                    success = initialize_production_database()
+                    
+                    if not success:
+                        print("\n⚠️  WARNING: Automatic initialization failed!")
+                        print("   Please run manually: python init_production_db.py")
+                        print("=" * 70)
+                        
+                except Exception as e:
+                    print(f"\n❌ ERROR: Auto-initialization failed: {e}")
+                    print("\n📝 MANUAL SETUP REQUIRED:")
+                    print("   Run: python init_production_db.py")
+                    print("=" * 70)
+            else:
+                print("✅ Database already initialized")
+        except Exception as e:
+            print(f"⚠️ Error checking database status: {e}")
     
     return app
 
