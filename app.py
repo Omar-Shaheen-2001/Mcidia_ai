@@ -187,7 +187,8 @@ def create_app():
     from blueprints.auth import auth_bp
     from blueprints.profile import profile_bp
     from blueprints.strategy import strategy_bp
-    from blueprints.hr import hr_bp
+    # Move HR import inside the app factory or import it safely
+    # We'll keep the SAFE import logic I added earlier but ensure the initial import is removed
     from blueprints.finance import finance_bp
     from blueprints.marketing import marketing_bp
     from blueprints.knowledge import knowledge_bp
