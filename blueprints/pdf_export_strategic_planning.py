@@ -1,6 +1,11 @@
 """PDF Export using WeasyPrint for Strategic Planning & KPIs Module"""
 from flask import render_template_string
-from weasyprint import HTML
+try:
+    from weasyprint import HTML
+    WEASYPRINT_AVAILABLE = True
+except ImportError:
+    WEASYPRINT_AVAILABLE = False
+    HTML = None
 
 def generate_strategic_plan_pdf(plan, kpis, initiatives, swot, pestel, goals, values, lang='ar'):
     """Generate Strategic Planning PDF using WeasyPrint with Google Fonts Cairo"""

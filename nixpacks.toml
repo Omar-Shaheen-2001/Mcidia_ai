@@ -25,5 +25,5 @@ cmds = ["python -m venv .venv", ". .venv/bin/activate && pip install -r requirem
 
 [variables]
 PYTHONUNBUFFERED = "1"
-LD_LIBRARY_PATH = "/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu:/usr/lib"
+LD_LIBRARY_PATH = "/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu:/usr/lib:/usr/local/lib"
 GOBJECT_INTROSPECTION_LIBDIR = "/usr/lib/x86_64-linux-gnu"

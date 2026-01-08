@@ -1,6 +1,11 @@
 """PDF Export using WeasyPrint (HTML/CSS) for better Arabic support"""
 from flask import render_template_string
-from weasyprint import HTML
+try:
+    from weasyprint import HTML
+    WEASYPRINT_AVAILABLE = True
+except ImportError:
+    WEASYPRINT_AVAILABLE = False
+    HTML = None
 from io import BytesIO
 
 def generate_pdf_weasy(project, objectives, initiatives, swot, values, themes):

@@ -8,7 +8,12 @@ from datetime import datetime
 from io import BytesIO
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-from weasyprint import HTML, CSS
+try:
+    from weasyprint import HTML, CSS
+    WEASYPRINT_AVAILABLE = True
+except ImportError:
+    WEASYPRINT_AVAILABLE = False
+    HTML, CSS = None, None
 
 users_bp = Blueprint('users', __name__, url_prefix='/users')
 

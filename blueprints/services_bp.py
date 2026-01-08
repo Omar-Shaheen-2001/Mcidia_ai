@@ -8,7 +8,12 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import Service, ServiceOffering, User, Project, AILog
 from utils.decorators import login_required
 from utils.ai_providers.ai_manager import AIManager
-from weasyprint import HTML
+try:
+    from weasyprint import HTML
+    WEASYPRINT_AVAILABLE = True
+except ImportError:
+    WEASYPRINT_AVAILABLE = False
+    HTML = None
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from io import BytesIO

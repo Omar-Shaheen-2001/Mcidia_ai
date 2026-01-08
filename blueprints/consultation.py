@@ -5,7 +5,12 @@ from models import AILog, ChatSession, Service
 from utils.ai_providers.ai_manager import AIManager
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from weasyprint import HTML
+try:
+    from weasyprint import HTML
+    WEASYPRINT_AVAILABLE = True
+except ImportError:
+    WEASYPRINT_AVAILABLE = False
+    HTML = None
 from io import BytesIO
 import json
 import time

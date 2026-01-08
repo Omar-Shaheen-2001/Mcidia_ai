@@ -215,7 +215,13 @@ def create_app():
         app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
         print("✅ Dashboard blueprint loaded successfully")
     except Exception as e:
-        print(f"⚠️ Warning: Could not load dashboard blueprint (PDF generation may be unavailable): {e}")
+        print(f"⚠️ Warning: Could not load dashboard blueprint: {e}")
+        # Re-import without weasyprint dependency if it fails
+        import sys
+        if 'blueprints.dashboard' in sys.modules:
+            del sys.modules['blueprints.dashboard']
+        from blueprints.dashboard import dashboard_bp
+        app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
     
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')

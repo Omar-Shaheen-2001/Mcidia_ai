@@ -2,7 +2,12 @@ from flask import Blueprint, render_template, session, current_app, redirect, ur
 from flask_jwt_extended import get_jwt_identity
 from utils.decorators import login_required
 from models import User, Project, AILog, Transaction, Service, ServiceOffering, ChatSession
-from weasyprint import HTML
+try:
+    from weasyprint import HTML
+    WEASYPRINT_AVAILABLE = True
+except Exception:
+    WEASYPRINT_AVAILABLE = False
+    HTML = None
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from io import BytesIO
@@ -266,15 +271,24 @@ def export_project_pdf(project_id):
         html_content = _generate_project_html(project, service, offering, project_data, lang)
         
         # Convert to PDF using WeasyPrint
-        pdf_file = HTML(string=html_content).write_pdf()
-        
-        # Create response
-        response = make_response(pdf_file)
-        response.headers['Content-Type'] = 'application/pdf'
-        filename = f"consultation_{project_id}.pdf"
-        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
-        
-        return response
+        if WEASYPRINT_AVAILABLE:
+            try:
+                pdf_file = HTML(string=html_content).write_pdf()
+                
+                # Create response
+                response = make_response(pdf_file)
+                response.headers['Content-Type'] = 'application/pdf'
+                filename = f"consultation_{project_id}.pdf"
+                response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+                
+                return response
+            except Exception as e:
+                current_app.logger.error(f"PDF generation error: {str(e)}")
+                flash("حدث خطأ أثناء إنشاء ملف PDF (نقص في مكتبات النظام).", "danger")
+                return redirect(url_for('dashboard.project_view', project_id=project_id))
+        else:
+            flash("تصدير PDF غير متاح حالياً على هذا الخادم (نقص في مكتبات النظام).", "warning")
+            return redirect(url_for('dashboard.project_view', project_id=project_id))
         
     except Exception as e:
         current_app.logger.error(f"PDF export error: {str(e)}")

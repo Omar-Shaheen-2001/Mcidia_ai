@@ -6,7 +6,12 @@ from sqlalchemy import func
 from datetime import datetime
 import json
 from io import BytesIO
-from weasyprint import HTML, CSS
+try:
+    from weasyprint import HTML, CSS
+    WEASYPRINT_AVAILABLE = True
+except ImportError:
+    WEASYPRINT_AVAILABLE = False
+    HTML, CSS = None, None
 
 consultations_bp = Blueprint('consultations_admin', __name__, url_prefix='/consultations')
 
