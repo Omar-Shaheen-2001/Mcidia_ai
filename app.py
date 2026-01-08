@@ -56,6 +56,10 @@ def create_app():
     
     # Handle Railway/Production Database URL
     db_url = os.getenv('DATABASE_URL')
+    
+    # If not in environment, try to load from .env file explicitly if needed 
+    # (load_dotenv() at the top already handles this usually)
+    
     if not db_url:
         # Check for individual components if DATABASE_URL is missing
         pg_user = os.getenv('PGUSER')
@@ -66,24 +70,25 @@ def create_app():
         if pg_user and pg_pass and pg_host and pg_db:
             db_url = f"postgresql://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}"
     
+    # Final check - if we have a URL, use it, otherwise show instructions
     if db_url:
         app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace('postgres://', 'postgresql://')
     else:
-        # No database URL - raise error with helpful message
-        raise ValueError(
-            "\n\n"
-            "=" * 60 + "\n"
-            "DATABASE CONNECTION ERROR\n"
-            "=" * 60 + "\n\n"
-            "DATABASE_URL environment variable is not set!\n\n"
-            "For Railway deployment:\n"
-            "1. Add a PostgreSQL database to your Railway project\n"
-            "2. Railway will automatically set DATABASE_URL\n"
-            "   OR set it manually in Variables tab\n\n"
-            "Required format:\n"
-            "postgresql://user:password@host:port/database\n"
-            "=" * 60 + "\n"
-        )
+        # Check if we are in local development (Replit/Local)
+        # In local development, we might want to use a default sqlite if no DATABASE_URL is provided
+        if not os.getenv('RAILWAY_ENVIRONMENT'):
+             app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
+        else:
+            # Production without database - raise error
+            raise ValueError(
+                "\n\n"
+                "=" * 60 + "\n"
+                "DATABASE CONNECTION ERROR\n"
+                "=" * 60 + "\n\n"
+                "DATABASE_URL environment variable is not set!\n"
+                "Please add a PostgreSQL database to your Railway project.\n"
+                "=" * 60 + "\n"
+            )
         
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
