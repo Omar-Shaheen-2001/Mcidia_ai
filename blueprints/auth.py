@@ -69,7 +69,12 @@ def register():
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     from datetime import timedelta
-    from user_agents import parse
+    try:
+        from user_agents import parse
+        USER_AGENTS_AVAILABLE = True
+    except (ImportError, OSError):
+        USER_AGENTS_AVAILABLE = False
+        parse = None
     
     if request.method == 'POST':
         db = current_app.extensions['sqlalchemy']
@@ -92,9 +97,17 @@ def login():
             
             # Detect device type from User-Agent
             user_agent = request.headers.get('User-Agent', '')
-            ua = parse(user_agent)
-            device_type = ua.device.family or 'Unknown'
-            if not device_type or device_type == 'Other':
+            device_type = 'Desktop' # Default
+            browser_family = 'Unknown'
+            os_family = 'Unknown'
+            
+            if USER_AGENTS_AVAILABLE and parse:
+                ua = parse(user_agent)
+                device_type = ua.device.family or 'Unknown'
+                browser_family = ua.browser.family or 'Unknown'
+                os_family = ua.os.family or 'Unknown'
+                
+            if not device_type or device_type == 'Other' or device_type == 'Unknown':
                 if 'Mobile' in user_agent or 'Android' in user_agent:
                     device_type = 'Mobile'
                 elif 'iPad' in user_agent or 'Tablet' in user_agent:
@@ -118,8 +131,8 @@ def login():
                 'device': device_type,
                 'user_name': user.username,
                 'user_email': user.email,
-                'browser': ua.browser.family if ua.browser.family else 'Unknown',
-                'os': ua.os.family if ua.os.family else 'Unknown'
+                'browser': browser_family,
+                'os': os_family
             }
             
             # Create login notification

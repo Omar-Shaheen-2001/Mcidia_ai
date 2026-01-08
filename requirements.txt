@@ -26,3 +26,4 @@ weasyprint
 google-cloud-storage
 google-auth
 google-api-python-client
+user-agents
