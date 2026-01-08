@@ -2,6 +2,7 @@
 builder = "nixpacks"
 
 [phases.setup]
+nixPkgs = ["...", "pango", "gobject-introspection", "libglib", "harfbuzz", "fontconfig"]
 aptPkgs = [
   "libpango-1.0-0",
   "libpangocairo-1.0-0",
@@ -9,5 +10,7 @@ aptPkgs = [
   "libglib2.0-0",
   "libgobject-2.0-0",
   "shared-mime-info",
-  "libffi-dev"
+  "libffi-dev",
+  "libcairo2",
+  "libpixman-1-0"
 ]
